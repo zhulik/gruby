@@ -301,8 +301,7 @@ func (m *Mrb) DefineClass(name string, super *Class) *Class {
 	cs := C.CString(name)
 	defer C.free(unsafe.Pointer(cs))
 
-	return newClass(
-		m, C.mrb_define_class(m.state, cs, super.class))
+	return newClass(m, C.mrb_define_class(m.state, cs, super.class))
 }
 
 // DefineClassUnder defines a new class under another class.

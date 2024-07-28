@@ -1,4 +1,4 @@
-MRUBY_COMMIT ?= 2.0.0
+MRUBY_COMMIT ?= 2.1.0
 MRUBY_VENDOR_DIR ?= mruby-build
 
 all: libmruby.a test
