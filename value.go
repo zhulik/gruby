@@ -145,7 +145,7 @@ func (v *MrbValue) SetProcTargetClass(c *Class) {
 
 // Type returns the ValueType of the MrbValue. See the constants table.
 func (v *MrbValue) Type() ValueType {
-	if C._go_mrb_nil_p(v.value) == 1 {
+	if C._go_mrb_bool2int(C._go_mrb_nil_p(v.value)) == 1 {
 		return TypeNil
 	}
 
@@ -207,7 +207,7 @@ func (v *MrbValue) Hash() *Hash {
 // String returns the "to_s" result of this value.
 func (v *MrbValue) String() string {
 	value := C.mrb_obj_as_string(v.state, v.value)
-	result := C.GoString(C.mrb_string_value_ptr(v.state, value))
+	result := C.GoString(C._go_RSTRING_PTR(value))
 	return result
 }
 

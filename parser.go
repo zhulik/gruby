@@ -25,7 +25,7 @@ func NewParser(m *Mrb) *Parser {
 
 	// Set capture_errors to true so we don't go just printing things
 	// out to stdout.
-	C._go_mrb_parser_set_capture_errors(p, 1)
+	C._go_mrb_parser_set_capture_errors(p, C._go_mrb_int2bool(1))
 
 	return &Parser{
 		mrb:    m,

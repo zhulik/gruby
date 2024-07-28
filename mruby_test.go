@@ -215,7 +215,7 @@ func TestMrbGetArgs(t *testing.T) {
 		},
 
 		{
-			`() { }`,
+			`() {}`,
 			[]ValueType{TypeProc},
 			nil,
 		},
@@ -250,8 +250,9 @@ func TestMrbGetArgs(t *testing.T) {
 				mrb := NewMrb()
 				defer mrb.Close()
 				class := mrb.DefineClass("Hello", mrb.ObjectClass())
-				class.DefineClassMethod("test", testFunc, ArgsAny())
-				_, err := mrb.LoadString(fmt.Sprintf("Hello.test%s", tc.args))
+				class.DefineClassMethod("test", testFunc, ArgsAny()|ArgsBlock())
+				cmd := fmt.Sprintf("Hello.test%s", tc.args)
+				_, err := mrb.LoadString(cmd)
 				if err != nil {
 					errChan <- fmt.Errorf("err: %s", err)
 					return
@@ -650,16 +651,16 @@ func TestMrbStackedException(t *testing.T) {
 	mrb.TopSelf().SingletonClass().DefineMethod("myeval", evalFunc, ArgsBlock())
 
 	// TODO: fix me and enable back
-	// result, err := mrb.LoadString("myeval { raise 'foo' }")
-	// if err == nil {
-	// 	t.Fatal("did not error")
-	// 	return
-	// }
+	result, err := mrb.LoadString("myeval { raise 'foo' }")
+	if err == nil {
+		t.Fatal("did not error")
+		return
+	}
 
-	// if result != nil {
-	// 	t.Fatal("result was not cleared")
-	// 	return
-	// }
+	if result != nil {
+		t.Fatal("result was not cleared")
+		return
+	}
 
-	// mrb.Close()
+	mrb.Close()
 }

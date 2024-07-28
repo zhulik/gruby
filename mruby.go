@@ -151,7 +151,9 @@ func (m *Mrb) ConstDefined(name string, scope Value) bool {
 	scopeV := scope.MrbValue(m).value
 	b := C.mrb_const_defined(
 		m.state, scopeV, C.mrb_intern_cstr(m.state, cs))
-	return C.ushort(b) != 0
+
+	// TODO: a go helper funciton?
+	return C._go_mrb_bool2int(b) != 0
 }
 
 // FullGC executes a complete GC cycle on the VM.

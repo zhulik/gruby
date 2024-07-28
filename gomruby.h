@@ -22,6 +22,7 @@
 #include <mruby/throw.h>
 #include <mruby/value.h>
 #include <mruby/variable.h>
+#include <mruby/internal.h>
 
 // (erikh) this can be set in mruby/mrbconfig.h so we can default it here.
 // XXX I don't know how this actually plays out when the config is modified.
@@ -114,14 +115,14 @@ static inline int _go_mrb_get_args_all(mrb_state *s)
   mrb_bool append;
   int argc, i;
 
-  mrb_get_args(s, "*&?", &argv, &argc, &block, &append);
+  mrb_get_args(s, "*&", &argv, &argc, &block);
 
   for (i = 0; i < argc; i++)
   {
     goGetArgAppend(argv[i]);
   }
 
-  if (append == FALSE || mrb_type(block) == MRB_TT_FALSE)
+  if (mrb_nil_p(block))
   {
     return argc;
   }
@@ -326,6 +327,21 @@ static inline void _go_mrb_gc_arena_restore(mrb_state *mrb, int idx)
 static inline int _go_RARRAY_LEN(mrb_value val)
 {
   return RARRAY_LEN(val);
+}
+
+static inline int _go_mrb_bool2int(mrb_bool b)
+{
+  return (int)b;
+}
+
+static inline mrb_bool _go_mrb_int2bool(int b)
+{
+  return (mrb_bool)b;
+}
+
+static inline char *_go_RSTRING_PTR(mrb_value val)
+{
+  return RSTRING_PTR(val);
 }
 
 #endif
