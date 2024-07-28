@@ -219,7 +219,7 @@ func (m *Mrb) Run(v Value, self Value) (*MrbValue, error) {
 	mrbSelf := self.MrbValue(m)
 
 	proc := C._go_mrb_proc_ptr(mrbV.value)
-	value := C.mrb_run(m.state, proc, mrbSelf.value)
+	value := C.mrb_vm_run(m.state, proc, mrbSelf.value, 0)
 
 	if exc := checkException(m.state); exc != nil {
 		return nil, exc
