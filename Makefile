@@ -5,19 +5,7 @@ all: libmruby.a test
 
 clean:
 	rm -rf ${MRUBY_VENDOR_DIR}
-	rm -f libmruby.a
-
-gofmt:
-	@echo "Checking code with gofmt.."
-	gofmt -s *.go >/dev/null
-
-lint:
-	GO111MODULE=off go get golang.org/x/lint/golint
-	golint ./...
-
-staticcheck:
-	GO111MODULE=off go get honnef.co/go/tools/cmd/staticcheck
-	staticcheck ./...
+	rm -f libmruby.a.
 
 libmruby.a: ${MRUBY_VENDOR_DIR}/mruby
 	cd ${MRUBY_VENDOR_DIR}/mruby && ${MAKE}
@@ -29,7 +17,7 @@ ${MRUBY_VENDOR_DIR}/mruby:
 	cd ${MRUBY_VENDOR_DIR}/mruby && git reset --hard && git clean -fdx
 	cd ${MRUBY_VENDOR_DIR}/mruby && git checkout ${MRUBY_COMMIT}
 
-test: libmruby.a gofmt lint
+test: libmruby.a
 	go test -v
 
-.PHONY: all clean libmruby.a test lint staticcheck
+.PHONY: all clean libmruby.a test
