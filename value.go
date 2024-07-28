@@ -139,7 +139,8 @@ func (v *MrbValue) GCProtect() {
 // when this value is a proc.
 func (v *MrbValue) SetProcTargetClass(c *Class) {
 	proc := C._go_mrb_proc_ptr(v.value)
-	proc.target_class = c.class
+
+	*(**C.struct_RClass)(unsafe.Pointer(&proc.e[0])) = c.class
 }
 
 // Type returns the ValueType of the MrbValue. See the constants table.
@@ -253,7 +254,7 @@ func newExceptionValue(s *C.mrb_state) *Exception {
 	}
 
 	arenaIndex := C.mrb_gc_arena_save(s)
-	defer C.mrb_gc_arena_restore(s, C.int(arenaIndex))
+	defer C._go_mrb_gc_arena_restore(s, C.int(arenaIndex))
 
 	// Convert the RObject* to an mrb_value
 	value := C.mrb_obj_value(unsafe.Pointer(s.exc))

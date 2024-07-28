@@ -54,7 +54,7 @@ func NewMrb() *Mrb {
 //
 // See ArenaSave for more documentation.
 func (m *Mrb) ArenaRestore(idx ArenaIndex) {
-	C.mrb_gc_arena_restore(m.state, C.int(idx))
+	C._go_mrb_gc_arena_restore(m.state, C.int(idx))
 }
 
 // ArenaSave saves the index into the arena.

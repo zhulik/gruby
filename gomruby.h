@@ -313,4 +313,19 @@ static inline mrb_value _go_mrb_gv_get(mrb_state *m, mrb_sym sym)
   return mrb_gv_get(m, sym);
 }
 
+static inline int _go_mrb_gc_arena_save(mrb_state *mrb)
+{
+  return mrb_gc_arena_save(mrb);
+}
+
+static inline void _go_mrb_gc_arena_restore(mrb_state *mrb, int idx)
+{
+  mrb_gc_arena_restore(mrb, idx);
+}
+
+static inline int _go_RARRAY_LEN(mrb_value val)
+{
+  return RARRAY_LEN(val);
+}
+
 #endif

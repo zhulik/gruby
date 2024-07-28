@@ -649,7 +649,7 @@ func TestMrbStackedException(t *testing.T) {
 
 	mrb.TopSelf().SingletonClass().DefineMethod("myeval", evalFunc, ArgsBlock())
 
-	// Temporarily disabled
+	// TODO: fix me and enable back
 	// result, err := mrb.LoadString("myeval { raise 'foo' }")
 	// if err == nil {
 	// 	t.Fatal("did not error")
