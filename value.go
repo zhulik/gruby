@@ -253,7 +253,7 @@ func newExceptionValue(s *C.mrb_state) *Exception {
 		panic("exception value init without exception")
 	}
 
-	arenaIndex := C.mrb_gc_arena_save(s)
+	arenaIndex := C._go_mrb_gc_arena_save(s)
 	defer C._go_mrb_gc_arena_restore(s, C.int(arenaIndex))
 
 	// Convert the RObject* to an mrb_value

@@ -76,7 +76,7 @@ func (m *Mrb) ArenaRestore(idx ArenaIndex) {
 // period of time, you might not have to worry about saving/restoring the
 // arena.
 func (m *Mrb) ArenaSave() ArenaIndex {
-	return ArenaIndex(C.mrb_gc_arena_save(m.state))
+	return ArenaIndex(C._go_mrb_gc_arena_save(m.state))
 }
 
 // EnableGC enables the garbage collector for this mruby instance. It returns
