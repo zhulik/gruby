@@ -1,6 +1,8 @@
 package mruby
 
-import "unsafe"
+import (
+	"unsafe"
+)
 
 // #cgo CFLAGS: -Imruby-build/mruby/include
 // #cgo LDFLAGS: ${SRCDIR}/libmruby.a -lm
@@ -243,7 +245,7 @@ func (m *Mrb) RunWithContext(v Value, self Value, stackKeep int) (int, *MrbValue
 
 	i := C.int(stackKeep)
 
-	value := C._go_mrb_context_run(m.state, proc, mrbSelf.value, &i)
+	value := C._go_mrb_vm_run(m.state, proc, mrbSelf.value, &i)
 
 	if exc := checkException(m.state); exc != nil {
 		return stackKeep, nil, exc

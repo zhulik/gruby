@@ -260,10 +260,13 @@ func newExceptionValue(s *C.mrb_state) *Exception {
 
 	// Retrieve and convert backtrace to []string (avoiding reflection in Decode)
 	var backtrace []string
-	mrbBacktrace := newValue(s, C.mrb_exc_backtrace(s, value)).Array()
-	for i := 0; i < mrbBacktrace.Len(); i++ {
-		ln, _ := mrbBacktrace.Get(i)
-		backtrace = append(backtrace, ln.String())
+	mrbBacktraceValue := newValue(s, C.mrb_exc_backtrace(s, value))
+	if mrbBacktraceValue.Type() == TypeArray {
+		mrbBacktrace := mrbBacktraceValue.Array()
+		for i := 0; i < mrbBacktrace.Len(); i++ {
+			ln, _ := mrbBacktrace.Get(i)
+			backtrace = append(backtrace, ln.String())
+		}
 	}
 
 	// Extract file + line from first backtrace line
