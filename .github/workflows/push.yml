@@ -32,6 +32,8 @@ jobs:
         golang: ["1.22"]
 
     steps:
+      - uses: actions/checkout@v4
+
       - name: Cache MRuby
         uses: actions/cache@v4
         with:
@@ -40,11 +42,10 @@ jobs:
             libmruby.a
           key: ${{ runner.os }}-${{ hashFiles('Makefile') }}
 
-      - uses: actions/checkout@v4
-
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.golang }}
+  
 
       - name: Run tests
         run: make test
