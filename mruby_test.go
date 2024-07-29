@@ -250,8 +250,7 @@ func TestMrbGetArgs(t *testing.T) {
 				defer mrb.Close()
 				class := mrb.DefineClass("Hello", mrb.ObjectClass())
 				class.DefineClassMethod("test", testFunc, ArgsAny()|ArgsBlock())
-				cmd := fmt.Sprintf("Hello.test%s", tc.args)
-				_, err := mrb.LoadString(cmd)
+				_, err := mrb.LoadString("Hello.test" + tc.args)
 				if err != nil {
 					errChan <- fmt.Errorf("err: %s", err)
 					return

@@ -37,7 +37,6 @@ linters:
     - inamedparam
     - wrapcheck
     - dupword
-    - perfsprint
 
 linters-settings:
   errcheck:

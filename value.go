@@ -5,6 +5,7 @@ package mruby
 import "C"
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -64,7 +65,7 @@ func (v *MrbValue) Call(method string, args ...Value) (Value, error) {
 // It is an error if args is empty or if there is no block on the end.
 func (v *MrbValue) CallBlock(method string, args ...Value) (Value, error) {
 	if len(args) == 0 {
-		return nil, fmt.Errorf("args must be non-empty and have a proc at the end")
+		return nil, errors.New("args must be non-empty and have a proc at the end")
 	}
 
 	n := len(args)
