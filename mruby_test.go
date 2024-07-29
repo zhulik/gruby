@@ -83,7 +83,7 @@ func TestMrbDefineClass_methodException(t *testing.T) {
 	cb := func(m *Mrb, self Value) (Value, Value) {
 		v, err := m.LoadString(`raise "exception"`)
 		if err != nil {
-			exc := err.(*Exception)
+			exc := err.(*ExceptionError)
 			return nil, exc.Value
 		}
 
@@ -250,8 +250,7 @@ func TestMrbGetArgs(t *testing.T) {
 				defer mrb.Close()
 				class := mrb.DefineClass("Hello", mrb.ObjectClass())
 				class.DefineClassMethod("test", testFunc, ArgsAny()|ArgsBlock())
-				cmd := fmt.Sprintf("Hello.test%s", tc.args)
-				_, err := mrb.LoadString(cmd)
+				_, err := mrb.LoadString("Hello.test" + tc.args)
 				if err != nil {
 					errChan <- fmt.Errorf("err: %s", err)
 					return
@@ -472,7 +471,7 @@ func TestMrbYieldException(t *testing.T) {
 	cb := func(m *Mrb, self Value) (Value, Value) {
 		result, err := m.Yield(m.GetArgs()[0])
 		if err != nil {
-			exc := err.(*Exception)
+			exc := err.(*ExceptionError)
 			return nil, exc.Value
 		}
 

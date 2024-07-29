@@ -11,6 +11,7 @@ linters:
     - wsl
     - nlreturn
     - godox
+    - dupword
 
     # TODO:
     - paralleltest
@@ -18,26 +19,14 @@ linters:
     - testpackage
     - intrange
     - ireturn
-    - mnd
     - errorlint
     - err113
-    - goconst
-    - gochecknoinits
     - forcetypeassert
-    - exhaustruct
     - errcheck
     - exhaustive
-    - errname
-    - gocritic
     - funlen
     - gocognit
-    - revive
     - cyclop
-    - gochecknoglobals
-    - inamedparam
-    - wrapcheck
-    - dupword
-    - perfsprint
 
 linters-settings:
   errcheck:
@@ -57,4 +46,4 @@ issues:
     - path: _test\.go
       linters:
         - revive
-        - wrapcheck
+        - goconst

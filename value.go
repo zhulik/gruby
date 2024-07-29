@@ -5,6 +5,7 @@ package mruby
 import "C"
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -64,7 +65,7 @@ func (v *MrbValue) Call(method string, args ...Value) (Value, error) {
 // It is an error if args is empty or if there is no block on the end.
 func (v *MrbValue) CallBlock(method string, args ...Value) (Value, error) {
 	if len(args) == 0 {
-		return nil, fmt.Errorf("args must be non-empty and have a proc at the end")
+		return nil, errors.New("args must be non-empty and have a proc at the end")
 	}
 
 	n := len(args)
@@ -148,9 +149,9 @@ func (v *MrbValue) CValue() C.mrb_value {
 	return v.value
 }
 
-// Exception is a special type of value that represents an error
+// ExceptionError is a special type of value that represents an error
 // and implements the Error interface.
-type Exception struct {
+type ExceptionError struct {
 	Value
 	File      string
 	Line      int
@@ -158,7 +159,7 @@ type Exception struct {
 	Backtrace []string
 }
 
-func (e *Exception) Error() string {
+func (e *ExceptionError) Error() string {
 	return e.Message
 }
 
@@ -236,7 +237,7 @@ func (v *MrbValue) SingletonClass() *Class {
 // Internal Functions
 //-------------------------------------------------------------------
 
-func newExceptionValue(s *C.mrb_state) *Exception {
+func newExceptionValue(s *C.mrb_state) *ExceptionError {
 	mrb := &Mrb{s}
 
 	if s.exc == nil {
@@ -265,14 +266,14 @@ func newExceptionValue(s *C.mrb_state) *Exception {
 	line := 0
 	if len(backtrace) > 0 {
 		fileAndLine := strings.Split(backtrace[0], ":")
-		if len(fileAndLine) >= 2 {
+		if len(fileAndLine) >= 2 { //nolint:mnd
 			file = fileAndLine[0]
 			line, _ = strconv.Atoi(fileAndLine[1])
 		}
 	}
 
 	result := mrb.value(value)
-	return &Exception{
+	return &ExceptionError{
 		Value:     result,
 		Message:   result.String(),
 		File:      file,

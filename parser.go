@@ -28,6 +28,7 @@ func NewParser(m *Mrb) *Parser {
 	C._go_mrb_parser_set_capture_errors(p, C._go_mrb_int2bool(1))
 
 	return &Parser{
+		code:   "",
 		mrb:    m,
 		parser: p,
 	}
