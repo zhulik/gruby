@@ -11,6 +11,7 @@ linters:
     - wsl
     - nlreturn
     - godox
+    - dupword
 
     # TODO:
     - paralleltest
@@ -27,16 +28,10 @@ linters:
     - exhaustruct
     - errcheck
     - exhaustive
-    - errname
-    - gocritic
+
     - funlen
     - gocognit
-    - revive
     - cyclop
-    - gochecknoglobals
-    - inamedparam
-    - wrapcheck
-    - dupword
 
 linters-settings:
   errcheck:

@@ -44,8 +44,8 @@ func ArgsOpt(n int) ArgSpec {
 // The global accumulator when Mrb.GetArgs is called. There is a
 // global lock around this so that the access to it is safe.
 var (
-	getArgAccumulator []C.mrb_value
-	getArgLock        = new(sync.Mutex)
+	getArgAccumulator []C.mrb_value     //nolint:gochecknoglobals
+	getArgLock        = new(sync.Mutex) //nolint:gochecknoglobals
 )
 
 //export goGetArgAppend

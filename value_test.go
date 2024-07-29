@@ -51,7 +51,7 @@ func TestExceptionBacktrace(t *testing.T) {
 		t.Fatalf("expected exception")
 	}
 
-	exc := err.(*Exception)
+	exc := err.(*ExceptionError)
 	if exc.Message != "Exception" {
 		t.Fatalf("bad exception message: %s", exc.Message)
 	}

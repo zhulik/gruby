@@ -140,7 +140,7 @@ func (d *decoder) decodeInt(name string, v Value, result reflect.Value) error {
 	case TypeString:
 		v, err := strconv.ParseInt(v.String(), 0, 0)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to decode int: %w", err)
 		}
 
 		result.SetInt(v)
@@ -441,12 +441,9 @@ func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error
 
 		tagValue := fieldType.Tag.Get(tagName)
 		tagParts := strings.SplitN(tagValue, ",", 2)
-		if len(tagParts) >= 2 {
-			switch tagParts[1] {
-			case "decodedFields":
-				decodedFieldsVal = append(decodedFieldsVal, field)
-				continue
-			}
+		if len(tagParts) >= 2 && tagParts[1] == "decodedFields" {
+			decodedFieldsVal = append(decodedFieldsVal, field)
+			continue
 		}
 
 		if tagParts[0] != "" {

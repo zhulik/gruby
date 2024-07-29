@@ -20,6 +20,6 @@ func testCallbackResult(t *testing.T, v Value) {
 
 func testCallbackException(m *Mrb, self Value) (Value, Value) {
 	_, e := m.LoadString(`raise 'Exception'`)
-	v := e.(*Exception)
+	v := e.(*ExceptionError)
 	return nil, v.Value
 }

@@ -149,9 +149,9 @@ func (v *MrbValue) CValue() C.mrb_value {
 	return v.value
 }
 
-// Exception is a special type of value that represents an error
+// ExceptionError is a special type of value that represents an error
 // and implements the Error interface.
-type Exception struct {
+type ExceptionError struct {
 	Value
 	File      string
 	Line      int
@@ -159,7 +159,7 @@ type Exception struct {
 	Backtrace []string
 }
 
-func (e *Exception) Error() string {
+func (e *ExceptionError) Error() string {
 	return e.Message
 }
 
@@ -237,7 +237,7 @@ func (v *MrbValue) SingletonClass() *Class {
 // Internal Functions
 //-------------------------------------------------------------------
 
-func newExceptionValue(s *C.mrb_state) *Exception {
+func newExceptionValue(s *C.mrb_state) *ExceptionError {
 	mrb := &Mrb{s}
 
 	if s.exc == nil {
@@ -273,7 +273,7 @@ func newExceptionValue(s *C.mrb_state) *Exception {
 	}
 
 	result := mrb.value(value)
-	return &Exception{
+	return &ExceptionError{
 		Value:     result,
 		Message:   result.String(),
 		File:      file,
