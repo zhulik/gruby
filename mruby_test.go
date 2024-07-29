@@ -236,7 +236,6 @@ func TestMrbGetArgs(t *testing.T) {
 	// lots of this effort is centered around testing multithreaded behavior.
 
 	for i := 0; i < 1000; i++ {
-
 		errChan := make(chan error, len(cases))
 
 		for _, tc := range cases {
@@ -368,6 +367,7 @@ func TestMrbInstanceVariable(t *testing.T) {
 		t.Fatalf("wrong value for Dog.@breed. expected: '%s', found: '%s'", Husky, value.String())
 	}
 }
+
 func TestMrbLoadString(t *testing.T) {
 	mrb := NewMrb()
 	defer mrb.Close()
@@ -501,7 +501,7 @@ func TestMrbRun(t *testing.T) {
 	context := NewCompileContext(mrb)
 	defer context.Close()
 
-	parser.Parse(`
+	_, err := parser.Parse(`
 		if $do_raise
 			raise "exception"
 		else
@@ -509,20 +509,29 @@ func TestMrbRun(t *testing.T) {
 		end`,
 		context,
 	)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	proc := parser.GenerateCode()
 
 	// Enable proc exception raising & verify
-	mrb.LoadString(`$do_raise = true`)
-	_, err := mrb.Run(proc, nil)
+	_, err = mrb.LoadString(`$do_raise = true`)
+	if err != nil {
+		t.Fatal(err)
+	}
 
+	_, err = mrb.Run(proc, nil)
 	if err == nil {
 		t.Fatalf("expected exception, %#v", err)
 	}
 
 	// Disable proc exception raising
 	// If we still have an exception, it wasn't cleared from the previous invocation.
-	mrb.LoadString(`$do_raise = false`)
+	_, err = mrb.LoadString(`$do_raise = false`)
+	if err != nil {
+		t.Fatal(err)
+	}
 	rval, err := mrb.Run(proc, nil)
 	if err != nil {
 		t.Fatalf("unexpected exception, %#v", err)
@@ -532,7 +541,10 @@ func TestMrbRun(t *testing.T) {
 		t.Fatalf("expected return value 'rval', got %#v", rval)
 	}
 
-	parser.Parse(`a = 10`, context)
+	_, err = parser.Parse(`a = 10`, context)
+	if err != nil {
+		t.Fatal(err)
+	}
 	proc = parser.GenerateCode()
 
 	stackKeep, _, err := mrb.RunWithContext(proc, nil, 0)
@@ -544,7 +556,11 @@ func TestMrbRun(t *testing.T) {
 		t.Fatalf("stack value was %d not 2; some variables may not have been captured", stackKeep)
 	}
 
-	parser.Parse(`a`, context)
+	_, err = parser.Parse(`a`, context)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	proc = parser.GenerateCode()
 
 	var ret *MrbValue

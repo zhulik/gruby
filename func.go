@@ -1,14 +1,14 @@
 package mruby
 
+// #include <stdlib.h>
+// #include "gomruby.h"
+import "C"
+
 import (
 	"fmt"
 	"sync"
 	"unsafe"
 )
-
-// #include <stdlib.h>
-// #include "gomruby.h"
-import "C"
 
 // Func is the signature of a function in Go that you use to expose to Ruby
 // code.
@@ -18,9 +18,11 @@ import "C"
 // The second return value is an exception, if any. This will be raised.
 type Func func(m *Mrb, self *MrbValue) (Value, Value)
 
-type classMethodMap map[*C.struct_RClass]*methods
-type methodMap map[C.mrb_sym]Func
-type stateMethodMap map[*C.mrb_state]*classMethods
+type (
+	classMethodMap map[*C.struct_RClass]*methods
+	methodMap      map[C.mrb_sym]Func
+	stateMethodMap map[*C.mrb_state]*classMethods
+)
 
 type classMethods struct {
 	Map   classMethodMap

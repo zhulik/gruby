@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-// This is the tag to use with structures to have settings for mruby
+// This is the tag to use with structures to have settings for mruby.
 const tagName = "mruby"
 
 // Decode converts the Ruby value to a Go value.
@@ -39,10 +39,9 @@ const tagName = "mruby"
 // Note that with structs you can use the `mruby` tag to specify the
 // Hash key or method name to call. Example:
 //
-//    type Foo struct {
-//        Field string `mruby:"read_field"`
-//    }
-//
+//	type Foo struct {
+//	    Field string `mruby:"read_field"`
+//	}
 func Decode(out interface{}, v *MrbValue) error {
 	// The out parameter must be a pointer since we must be
 	// able to write to it.
@@ -144,7 +143,7 @@ func (d *decoder) decodeInt(name string, v *MrbValue, result reflect.Value) erro
 			return err
 		}
 
-		result.SetInt(int64(v))
+		result.SetInt(v)
 	default:
 		return fmt.Errorf("%s: unknown type %v", name, t)
 	}
@@ -275,7 +274,6 @@ func (d *decoder) decodeMap(name string, v *MrbValue, result reflect.Value) erro
 
 		// Set the value on the map
 		resultMap.SetMapIndex(keyVal, val)
-
 	}
 
 	// Set the final map if we can
@@ -504,7 +502,7 @@ func decodeStructHashGetter(mrb *Mrb, h *Hash) decodeStructGetter {
 
 // decodeStructObjectMethods is a decodeStructGetter that reads values from
 // an object by calling methods.
-func decodeStructObjectMethods(mrb *Mrb, v *MrbValue) decodeStructGetter {
+func decodeStructObjectMethods(_ *Mrb, v *MrbValue) decodeStructGetter {
 	return func(key string) (*MrbValue, error) {
 		return v.Call(key)
 	}

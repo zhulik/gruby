@@ -1,0 +1,40 @@
+name: Push
+
+on: [push]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      
+      - name: Read .golangci-lint-version
+        id: golangci_lint_version
+        run: echo "version=$(cat .golangci-lint-version)" >> $GITHUB_OUTPUT
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v${{ steps.golangci_lint_version.outputs.version }}
+          args: --timeout=1m
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        golang: ["1.22"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.golang }}
+
+      - name: Run tests
+        run: make test

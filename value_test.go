@@ -10,7 +10,10 @@ func TestExceptionString_afterClose(t *testing.T) {
 	_, err := mrb.LoadString(`clearly a syntax error`)
 	mrb.Close()
 	// This panics before the bug fix that this test tests
-	err.Error()
+	str := err.Error()
+	if str != "undefined method 'error'" {
+		t.Fatalf("'%s'", str)
+	}
 }
 
 func TestExceptionBacktrace(t *testing.T) {
@@ -23,7 +26,7 @@ func TestExceptionBacktrace(t *testing.T) {
 	context.SetFilename("hello.rb")
 	defer context.Close()
 
-	parser.Parse(`
+	_, err := parser.Parse(`
 				def do_error
 					raise "Exception"
 				end
@@ -38,9 +41,12 @@ func TestExceptionBacktrace(t *testing.T) {
 
 				hop2
 			`, context)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	proc := parser.GenerateCode()
-	_, err := mrb.Run(proc, nil)
+	_, err = mrb.Run(proc, nil)
 	if err == nil {
 		t.Fatalf("expected exception")
 	}
