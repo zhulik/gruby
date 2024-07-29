@@ -43,7 +43,7 @@ func (p *Parser) Close() {
 
 // GenerateCode takes all the internal parser state and generates
 // executable Ruby code, returning the callable proc.
-func (p *Parser) GenerateCode() *MrbValue {
+func (p *Parser) GenerateCode() Value {
 	proc := C.mrb_generate_code(p.mrb.state, p.parser)
 	return newValue(p.mrb.state, C.mrb_obj_value(unsafe.Pointer(proc)))
 }

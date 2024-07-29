@@ -42,7 +42,7 @@ const tagName = "mruby"
 //	type Foo struct {
 //	    Field string `mruby:"read_field"`
 //	}
-func Decode(out interface{}, v *MrbValue) error {
+func Decode(out interface{}, v Value) error {
 	// The out parameter must be a pointer since we must be
 	// able to write to it.
 	val := reflect.ValueOf(out)
@@ -58,9 +58,9 @@ type decoder struct {
 	stack []reflect.Kind
 }
 
-type decodeStructGetter func(string) (*MrbValue, error)
+type decodeStructGetter func(string) (Value, error)
 
-func (d *decoder) decode(name string, v *MrbValue, result reflect.Value) error {
+func (d *decoder) decode(name string, v Value, result reflect.Value) error {
 	k := result
 
 	// If we have an interface with a valid value, we use that
@@ -109,7 +109,7 @@ func (d *decoder) decode(name string, v *MrbValue, result reflect.Value) error {
 		"%s: unknown kind to decode into: %s", name, k.Kind())
 }
 
-func (d *decoder) decodeBool(name string, v *MrbValue, result reflect.Value) error {
+func (d *decoder) decodeBool(name string, v Value, result reflect.Value) error {
 	switch t := v.Type(); t {
 	case TypeFalse:
 		result.Set(reflect.ValueOf(false))
@@ -122,10 +122,10 @@ func (d *decoder) decodeBool(name string, v *MrbValue, result reflect.Value) err
 	return nil
 }
 
-func (d *decoder) decodeFloat(name string, v *MrbValue, result reflect.Value) error {
+func (d *decoder) decodeFloat(name string, v Value, result reflect.Value) error {
 	switch t := v.Type(); t {
 	case TypeFloat:
-		result.Set(reflect.ValueOf(v.Float()))
+		result.Set(reflect.ValueOf(ToGo[float64](v)))
 	default:
 		return fmt.Errorf("%s: unknown type %v", name, t)
 	}
@@ -133,10 +133,10 @@ func (d *decoder) decodeFloat(name string, v *MrbValue, result reflect.Value) er
 	return nil
 }
 
-func (d *decoder) decodeInt(name string, v *MrbValue, result reflect.Value) error {
+func (d *decoder) decodeInt(name string, v Value, result reflect.Value) error {
 	switch t := v.Type(); t {
 	case TypeFixnum:
-		result.Set(reflect.ValueOf(v.Fixnum()))
+		result.Set(reflect.ValueOf(ToGo[int](v)))
 	case TypeString:
 		v, err := strconv.ParseInt(v.String(), 0, 0)
 		if err != nil {
@@ -151,7 +151,7 @@ func (d *decoder) decodeInt(name string, v *MrbValue, result reflect.Value) erro
 	return nil
 }
 
-func (d *decoder) decodeInterface(name string, v *MrbValue, result reflect.Value) error {
+func (d *decoder) decodeInterface(name string, v Value, result reflect.Value) error {
 	var set reflect.Value
 	redecode := true
 
@@ -205,7 +205,7 @@ func (d *decoder) decodeInterface(name string, v *MrbValue, result reflect.Value
 	return nil
 }
 
-func (d *decoder) decodeMap(name string, v *MrbValue, result reflect.Value) error {
+func (d *decoder) decodeMap(name string, v Value, result reflect.Value) error {
 	if v.Type() != TypeHash {
 		return fmt.Errorf("%s: not a hash type for map (%v)", name, v.Type())
 	}
@@ -238,12 +238,12 @@ func (d *decoder) decodeMap(name string, v *MrbValue, result reflect.Value) erro
 	defer mrb.ArenaRestore(mrb.ArenaSave())
 
 	// Get the hash of the value
-	hash := v.Hash()
+	hash := ToGo[*Hash](v)
 	keysRaw, err := hash.Keys()
 	if err != nil {
 		return err
 	}
-	keys := keysRaw.Array()
+	keys := ToGo[*Array](keysRaw)
 
 	for i := 0; i < keys.Len(); i++ {
 		// Get the key and value in Ruby. This should do no allocations.
@@ -281,7 +281,7 @@ func (d *decoder) decodeMap(name string, v *MrbValue, result reflect.Value) erro
 	return nil
 }
 
-func (d *decoder) decodePtr(name string, v *MrbValue, result reflect.Value) error {
+func (d *decoder) decodePtr(name string, v Value, result reflect.Value) error {
 	// Create an element of the concrete (non pointer) type and decode
 	// into that. Then set the value of the pointer to this type.
 	resultType := result.Type()
@@ -295,7 +295,7 @@ func (d *decoder) decodePtr(name string, v *MrbValue, result reflect.Value) erro
 	return nil
 }
 
-func (d *decoder) decodeSlice(name string, v *MrbValue, result reflect.Value) error {
+func (d *decoder) decodeSlice(name string, v Value, result reflect.Value) error {
 	// If we have an interface, then we can address the interface,
 	// but not the slice itself, so get the element but set the interface
 	set := result
@@ -313,7 +313,7 @@ func (d *decoder) decodeSlice(name string, v *MrbValue, result reflect.Value) er
 	}
 
 	// Get the hash of the value
-	array := v.Array()
+	array := ToGo[*Array](v)
 
 	for i := 0; i < array.Len(); i++ {
 		// Get the key and value in Ruby. This should do no allocations.
@@ -339,11 +339,11 @@ func (d *decoder) decodeSlice(name string, v *MrbValue, result reflect.Value) er
 	return nil
 }
 
-func (d *decoder) decodeString(name string, v *MrbValue, result reflect.Value) error {
+func (d *decoder) decodeString(name string, v Value, result reflect.Value) error {
 	switch t := v.Type(); t {
 	case TypeFixnum:
 		result.Set(reflect.ValueOf(
-			strconv.FormatInt(int64(v.Fixnum()), 10)).Convert(result.Type()))
+			strconv.FormatInt(int64(ToGo[int](v)), 10)).Convert(result.Type()))
 	case TypeString:
 		result.Set(reflect.ValueOf(v.String()).Convert(result.Type()))
 	default:
@@ -353,7 +353,7 @@ func (d *decoder) decodeString(name string, v *MrbValue, result reflect.Value) e
 	return nil
 }
 
-func (d *decoder) decodeStruct(name string, v *MrbValue, result reflect.Value) error {
+func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error {
 	var get decodeStructGetter
 
 	// We're going to be allocating some garbage, so set the arena
@@ -364,7 +364,7 @@ func (d *decoder) decodeStruct(name string, v *MrbValue, result reflect.Value) e
 	// Depending on the type, we need to generate a getter
 	switch t := v.Type(); t {
 	case TypeHash:
-		get = decodeStructHashGetter(mrb, v.Hash())
+		get = decodeStructHashGetter(mrb, ToGo[*Hash](v))
 	case TypeObject:
 		get = decodeStructObjectMethods(mrb, v)
 	default:
@@ -494,7 +494,7 @@ func (d *decoder) decodeStruct(name string, v *MrbValue, result reflect.Value) e
 // decodeStructHashGetter is a decodeStructGetter that reads values from
 // a hash.
 func decodeStructHashGetter(mrb *Mrb, h *Hash) decodeStructGetter {
-	return func(key string) (*MrbValue, error) {
+	return func(key string) (Value, error) {
 		rbKey := mrb.StringValue(key)
 		return h.Get(rbKey)
 	}
@@ -502,8 +502,8 @@ func decodeStructHashGetter(mrb *Mrb, h *Hash) decodeStructGetter {
 
 // decodeStructObjectMethods is a decodeStructGetter that reads values from
 // an object by calling methods.
-func decodeStructObjectMethods(_ *Mrb, v *MrbValue) decodeStructGetter {
-	return func(key string) (*MrbValue, error) {
+func decodeStructObjectMethods(_ *Mrb, v Value) decodeStructGetter {
+	return func(key string) (Value, error) {
 		return v.Call(key)
 	}
 }

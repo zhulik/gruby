@@ -13,10 +13,21 @@ import (
 
 // Value is an interface that should be implemented by anything that can
 // be represents as an mruby value.
-type Value interface {
+type Value interface { //nolint:interfacebloat
+	String() string
+
+	Mrb() *Mrb
 	CValue() C.mrb_value
-	MrbValue() *MrbValue
 	Type() ValueType
+	IsDead() bool
+	Class() *Class
+	SingletonClass() *Class
+
+	SetInstanceVariable(variable string, value Value)
+	GetInstanceVariable(variable string) Value
+
+	Call(method string, args ...Value) (Value, error)
+	CallBlock(method string, args ...Value) (Value, error)
 }
 
 // MrbValue is a "value" internally in mruby. A "value" is what mruby calls
@@ -28,14 +39,14 @@ type MrbValue struct {
 }
 
 // SetInstanceVariable sets an instance variable on this value.
-func (v *MrbValue) SetInstanceVariable(variable string, value *MrbValue) {
+func (v *MrbValue) SetInstanceVariable(variable string, value Value) {
 	cs := C.CString(variable)
 	defer C.free(unsafe.Pointer(cs))
-	C._go_mrb_iv_set(v.state, v.value, C.mrb_intern_cstr(v.state, cs), value.value)
+	C._go_mrb_iv_set(v.state, v.value, C.mrb_intern_cstr(v.state, cs), value.CValue())
 }
 
 // GetInstanceVariable gets an instance variable on this value.
-func (v *MrbValue) GetInstanceVariable(variable string) *MrbValue {
+func (v *MrbValue) GetInstanceVariable(variable string) Value {
 	cs := C.CString(variable)
 	defer C.free(unsafe.Pointer(cs))
 	return newValue(v.state, C._go_mrb_iv_get(v.state, v.value, C.mrb_intern_cstr(v.state, cs)))
@@ -43,14 +54,14 @@ func (v *MrbValue) GetInstanceVariable(variable string) *MrbValue {
 
 // Call calls a method with the given name and arguments on this
 // value.
-func (v *MrbValue) Call(method string, args ...Value) (*MrbValue, error) {
+func (v *MrbValue) Call(method string, args ...Value) (Value, error) {
 	return v.call(method, args, nil)
 }
 
 // CallBlock is the same as call except that it expects the last
 // argument to be a Proc that will be passed into the function call.
 // It is an error if args is empty or if there is no block on the end.
-func (v *MrbValue) CallBlock(method string, args ...Value) (*MrbValue, error) {
+func (v *MrbValue) CallBlock(method string, args ...Value) (Value, error) {
 	if len(args) == 0 {
 		return nil, fmt.Errorf("args must be non-empty and have a proc at the end")
 	}
@@ -59,7 +70,7 @@ func (v *MrbValue) CallBlock(method string, args ...Value) (*MrbValue, error) {
 	return v.call(method, args[:n-1], args[n-1])
 }
 
-func (v *MrbValue) call(method string, args []Value, block Value) (*MrbValue, error) {
+func (v *MrbValue) call(method string, args []Value, block Value) (Value, error) {
 	var argv []C.mrb_value
 	var argvPtr *C.mrb_value
 
@@ -104,11 +115,6 @@ func (v *MrbValue) IsDead() bool {
 	return C.ushort(C._go_isdead(v.state, v.value)) != 0
 }
 
-// MrbValue so that *MrbValue implements the "Value" interface.
-func (v *MrbValue) MrbValue() *MrbValue {
-	return v
-}
-
 // Mrb returns the Mrb state for this value.
 func (v *MrbValue) Mrb() *Mrb {
 	return &Mrb{v.state}
@@ -144,7 +150,7 @@ func (v *MrbValue) CValue() C.mrb_value {
 // Exception is a special type of value that represents an error
 // and implements the Error interface.
 type Exception struct {
-	*MrbValue
+	Value
 	File      string
 	Line      int
 	Message   string
@@ -155,49 +161,37 @@ func (e *Exception) Error() string {
 	return e.Message
 }
 
-func (e *Exception) String() string {
-	return e.Message
-}
-
 //-------------------------------------------------------------------
-// Type conversions to Go types
+// Type conversion to Go types
 //-------------------------------------------------------------------
 
-// Array returns the Array value of this value. If the Type of the MrbValue
-// is not a TypeArray, then this will panic. If the MrbValue has a
-// `to_a` function, you must call that manually prior to calling this
-// method.
-func (v *MrbValue) Array() *Array {
-	return &Array{v}
-}
+func ToGo[T any](value Value) T {
+	var t T
 
-// Fixnum returns the numeric value of this object if the Type() is
-// TypeFixnum. Calling this with any other type will result in undefined
-// behavior.
-func (v *MrbValue) Fixnum() int {
-	return int(C._go_mrb_fixnum(v.value))
-}
+	var result any
 
-// Float returns the numeric value of this object if the Type() is
-// TypeFloat. Calling this with any other type will result in undefined
-// behavior.
-func (v *MrbValue) Float() float64 {
-	return float64(C._go_mrb_float(v.value))
-}
+	switch any(t).(type) {
+	case string:
+		str := C.mrb_obj_as_string(value.Mrb().state, value.CValue())
+		result = C.GoString(C._go_RSTRING_PTR(str))
+	case int, int16, int32, int64:
+		result = int(C._go_mrb_fixnum(value.CValue()))
+	case float64, float32:
+		result = float64(C._go_mrb_float(value.CValue()))
+	case *Array:
+		result = &Array{value}
+	case *Hash:
+		result = &Hash{value}
+	default:
+		panic(fmt.Sprintf("unknown type %+v", value))
+	}
 
-// Hash returns the Hash value of this value. If the Type of the MrbValue
-// is not a ValueTypeHash, then this will panic. If the MrbValue has a
-// `to_h` function, you must call that manually prior to calling this
-// method.
-func (v *MrbValue) Hash() *Hash {
-	return &Hash{v}
+	return result.(T)
 }
 
 // String returns the "to_s" result of this value.
 func (v *MrbValue) String() string {
-	value := C.mrb_obj_as_string(v.state, v.value)
-	result := C.GoString(C._go_RSTRING_PTR(value))
-	return result
+	return ToGo[string](v)
 }
 
 // Class returns the *Class of a value.
@@ -233,7 +227,7 @@ func newExceptionValue(s *C.mrb_state) *Exception {
 	var backtrace []string
 	mrbBacktraceValue := newValue(s, C.mrb_exc_backtrace(s, value))
 	if mrbBacktraceValue.Type() == TypeArray {
-		mrbBacktrace := mrbBacktraceValue.Array()
+		mrbBacktrace := ToGo[*Array](mrbBacktraceValue)
 		for i := 0; i < mrbBacktrace.Len(); i++ {
 			ln, _ := mrbBacktrace.Get(i)
 			backtrace = append(backtrace, ln.String())
@@ -253,7 +247,7 @@ func newExceptionValue(s *C.mrb_state) *Exception {
 
 	result := newValue(s, value)
 	return &Exception{
-		MrbValue:  result,
+		Value:     result,
 		Message:   result.String(),
 		File:      file,
 		Line:      line,
@@ -261,7 +255,7 @@ func newExceptionValue(s *C.mrb_state) *Exception {
 	}
 }
 
-func newValue(s *C.mrb_state, v C.mrb_value) *MrbValue {
+func newValue(s *C.mrb_state, v C.mrb_value) Value {
 	return &MrbValue{
 		state: s,
 		value: v,

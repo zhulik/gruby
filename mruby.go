@@ -16,7 +16,7 @@ type Mrb struct {
 }
 
 // GetGlobalVariable returns the value of the global variable by the given name.
-func (m *Mrb) GetGlobalVariable(name string) *MrbValue {
+func (m *Mrb) GetGlobalVariable(name string) Value {
 	cs := C.CString(name)
 	defer C.free(unsafe.Pointer(cs))
 	return newValue(m.state, C._go_mrb_gv_get(m.state, C.mrb_intern_cstr(m.state, cs)))
@@ -162,7 +162,7 @@ func (m *Mrb) FullGC() {
 
 // GetArgs returns all the arguments that were given to the currnetly
 // called function (currently on the stack).
-func (m *Mrb) GetArgs() []*MrbValue {
+func (m *Mrb) GetArgs() []Value {
 	getArgLock.Lock()
 	defer getArgLock.Unlock()
 
@@ -173,7 +173,7 @@ func (m *Mrb) GetArgs() []*MrbValue {
 	count := C._go_mrb_get_args_all(m.state)
 
 	// Convert those all to values
-	values := make([]*MrbValue, count)
+	values := make([]Value, count)
 
 	for i := 0; i < int(count); i++ {
 		values[i] = newValue(m.state, getArgAccumulator[i])
@@ -194,7 +194,7 @@ func (m *Mrb) IncrementalGC() {
 
 // LoadString loads the given code, executes it, and returns its final
 // value that it might return.
-func (m *Mrb) LoadString(code string) (*MrbValue, error) {
+func (m *Mrb) LoadString(code string) (Value, error) {
 	cs := C.CString(code)
 	defer C.free(unsafe.Pointer(cs))
 
@@ -211,7 +211,7 @@ func (m *Mrb) LoadString(code string) (*MrbValue, error) {
 // If you're looking to execute code directly a string, look at LoadString.
 //
 // If self is nil, it is set to the top-level self.
-func (m *Mrb) Run(v Value, self Value) (*MrbValue, error) {
+func (m *Mrb) Run(v Value, self Value) (Value, error) {
 	if self == nil {
 		self = m.TopSelf()
 	}
@@ -235,7 +235,7 @@ func (m *Mrb) Run(v Value, self Value) (*MrbValue, error) {
 // traverse ruby parse invocations.
 //
 // Otherwise, it is very similar in function to Run()
-func (m *Mrb) RunWithContext(v Value, self Value, stackKeep int) (int, *MrbValue, error) {
+func (m *Mrb) RunWithContext(v Value, self Value, stackKeep int) (int, Value, error) {
 	if self == nil {
 		self = m.TopSelf()
 	}
@@ -258,7 +258,7 @@ func (m *Mrb) RunWithContext(v Value, self Value, stackKeep int) (int, *MrbValue
 // Yield yields to a block with the given arguments.
 //
 // This should be called within the context of a Func.
-func (m *Mrb) Yield(block Value, args ...Value) (*MrbValue, error) {
+func (m *Mrb) Yield(block Value, args ...Value) (Value, error) {
 	mrbBlock := block.CValue()
 
 	var argv []C.mrb_value
@@ -359,32 +359,32 @@ func (m *Mrb) KernelModule() *Class {
 }
 
 // TopSelf returns the top-level `self` value.
-func (m *Mrb) TopSelf() *MrbValue {
+func (m *Mrb) TopSelf() Value {
 	return newValue(m.state, C.mrb_obj_value(unsafe.Pointer(m.state.top_self)))
 }
 
 // FalseValue returns a Value for "false"
-func (m *Mrb) FalseValue() *MrbValue {
+func (m *Mrb) FalseValue() Value {
 	return newValue(m.state, C.mrb_false_value())
 }
 
 // NilValue returns "nil"
-func (m *Mrb) NilValue() *MrbValue {
+func (m *Mrb) NilValue() Value {
 	return newValue(m.state, C.mrb_nil_value())
 }
 
 // TrueValue returns a Value for "true"
-func (m *Mrb) TrueValue() *MrbValue {
+func (m *Mrb) TrueValue() Value {
 	return newValue(m.state, C.mrb_true_value())
 }
 
 // FixnumValue returns a Value for a fixed number.
-func (m *Mrb) FixnumValue(v int) *MrbValue {
+func (m *Mrb) FixnumValue(v int) Value {
 	return newValue(m.state, C.mrb_fixnum_value(C.mrb_int(v)))
 }
 
 // StringValue returns a Value for a string.
-func (m *Mrb) StringValue(s string) *MrbValue {
+func (m *Mrb) StringValue(s string) Value {
 	cs := C.CString(s)
 	defer C.free(unsafe.Pointer(cs))
 	return newValue(m.state, C.mrb_str_new_cstr(m.state, cs))

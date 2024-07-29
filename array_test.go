@@ -13,7 +13,7 @@ func TestArray(t *testing.T) {
 		t.Fatalf("err: %s", err)
 	}
 
-	v := value.Array()
+	v := ToGo[*Array](value)
 
 	// Len
 	if n := v.Len(); n != 4 {

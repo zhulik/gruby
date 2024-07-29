@@ -16,7 +16,7 @@ import (
 // The first return value is the actual return value for the code.
 //
 // The second return value is an exception, if any. This will be raised.
-type Func func(m *Mrb, self *MrbValue) (Value, Value)
+type Func func(m *Mrb, self Value) (Value, Value)
 
 type (
 	classMethodMap map[*C.struct_RClass]*methods
@@ -92,7 +92,7 @@ func goMRBFuncCall(s *C.mrb_state, v C.mrb_value) C.mrb_value {
 
 	if exc != nil {
 		s.exc = C._go_mrb_getobj(exc.CValue())
-		return mrb.NilValue().value
+		return mrb.NilValue().CValue()
 	}
 
 	return result.CValue()

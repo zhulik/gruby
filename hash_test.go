@@ -13,7 +13,7 @@ func TestHash(t *testing.T) {
 		t.Fatalf("err: %s", err)
 	}
 
-	h := value.Hash()
+	h := ToGo[*Hash](value)
 
 	// Get
 	value, err = h.Get(mrb.StringValue("foo"))
@@ -62,10 +62,7 @@ func TestHash(t *testing.T) {
 	}
 
 	// Delete
-	value, err = h.Delete(mrb.StringValue("foo"))
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
+	value = h.Delete(mrb.StringValue("foo"))
 	if value.String() != "baz" {
 		t.Fatalf("bad: %s", value)
 	}
@@ -79,10 +76,7 @@ func TestHash(t *testing.T) {
 	}
 
 	// Delete non-existing
-	value, err = h.Delete(mrb.StringValue("nope"))
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
+	value = h.Delete(mrb.StringValue("nope"))
 	if value != nil {
 		t.Fatalf("bad: %s", value)
 	}

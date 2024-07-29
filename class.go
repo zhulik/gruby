@@ -9,19 +9,32 @@ import "C"
 // Class is a class in mruby. To obtain a Class, use DefineClass or
 // one of the variants on the Mrb structure.
 type Class struct {
+	Value
 	class *C.struct_RClass
-	mrb   *Mrb
+}
+
+// String returns the "to_s" result of this value.
+func (c *Class) String() string {
+	return ToGo[string](c)
+}
+
+func (c *Class) Call(method string, args ...Value) (Value, error) {
+	return c.Value.Call(method, args...)
+}
+
+func (c *Class) CallBlock(method string, args ...Value) (Value, error) {
+	return c.Value.CallBlock(method, args...)
 }
 
 // DefineClassMethod defines a class-level method on the given class.
 func (c *Class) DefineClassMethod(name string, cb Func, as ArgSpec) {
-	insertMethod(c.mrb.state, c.class.c, name, cb)
+	insertMethod(c.Mrb().state, c.class.c, name, cb)
 
 	cs := C.CString(name)
 	defer C.free(unsafe.Pointer(cs))
 
 	C.mrb_define_class_method(
-		c.mrb.state,
+		c.Mrb().state,
 		c.class,
 		cs,
 		C._go_mrb_func_t(),
@@ -33,28 +46,22 @@ func (c *Class) DefineConst(name string, value Value) {
 	cs := C.CString(name)
 	defer C.free(unsafe.Pointer(cs))
 
-	C.mrb_define_const(c.mrb.state, c.class, cs, value.CValue())
+	C.mrb_define_const(c.Mrb().state, c.class, cs, value.CValue())
 }
 
 // DefineMethod defines an instance method on the class.
 func (c *Class) DefineMethod(name string, cb Func, as ArgSpec) {
-	insertMethod(c.mrb.state, c.class, name, cb)
+	insertMethod(c.Mrb().state, c.class, name, cb)
 
 	cs := C.CString(name)
 	defer C.free(unsafe.Pointer(cs))
 
 	C.mrb_define_method(
-		c.mrb.state,
+		c.Mrb().state,
 		c.class,
 		cs,
 		C._go_mrb_func_t(),
 		C.mrb_aspec(as))
-}
-
-// MrbValue returns a *Value for this Class. *Values are sometimes required
-// as arguments where classes should be valid.
-func (c *Class) MrbValue() *MrbValue {
-	return newValue(c.mrb.state, c.CValue())
 }
 
 // Type returns the ValueType of the underlying MrbValue
@@ -62,13 +69,8 @@ func (c *Class) Type() ValueType {
 	return TypeClass
 }
 
-// CValue returns mrb_value of the class.
-func (c *Class) CValue() C.mrb_value {
-	return C.mrb_obj_value(unsafe.Pointer(c.class))
-}
-
 // New instantiates the class with the given args.
-func (c *Class) New(args ...Value) (*MrbValue, error) {
+func (c *Class) New(args ...Value) (Value, error) {
 	var argv []C.mrb_value
 	var argvPtr *C.mrb_value
 	if len(args) > 0 {
@@ -81,17 +83,17 @@ func (c *Class) New(args ...Value) (*MrbValue, error) {
 		argvPtr = &argv[0]
 	}
 
-	result := C.mrb_obj_new(c.mrb.state, c.class, C.mrb_int(len(argv)), argvPtr)
-	if exc := checkException(c.mrb.state); exc != nil {
+	result := C.mrb_obj_new(c.Mrb().state, c.class, C.mrb_int(len(argv)), argvPtr)
+	if exc := checkException(c.Mrb().state); exc != nil {
 		return nil, exc
 	}
 
-	return newValue(c.mrb.state, result), nil
+	return newValue(c.Mrb().state, result), nil
 }
 
 func newClass(mrb *Mrb, c *C.struct_RClass) *Class {
 	return &Class{
+		Value: newValue(mrb.state, C.mrb_obj_value(unsafe.Pointer(c))),
 		class: c,
-		mrb:   mrb,
 	}
 }

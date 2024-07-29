@@ -80,11 +80,11 @@ func TestMrbDefineClass_methodException(t *testing.T) {
 	mrb := NewMrb()
 	defer mrb.Close()
 
-	cb := func(m *Mrb, self *MrbValue) (Value, Value) {
+	cb := func(m *Mrb, self Value) (Value, Value) {
 		v, err := m.LoadString(`raise "exception"`)
 		if err != nil {
 			exc := err.(*Exception)
-			return nil, exc.MrbValue
+			return nil, exc.Value
 		}
 
 		return v, nil
@@ -240,8 +240,8 @@ func TestMrbGetArgs(t *testing.T) {
 
 		for _, tc := range cases {
 			go func(tc testcase) {
-				var actual []*MrbValue
-				testFunc := func(m *Mrb, self *MrbValue) (Value, Value) {
+				var actual []Value
+				testFunc := func(m *Mrb, self Value) (Value, Value) {
 					actual = m.GetArgs()
 					return self, nil
 				}
@@ -426,7 +426,7 @@ func TestMrbRaise(t *testing.T) {
 	mrb := NewMrb()
 	defer mrb.Close()
 
-	cb := func(m *Mrb, self *MrbValue) (Value, Value) {
+	cb := func(m *Mrb, self Value) (Value, Value) {
 		return nil, m.GetArgs()[0]
 	}
 
@@ -445,7 +445,7 @@ func TestMrbYield(t *testing.T) {
 	mrb := NewMrb()
 	defer mrb.Close()
 
-	cb := func(m *Mrb, self *MrbValue) (Value, Value) {
+	cb := func(m *Mrb, self Value) (Value, Value) {
 		result, err := m.Yield(m.GetArgs()[0], mrb.FixnumValue(12), mrb.FixnumValue(30))
 		if err != nil {
 			t.Fatalf("err: %s", err)
@@ -460,7 +460,7 @@ func TestMrbYield(t *testing.T) {
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
-	if value.Fixnum() != 42 {
+	if ToGo[int](value) != 42 {
 		t.Fatalf("bad: %s", value)
 	}
 }
@@ -469,11 +469,11 @@ func TestMrbYieldException(t *testing.T) {
 	mrb := NewMrb()
 	defer mrb.Close()
 
-	cb := func(m *Mrb, self *MrbValue) (Value, Value) {
+	cb := func(m *Mrb, self Value) (Value, Value) {
 		result, err := m.Yield(m.GetArgs()[0])
 		if err != nil {
 			exc := err.(*Exception)
-			return nil, exc.MrbValue
+			return nil, exc.Value
 		}
 
 		return result, nil
@@ -563,7 +563,7 @@ func TestMrbRun(t *testing.T) {
 
 	proc = parser.GenerateCode()
 
-	var ret *MrbValue
+	var ret Value
 	_, ret, err = mrb.RunWithContext(proc, nil, stackKeep)
 	if err != nil {
 		t.Fatal(err)
@@ -578,7 +578,7 @@ func TestMrbDefineMethodConcurrent(t *testing.T) {
 	concurrency := 100
 	numFuncs := 100
 
-	cb := func(m *Mrb, self *MrbValue) (Value, Value) {
+	cb := func(m *Mrb, self Value) (Value, Value) {
 		return m.GetArgs()[0], nil
 	}
 
@@ -613,7 +613,7 @@ func TestMrbStackedException(t *testing.T) {
 		return val
 	}
 
-	testFunc := func(m *Mrb, self *MrbValue) (Value, Value) {
+	testFunc := func(m *Mrb, self Value) (Value, Value) {
 		args := m.GetArgs()
 
 		t, err := testClass.New()
@@ -621,11 +621,7 @@ func TestMrbStackedException(t *testing.T) {
 			return nil, createException(m, err.Error())
 		}
 
-		argv := []Value{}
-		for _, arg := range args {
-			argv = append(argv, Value(arg))
-		}
-		v, err := t.Call("dotest!", argv...)
+		v, err := t.Call("dotest!", args...)
 		if err != nil {
 			return nil, createException(m, err.Error())
 		}
@@ -633,7 +629,7 @@ func TestMrbStackedException(t *testing.T) {
 		return v, nil
 	}
 
-	doTestFunc := func(m *Mrb, self *MrbValue) (Value, Value) {
+	doTestFunc := func(m *Mrb, self Value) (Value, Value) {
 		err := createException(m, "Fail us!")
 		return nil, err
 	}
@@ -654,7 +650,7 @@ func TestMrbStackedException(t *testing.T) {
 	mrb.Close()
 	mrb = NewMrb()
 
-	evalFunc := func(m *Mrb, self *MrbValue) (Value, Value) {
+	evalFunc := func(m *Mrb, self Value) (Value, Value) {
 		arg := m.GetArgs()[0]
 		_, err := self.CallBlock("instance_eval", arg)
 		if err != nil {

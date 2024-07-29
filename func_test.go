@@ -2,24 +2,24 @@ package mruby
 
 import "testing"
 
-func testCallback(m *Mrb, self *MrbValue) (Value, Value) {
+func testCallback(m *Mrb, self Value) (Value, Value) {
 	return m.FixnumValue(42), nil
 }
 
-func testCallbackResult(t *testing.T, v *MrbValue) {
+func testCallbackResult(t *testing.T, v Value) {
 	t.Helper()
 
 	if v.Type() != TypeFixnum {
 		t.Fatalf("bad type: %d", v.Type())
 	}
 
-	if v.Fixnum() != 42 {
-		t.Fatalf("bad: %d", v.Fixnum())
+	if ToGo[int](v) != 42 {
+		t.Fatalf("bad: %d", ToGo[int](v))
 	}
 }
 
-func testCallbackException(m *Mrb, self *MrbValue) (Value, Value) {
+func testCallbackException(m *Mrb, self Value) (Value, Value) {
 	_, e := m.LoadString(`raise 'Exception'`)
 	v := e.(*Exception)
-	return nil, v.MrbValue
+	return nil, v.Value
 }
