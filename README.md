@@ -1,4 +1,8 @@
-# mruby Library for Go [![Build Status](https://travis-ci.org/mitchellh/go-mruby.svg?branch=master)](https://travis-ci.org/mitchellh/go-mruby)
+# Gruby - Go bindings to mruby
+
+This is a fork of amazing [go-mruby](https://github.com/mitchellh/go-mruby). 
+I'm not sure if I want and I can maintain it for a long time, but I updated it 
+to support mruby 3.3 and go 1.22.
 
 go-mruby provides [mruby](https://github.com/mruby/mruby) bindings for
 [Go](http://golang.org). This allows Go applications to run a lightweight
@@ -29,7 +33,7 @@ available on your host operating system:
 
 * bison
 * flex
-* ruby 2.x
+* ruby 3.x
 
 Then just type:
 
@@ -70,7 +74,7 @@ is comfortable to use by a standard Go programmer without having intimate
 knowledge of how mruby works.
 
 For usage examples and documentation, please see the
-[go-mruby GoDoc](http://godoc.org/github.com/mitchellh/go-mruby), which
+[go-mruby GoDoc](http://godoc.org/github.com/zhulik/gruby), which
 we keep up to date and full of examples.
 
 For a quick taste of what using go-mruby looks like, though, we provide
@@ -81,7 +85,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/mitchellh/go-mruby"
+	"github.com/zhulik/go-mruby"
 )
 
 func main() {
