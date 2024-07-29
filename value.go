@@ -14,7 +14,9 @@ import (
 // Value is an interface that should be implemented by anything that can
 // be represents as an mruby value.
 type Value interface {
+	CValue() C.mrb_value
 	MrbValue() *MrbValue
+	Type() ValueType
 }
 
 // MrbValue is a "value" internally in mruby. A "value" is what mruby calls
@@ -65,7 +67,7 @@ func (v *MrbValue) call(method string, args []Value, block Value) (*MrbValue, er
 		// Make the raw byte slice to hold our arguments we'll pass to C
 		argv = make([]C.mrb_value, len(args))
 		for i, arg := range args {
-			argv[i] = arg.MrbValue().value
+			argv[i] = arg.CValue()
 		}
 
 		argvPtr = &argv[0]
@@ -73,7 +75,7 @@ func (v *MrbValue) call(method string, args []Value, block Value) (*MrbValue, er
 
 	var blockV *C.mrb_value
 	if block != nil {
-		val := block.MrbValue().value
+		val := block.CValue()
 		blockV = &val
 	}
 
@@ -132,6 +134,11 @@ func (v *MrbValue) Type() ValueType {
 	}
 
 	return ValueType(C._go_mrb_type(v.value))
+}
+
+// CValue returns underlying mrb_value.
+func (v *MrbValue) CValue() C.mrb_value {
+	return v.value
 }
 
 // Exception is a special type of value that represents an error
