@@ -94,8 +94,8 @@ func TestMrbDefineClass_methodException(t *testing.T) {
 	mrb := NewMrb()
 	defer mrb.Close()
 
-	cb := func(m *Mrb, self Value) (Value, Value) {
-		v, err := m.LoadString(`raise "exception"`)
+	callback := func(mrb *Mrb, self Value) (Value, Value) {
+		v, err := mrb.LoadString(`raise "exception"`)
 		if err != nil {
 			exc := err.(*ExceptionError)
 			return nil, exc.Value
@@ -105,7 +105,7 @@ func TestMrbDefineClass_methodException(t *testing.T) {
 	}
 
 	class := mrb.DefineClass("Hello", mrb.ObjectClass())
-	class.DefineClassMethod("foo", cb, ArgsNone())
+	class.DefineClassMethod("foo", callback, ArgsNone())
 	_, err := mrb.LoadString(`Hello.foo`)
 	if err == nil {
 		t.Fatal("should error")
@@ -199,13 +199,13 @@ func TestMrbFullGC(t *testing.T) {
 	mrb := NewMrb()
 	defer mrb.Close()
 
-	ai := mrb.ArenaSave()
+	aidx := mrb.ArenaSave()
 	value := ToRuby(mrb, "foo")
 	if value.IsDead() {
 		t.Fatal("should not be dead")
 	}
 
-	mrb.ArenaRestore(ai)
+	mrb.ArenaRestore(aidx)
 	mrb.FullGC()
 	if !value.IsDead() {
 		t.Fatal("should be dead")
@@ -264,8 +264,8 @@ func TestMrbGetArgs(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		errChan := make(chan error, len(cases))
 
-		for _, tc := range cases {
-			go func(tc testcase) {
+		for _, tcase := range cases {
+			go func(tcase testcase) {
 				var actual []Value
 				testFunc := func(m *Mrb, self Value) (Value, Value) {
 					actual = m.GetArgs()
@@ -276,16 +276,16 @@ func TestMrbGetArgs(t *testing.T) {
 				defer mrb.Close()
 				class := mrb.DefineClass("Hello", mrb.ObjectClass())
 				class.DefineClassMethod("test", testFunc, ArgsAny()|ArgsBlock())
-				_, err := mrb.LoadString("Hello.test" + tc.args)
+				_, err := mrb.LoadString("Hello.test" + tcase.args)
 				if err != nil {
 					errChan <- fmt.Errorf("err: %s", err)
 					return
 				}
 
-				if tc.result != nil {
-					if len(actual) != len(tc.result) {
+				if tcase.result != nil {
+					if len(actual) != len(tcase.result) {
 						errChan <- fmt.Errorf("%s: expected %d, got %d",
-							tc.args, len(tc.result), len(actual))
+							tcase.args, len(tcase.result), len(actual))
 						return
 					}
 				}
@@ -302,22 +302,22 @@ func TestMrbGetArgs(t *testing.T) {
 					actualTypes[i] = v.Type()
 				}
 
-				if !reflect.DeepEqual(actualTypes, tc.types) {
+				if !reflect.DeepEqual(actualTypes, tcase.types) {
 					errChan <- fmt.Errorf("code: %s\nexpected: %#v\nactual: %#v",
-						tc.args, tc.types, actualTypes)
+						tcase.args, tcase.types, actualTypes)
 					return
 				}
 
-				if tc.result != nil {
-					if !reflect.DeepEqual(actualStrings, tc.result) {
+				if tcase.result != nil {
+					if !reflect.DeepEqual(actualStrings, tcase.result) {
 						errChan <- fmt.Errorf("expected: %#v\nactual: %#v",
-							tc.result, actualStrings)
+							tcase.result, actualStrings)
 						return
 					}
 				}
 
 				errChan <- nil
-			}(tc)
+			}(tcase)
 		}
 
 		for range cases {
@@ -463,12 +463,12 @@ func TestMrbRaise(t *testing.T) {
 	mrb := NewMrb()
 	defer mrb.Close()
 
-	cb := func(m *Mrb, self Value) (Value, Value) {
+	callback := func(m *Mrb, self Value) (Value, Value) {
 		return nil, m.GetArgs()[0]
 	}
 
 	class := mrb.DefineClass("Hello", mrb.ObjectClass())
-	class.DefineClassMethod("foo", cb, ArgsReq(1))
+	class.DefineClassMethod("foo", callback, ArgsReq(1))
 	_, err := mrb.LoadString(`Hello.foo(ArgumentError.new("ouch"))`)
 	if err == nil {
 		t.Fatal("should have error")
@@ -484,7 +484,7 @@ func TestMrbYield(t *testing.T) {
 	mrb := NewMrb()
 	defer mrb.Close()
 
-	cb := func(m *Mrb, self Value) (Value, Value) {
+	callback := func(m *Mrb, self Value) (Value, Value) {
 		result, err := m.Yield(m.GetArgs()[0], ToRuby(mrb, 12), ToRuby(mrb, 30))
 		if err != nil {
 			t.Fatalf("err: %s", err)
@@ -494,7 +494,7 @@ func TestMrbYield(t *testing.T) {
 	}
 
 	class := mrb.DefineClass("Hello", mrb.ObjectClass())
-	class.DefineClassMethod("foo", cb, ArgsBlock())
+	class.DefineClassMethod("foo", callback, ArgsBlock())
 	value, err := mrb.LoadString(`Hello.foo { |a, b| a + b }`)
 	if err != nil {
 		t.Fatalf("err: %s", err)
@@ -510,7 +510,7 @@ func TestMrbYieldException(t *testing.T) {
 	mrb := NewMrb()
 	defer mrb.Close()
 
-	cb := func(m *Mrb, self Value) (Value, Value) {
+	callback := func(m *Mrb, self Value) (Value, Value) {
 		result, err := m.Yield(m.GetArgs()[0])
 		if err != nil {
 			exc := err.(*ExceptionError)
@@ -521,7 +521,7 @@ func TestMrbYieldException(t *testing.T) {
 	}
 
 	class := mrb.DefineClass("Hello", mrb.ObjectClass())
-	class.DefineClassMethod("foo", cb, ArgsBlock())
+	class.DefineClassMethod("foo", callback, ArgsBlock())
 	_, err := mrb.LoadString(`Hello.foo { raise "exception" }`)
 	if err == nil {
 		t.Fatal("should error")
@@ -623,7 +623,7 @@ func TestMrbDefineMethodConcurrent(t *testing.T) {
 	concurrency := 100
 	numFuncs := 100
 
-	cb := func(m *Mrb, self Value) (Value, Value) {
+	callback := func(m *Mrb, self Value) (Value, Value) {
 		return m.GetArgs()[0], nil
 	}
 
@@ -634,7 +634,7 @@ func TestMrbDefineMethodConcurrent(t *testing.T) {
 			mrb := NewMrb()
 			defer mrb.Close()
 			for i := 0; i < numFuncs; i++ {
-				mrb.TopSelf().SingletonClass().DefineMethod(fmt.Sprintf("test%d", i), cb, ArgsAny())
+				mrb.TopSelf().SingletonClass().DefineMethod(fmt.Sprintf("test%d", i), callback, ArgsAny())
 			}
 
 			syncChan <- struct{}{}
@@ -660,17 +660,17 @@ func TestMrbStackedException(t *testing.T) {
 		return val
 	}
 
-	testFunc := func(m *Mrb, self Value) (Value, Value) {
-		args := m.GetArgs()
+	testFunc := func(mrb *Mrb, self Value) (Value, Value) {
+		args := mrb.GetArgs()
 
 		t, err := testClass.New()
 		if err != nil {
-			return nil, createException(m, err.Error())
+			return nil, createException(mrb, err.Error())
 		}
 
 		v, err := t.Call("dotest!", args...)
 		if err != nil {
-			return nil, createException(m, err.Error())
+			return nil, createException(mrb, err.Error())
 		}
 
 		return v, nil

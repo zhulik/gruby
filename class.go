@@ -19,41 +19,41 @@ func (c *Class) String() string {
 }
 
 // DefineClassMethod defines a class-level method on the given class.
-func (c *Class) DefineClassMethod(name string, cb Func, as ArgSpec) {
+func (c *Class) DefineClassMethod(name string, cb Func, spec ArgSpec) {
 	insertMethod(c.Mrb().state, c.class.c, name, cb)
 
-	cs := C.CString(name)
-	defer C.free(unsafe.Pointer(cs))
+	cstr := C.CString(name)
+	defer C.free(unsafe.Pointer(cstr))
 
 	C.mrb_define_class_method(
 		c.Mrb().state,
 		c.class,
-		cs,
+		cstr,
 		C._go_mrb_func_t(),
-		C.mrb_aspec(as))
+		C.mrb_aspec(spec))
 }
 
 // DefineConst defines a constant within this class.
 func (c *Class) DefineConst(name string, value Value) {
-	cs := C.CString(name)
-	defer C.free(unsafe.Pointer(cs))
+	cstr := C.CString(name)
+	defer C.free(unsafe.Pointer(cstr))
 
-	C.mrb_define_const(c.Mrb().state, c.class, cs, value.CValue())
+	C.mrb_define_const(c.Mrb().state, c.class, cstr, value.CValue())
 }
 
 // DefineMethod defines an instance method on the class.
-func (c *Class) DefineMethod(name string, cb Func, as ArgSpec) {
+func (c *Class) DefineMethod(name string, cb Func, spec ArgSpec) {
 	insertMethod(c.Mrb().state, c.class, name, cb)
 
-	cs := C.CString(name)
-	defer C.free(unsafe.Pointer(cs))
+	cstr := C.CString(name)
+	defer C.free(unsafe.Pointer(cstr))
 
 	C.mrb_define_method(
 		c.Mrb().state,
 		c.class,
-		cs,
+		cstr,
 		C._go_mrb_func_t(),
-		C.mrb_aspec(as))
+		C.mrb_aspec(spec))
 }
 
 // New instantiates the class with the given args.

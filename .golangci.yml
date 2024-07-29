@@ -14,7 +14,6 @@ linters:
     - dupword
 
     # TODO:
-    - varnamelen
     - testpackage
     - intrange
     - ireturn
@@ -36,7 +35,9 @@ linters-settings:
   govet:
     shadow: true
   varnamelen:
-    ignore-decls: []
+    ignore-decls:
+      - v Value
+      - i int
 
 issues:
   max-same-issues: 0

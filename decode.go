@@ -61,20 +61,20 @@ type decoder struct {
 type decodeStructGetter func(string) (Value, error)
 
 func (d *decoder) decode(name string, v Value, result reflect.Value) error {
-	k := result
+	val := result
 
 	// If we have an interface with a valid value, we use that
 	// for the check.
 	if result.Kind() == reflect.Interface {
 		elem := result.Elem()
 		if elem.IsValid() {
-			k = elem
+			val = elem
 		}
 	}
 
 	// Push current onto stack unless it is an interface.
-	if k.Kind() != reflect.Interface {
-		d.stack = append(d.stack, k.Kind())
+	if val.Kind() != reflect.Interface {
+		d.stack = append(d.stack, val.Kind())
 
 		// Schedule a pop
 		defer func() {
@@ -82,7 +82,7 @@ func (d *decoder) decode(name string, v Value, result reflect.Value) error {
 		}()
 	}
 
-	switch k.Kind() {
+	switch val.Kind() {
 	case reflect.Bool:
 		return d.decodeBool(name, v, result)
 	case reflect.Float64:
@@ -106,17 +106,17 @@ func (d *decoder) decode(name string, v Value, result reflect.Value) error {
 	}
 
 	return fmt.Errorf(
-		"%s: unknown kind to decode into: %s", name, k.Kind())
+		"%s: unknown kind to decode into: %s", name, val.Kind())
 }
 
 func (d *decoder) decodeBool(name string, v Value, result reflect.Value) error {
-	switch t := v.Type(); t {
+	switch typ := v.Type(); typ {
 	case TypeFalse:
 		result.Set(reflect.ValueOf(false))
 	case TypeTrue:
 		result.Set(reflect.ValueOf(true))
 	default:
-		return fmt.Errorf("%s: unknown type %v", name, t)
+		return fmt.Errorf("%s: unknown type %v", name, typ)
 	}
 
 	return nil
@@ -134,7 +134,7 @@ func (d *decoder) decodeFloat(name string, v Value, result reflect.Value) error 
 }
 
 func (d *decoder) decodeInt(name string, v Value, result reflect.Value) error {
-	switch t := v.Type(); t {
+	switch typ := v.Type(); typ {
 	case TypeFixnum:
 		result.Set(reflect.ValueOf(ToGo[int](v)))
 	case TypeString:
@@ -145,7 +145,7 @@ func (d *decoder) decodeInt(name string, v Value, result reflect.Value) error {
 
 		result.SetInt(v)
 	default:
-		return fmt.Errorf("%s: unknown type %v", name, t)
+		return fmt.Errorf("%s: unknown type %v", name, typ)
 	}
 
 	return nil
@@ -155,7 +155,7 @@ func (d *decoder) decodeInterface(name string, v Value, result reflect.Value) er
 	var set reflect.Value
 	redecode := true
 
-	switch t := v.Type(); t {
+	switch typ := v.Type(); typ {
 	case TypeHash:
 		var temp map[string]interface{}
 		tempVal := reflect.ValueOf(temp)
@@ -187,7 +187,7 @@ func (d *decoder) decodeInterface(name string, v Value, result reflect.Value) er
 	default:
 		return fmt.Errorf(
 			"%s: cannot decode into interface: %v",
-			name, t)
+			name, typ)
 	}
 
 	// Set the result to what its supposed to be, then reset
@@ -340,14 +340,14 @@ func (d *decoder) decodeSlice(name string, v Value, result reflect.Value) error 
 }
 
 func (d *decoder) decodeString(name string, v Value, result reflect.Value) error {
-	switch t := v.Type(); t {
+	switch typ := v.Type(); typ {
 	case TypeFixnum:
 		result.Set(reflect.ValueOf(
 			strconv.FormatInt(int64(ToGo[int](v)), 10)).Convert(result.Type()))
 	case TypeString:
 		result.Set(reflect.ValueOf(v.String()).Convert(result.Type()))
 	default:
-		return fmt.Errorf("%s: unknown type to string: %v", name, t)
+		return fmt.Errorf("%s: unknown type to string: %v", name, typ)
 	}
 
 	return nil
@@ -362,13 +362,13 @@ func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error
 	defer mrb.ArenaRestore(mrb.ArenaSave())
 
 	// Depending on the type, we need to generate a getter
-	switch t := v.Type(); t {
+	switch typ := v.Type(); typ {
 	case TypeHash:
 		get = decodeStructHashGetter(mrb, ToGo[*Hash](v))
 	case TypeObject:
 		get = decodeStructObjectMethods(mrb, v)
 	default:
-		return fmt.Errorf("%s: not an object type for struct (%v)", name, t)
+		return fmt.Errorf("%s: not an object type for struct (%v)", name, typ)
 	}
 
 	// This slice will keep track of all the structs we'll be decoding.

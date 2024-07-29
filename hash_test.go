@@ -15,10 +15,10 @@ func TestHash(t *testing.T) {
 		t.Fatalf("err: %s", err)
 	}
 
-	h := ToGo[*Hash](value)
+	hash := ToGo[*Hash](value)
 
 	// Get
-	value, err = h.Get(ToRuby(mrb, "foo"))
+	value, err = hash.Get(ToRuby(mrb, "foo"))
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -27,7 +27,7 @@ func TestHash(t *testing.T) {
 	}
 
 	// Get false type
-	value, err = h.Get(ToRuby(mrb, "baz"))
+	value, err = hash.Get(ToRuby(mrb, "baz"))
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -39,11 +39,11 @@ func TestHash(t *testing.T) {
 	}
 
 	// Set
-	err = h.Set(ToRuby(mrb, "foo"), ToRuby(mrb, "baz"))
+	err = hash.Set(ToRuby(mrb, "foo"), ToRuby(mrb, "baz"))
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
-	value, err = h.Get(ToRuby(mrb, "foo"))
+	value, err = hash.Get(ToRuby(mrb, "foo"))
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -52,7 +52,7 @@ func TestHash(t *testing.T) {
 	}
 
 	// Keys
-	value, err = h.Keys()
+	value, err = hash.Keys()
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -64,12 +64,12 @@ func TestHash(t *testing.T) {
 	}
 
 	// Delete
-	value = h.Delete(ToRuby(mrb, "foo"))
+	value = hash.Delete(ToRuby(mrb, "foo"))
 	if value.String() != "baz" {
 		t.Fatalf("bad: %s", value)
 	}
 
-	value, err = h.Keys()
+	value, err = hash.Keys()
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -78,7 +78,7 @@ func TestHash(t *testing.T) {
 	}
 
 	// Delete non-existing
-	value = h.Delete(ToRuby(mrb, "nope"))
+	value = hash.Delete(ToRuby(mrb, "nope"))
 	if value != nil {
 		t.Fatalf("bad: %s", value)
 	}

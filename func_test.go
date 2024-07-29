@@ -2,8 +2,8 @@ package mruby
 
 import "testing"
 
-func testCallback(m *Mrb, self Value) (Value, Value) {
-	return ToRuby(m, 42), nil
+func testCallback(mrb *Mrb, self Value) (Value, Value) {
+	return ToRuby(mrb, 42), nil
 }
 
 func testCallbackResult(t *testing.T, v Value) {

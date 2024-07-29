@@ -9,8 +9,8 @@ func ExampleMrb_DefineClass() {
 	defer mrb.Close()
 
 	// Our custom function we'll expose to Ruby
-	addFunc := func(m *Mrb, self Value) (Value, Value) {
-		args := m.GetArgs()
+	addFunc := func(mrb *Mrb, self Value) (Value, Value) {
+		args := mrb.GetArgs()
 		return ToRuby(mrb, ToGo[int](args[0])+ToGo[int](args[1])), nil
 	}
 

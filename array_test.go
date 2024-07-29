@@ -15,15 +15,15 @@ func TestArray(t *testing.T) {
 		t.Fatalf("err: %s", err)
 	}
 
-	v := ToGo[*Array](value)
+	array := ToGo[*Array](value)
 
 	// Len
-	if n := v.Len(); n != 4 {
+	if n := array.Len(); n != 4 {
 		t.Fatalf("bad: %d", n)
 	}
 
 	// Get
-	value, err = v.Get(1)
+	value, err = array.Get(1)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -32,7 +32,7 @@ func TestArray(t *testing.T) {
 	}
 
 	// Get bool
-	value, err = v.Get(3)
+	value, err = array.Get(3)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}

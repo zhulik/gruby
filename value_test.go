@@ -248,13 +248,13 @@ func TestMrbValueType(t *testing.T) {
 		},
 	}
 
-	for _, c := range cases {
-		r, err := mrb.LoadString(c.Input)
+	for _, tcase := range cases {
+		r, err := mrb.LoadString(tcase.Input)
 		if err != nil {
-			t.Fatalf("loadstring failed for case %#v: %s", c, err)
+			t.Fatalf("loadstring failed for case %#v: %s", tcase, err)
 		}
-		if cType := r.Type(); cType != c.Expected {
-			t.Fatalf("bad type: got %v, expected %v", cType, c.Expected)
+		if cType := r.Type(); cType != tcase.Expected {
+			t.Fatalf("bad type: got %v, expected %v", cType, tcase.Expected)
 		}
 	}
 }
