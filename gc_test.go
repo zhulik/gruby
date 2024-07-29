@@ -1,11 +1,15 @@
-package mruby
+package mruby_test
 
-import "testing"
+import (
+	"testing"
+
+	mruby "github.com/zhulik/gruby"
+)
 
 func TestEnableDisableGC(t *testing.T) {
 	t.Parallel()
 
-	mrb := NewMrb()
+	mrb := mruby.NewMrb()
 	defer mrb.Close()
 
 	mrb.FullGC()
@@ -34,7 +38,7 @@ func TestEnableDisableGC(t *testing.T) {
 func TestIsDead(t *testing.T) {
 	t.Parallel()
 
-	mrb := NewMrb()
+	mrb := mruby.NewMrb()
 
 	val, err := mrb.LoadString("$a = []")
 	if err != nil {

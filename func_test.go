@@ -1,25 +1,29 @@
-package mruby
+package mruby_test
 
-import "testing"
+import (
+	"testing"
 
-func testCallback(mrb *Mrb, self Value) (Value, Value) {
-	return ToRuby(mrb, 42), nil
+	mruby "github.com/zhulik/gruby"
+)
+
+func testCallback(mrb *mruby.Mrb, self mruby.Value) (mruby.Value, mruby.Value) {
+	return mruby.ToRuby(mrb, 42), nil
 }
 
-func testCallbackResult(t *testing.T, v Value) {
+func testCallbackResult(t *testing.T, value mruby.Value) {
 	t.Helper()
 
-	if v.Type() != TypeFixnum {
-		t.Fatalf("bad type: %d", v.Type())
+	if value.Type() != mruby.TypeFixnum {
+		t.Fatalf("bad type: %d", value.Type())
 	}
 
-	if ToGo[int](v) != 42 {
-		t.Fatalf("bad: %d", ToGo[int](v))
+	if mruby.ToGo[int](value) != 42 {
+		t.Fatalf("bad: %d", mruby.ToGo[int](value))
 	}
 }
 
-func testCallbackException(m *Mrb, self Value) (Value, Value) {
+func testCallbackException(m *mruby.Mrb, self mruby.Value) (mruby.Value, mruby.Value) {
 	_, e := m.LoadString(`raise 'Exception'`)
-	v := e.(*ExceptionError)
+	v := e.(*mruby.ExceptionError)
 	return nil, v.Value
 }

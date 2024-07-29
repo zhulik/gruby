@@ -1,14 +1,16 @@
-package mruby
+package mruby_test
 
 import (
 	"reflect"
 	"testing"
+
+	mruby "github.com/zhulik/gruby"
 )
 
 func TestExceptionString_afterClose(t *testing.T) {
 	t.Parallel()
 
-	mrb := NewMrb()
+	mrb := mruby.NewMrb()
 	_, err := mrb.LoadString(`clearly a syntax error`)
 	mrb.Close()
 	// This panics before the bug fix that this test tests
@@ -21,12 +23,12 @@ func TestExceptionString_afterClose(t *testing.T) {
 func TestExceptionBacktrace(t *testing.T) {
 	t.Parallel()
 
-	mrb := NewMrb()
+	mrb := mruby.NewMrb()
 	defer mrb.Close()
 
-	parser := NewParser(mrb)
+	parser := mruby.NewParser(mrb)
 	defer parser.Close()
-	context := NewCompileContext(mrb)
+	context := mruby.NewCompileContext(mrb)
 	context.SetFilename("hello.rb")
 	defer context.Close()
 
@@ -55,7 +57,7 @@ func TestExceptionBacktrace(t *testing.T) {
 		t.Fatalf("expected exception")
 	}
 
-	exc := err.(*ExceptionError)
+	exc := err.(*mruby.ExceptionError)
 	if exc.Message != "Exception" {
 		t.Fatalf("bad exception message: %s", exc.Message)
 	}
@@ -76,7 +78,7 @@ func TestExceptionBacktrace(t *testing.T) {
 func TestMrbValueCall(t *testing.T) {
 	t.Parallel()
 
-	mrb := NewMrb()
+	mrb := mruby.NewMrb()
 	defer mrb.Close()
 
 	value, err := mrb.LoadString(`"foo"`)
@@ -89,11 +91,11 @@ func TestMrbValueCall(t *testing.T) {
 		t.Fatalf("expected exception")
 	}
 
-	result, err := value.Call("==", ToRuby(mrb, "foo"))
+	result, err := value.Call("==", mruby.ToRuby(mrb, "foo"))
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
-	if result.Type() != TypeTrue {
+	if result.Type() != mruby.TypeTrue {
 		t.Fatalf("bad type")
 	}
 }
@@ -101,7 +103,7 @@ func TestMrbValueCall(t *testing.T) {
 func TestMrbValueCallBlock(t *testing.T) {
 	t.Parallel()
 
-	mrb := NewMrb()
+	mrb := mruby.NewMrb()
 	defer mrb.Close()
 
 	value, err := mrb.LoadString(`"foo"`)
@@ -114,11 +116,11 @@ func TestMrbValueCallBlock(t *testing.T) {
 		t.Fatalf("err: %s", err)
 	}
 
-	result, err := value.CallBlock("gsub", ToRuby(mrb, "foo"), block)
+	result, err := value.CallBlock("gsub", mruby.ToRuby(mrb, "foo"), block)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
-	if result.Type() != TypeString {
+	if result.Type() != mruby.TypeString {
 		t.Fatalf("bad type")
 	}
 	if result.String() != "bar" {
@@ -129,23 +131,23 @@ func TestMrbValueCallBlock(t *testing.T) {
 func TestMrbValueValue_impl(t *testing.T) {
 	t.Parallel()
 
-	mrb := NewMrb()
+	mrb := mruby.NewMrb()
 	defer mrb.Close()
 
-	var _ Value = mrb.FalseValue()
+	var _ mruby.Value = mrb.FalseValue()
 }
 
 func TestMrbValueFixnum(t *testing.T) {
 	t.Parallel()
 
-	mrb := NewMrb()
+	mrb := mruby.NewMrb()
 	defer mrb.Close()
 
 	value, err := mrb.LoadString("42")
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
-	if ToGo[int](value) != 42 {
+	if mruby.ToGo[int](value) != 42 {
 		t.Fatalf("bad fixnum")
 	}
 }
@@ -153,7 +155,7 @@ func TestMrbValueFixnum(t *testing.T) {
 func TestMrbValueString(t *testing.T) {
 	t.Parallel()
 
-	mrb := NewMrb()
+	mrb := mruby.NewMrb()
 	defer mrb.Close()
 
 	value, err := mrb.LoadString(`"foo"`)
@@ -168,74 +170,74 @@ func TestMrbValueString(t *testing.T) {
 func TestMrbValueType(t *testing.T) {
 	t.Parallel()
 
-	mrb := NewMrb()
+	mrb := mruby.NewMrb()
 	defer mrb.Close()
 
 	cases := []struct {
 		Input    string
-		Expected ValueType
+		Expected mruby.ValueType
 	}{
 		{
 			`false`,
-			TypeFalse,
+			mruby.TypeFalse,
 		},
 		// TypeFree - Type of value after GC collection
 		{
 			`true`,
-			TypeTrue,
+			mruby.TypeTrue,
 		},
 		{
 			`1`,
-			TypeFixnum,
+			mruby.TypeFixnum,
 		},
 		{
 			`:test`,
-			TypeSymbol,
+			mruby.TypeSymbol,
 		},
 		// TypeUndef - Internal value used by mruby for undefined things (instance vars etc)
 		// These all seem to get converted to exceptions before hitting userland
 		{
 			`1.1`,
-			TypeFloat,
+			mruby.TypeFloat,
 		},
 		// TypeCptr
 		{
 			`Object.new`,
-			TypeObject,
+			mruby.TypeObject,
 		},
 		{
 			`Object`,
-			TypeClass,
+			mruby.TypeClass,
 		},
 		{
 			`module T; end; T`,
-			TypeModule,
+			mruby.TypeModule,
 		},
 		// TypeIClass
 		// TypeSClass
 		{
 			`Proc.new { 1 }`,
-			TypeProc,
+			mruby.TypeProc,
 		},
 		{
 			`[]`,
-			TypeArray,
+			mruby.TypeArray,
 		},
 		{
 			`{}`,
-			TypeHash,
+			mruby.TypeHash,
 		},
 		{
 			`"string"`,
-			TypeString,
+			mruby.TypeString,
 		},
 		{
 			`1..2`,
-			TypeRange,
+			mruby.TypeRange,
 		},
 		{
 			`Exception.new`,
-			TypeException,
+			mruby.TypeException,
 		},
 		// TypeFile
 		// TypeEnv
@@ -244,7 +246,7 @@ func TestMrbValueType(t *testing.T) {
 		// TypeMaxDefine
 		{
 			`nil`,
-			TypeNil,
+			mruby.TypeNil,
 		},
 	}
 
@@ -262,11 +264,11 @@ func TestMrbValueType(t *testing.T) {
 func TestIntMrbValue(t *testing.T) {
 	t.Parallel()
 
-	mrb := NewMrb()
+	mrb := mruby.NewMrb()
 	defer mrb.Close()
 
-	var value Value = ToRuby(mrb, 42)
-	if ToGo[int](value) != 42 {
+	value := mruby.ToRuby(mrb, 42)
+	if mruby.ToGo[int](value) != 42 {
 		t.Fatalf("bad value")
 	}
 }
@@ -274,10 +276,10 @@ func TestIntMrbValue(t *testing.T) {
 func TestStringMrbValue(t *testing.T) {
 	t.Parallel()
 
-	mrb := NewMrb()
+	mrb := mruby.NewMrb()
 	defer mrb.Close()
 
-	var value Value = ToRuby(mrb, "foo")
+	value := mruby.ToRuby(mrb, "foo")
 	if value.String() != "foo" {
 		t.Fatalf("bad value")
 	}
@@ -286,7 +288,7 @@ func TestStringMrbValue(t *testing.T) {
 func TestValueClass(t *testing.T) {
 	t.Parallel()
 
-	mrb := NewMrb()
+	mrb := mruby.NewMrb()
 	defer mrb.Close()
 
 	val, err := mrb.ObjectClass().New()
@@ -302,15 +304,15 @@ func TestValueClass(t *testing.T) {
 func TestValueSingletonClass(t *testing.T) {
 	t.Parallel()
 
-	mrb := NewMrb()
+	mrb := mruby.NewMrb()
 	defer mrb.Close()
 
-	fn := func(m *Mrb, self Value) (Value, Value) {
+	fn := func(m *mruby.Mrb, self mruby.Value) (mruby.Value, mruby.Value) {
 		args := m.GetArgs()
-		return ToRuby(mrb, ToGo[int](args[0])+ToGo[int](args[1])), nil
+		return mruby.ToRuby(mrb, mruby.ToGo[int](args[0])+mruby.ToGo[int](args[1])), nil
 	}
 
-	mrb.TopSelf().SingletonClass().DefineMethod("add", fn, ArgsReq(2))
+	mrb.TopSelf().SingletonClass().DefineMethod("add", fn, mruby.ArgsReq(2))
 
 	result, err := mrb.LoadString(`add(46, 2)`)
 	if err != nil {

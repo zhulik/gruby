@@ -12,9 +12,9 @@ linters:
     - nlreturn
     - godox
     - dupword
+    - depguard
 
     # TODO:
-    - testpackage
     - intrange
     - ireturn
     - errorlint

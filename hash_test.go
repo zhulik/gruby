@@ -1,13 +1,15 @@
-package mruby
+package mruby_test
 
 import (
 	"testing"
+
+	mruby "github.com/zhulik/gruby"
 )
 
 func TestHash(t *testing.T) {
 	t.Parallel()
 
-	mrb := NewMrb()
+	mrb := mruby.NewMrb()
 	defer mrb.Close()
 
 	value, err := mrb.LoadString(`{"foo" => "bar", "baz" => false}`)
@@ -15,10 +17,10 @@ func TestHash(t *testing.T) {
 		t.Fatalf("err: %s", err)
 	}
 
-	hash := ToGo[*Hash](value)
+	hash := mruby.ToGo[*mruby.Hash](value)
 
 	// Get
-	value, err = hash.Get(ToRuby(mrb, "foo"))
+	value, err = hash.Get(mruby.ToRuby(mrb, "foo"))
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -27,11 +29,11 @@ func TestHash(t *testing.T) {
 	}
 
 	// Get false type
-	value, err = hash.Get(ToRuby(mrb, "baz"))
+	value, err = hash.Get(mruby.ToRuby(mrb, "baz"))
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
-	if valType := value.Type(); valType != TypeFalse {
+	if valType := value.Type(); valType != mruby.TypeFalse {
 		t.Fatalf("bad type: %v", valType)
 	}
 	if value.String() != "false" {
@@ -39,11 +41,11 @@ func TestHash(t *testing.T) {
 	}
 
 	// Set
-	err = hash.Set(ToRuby(mrb, "foo"), ToRuby(mrb, "baz"))
+	err = hash.Set(mruby.ToRuby(mrb, "foo"), mruby.ToRuby(mrb, "baz"))
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
-	value, err = hash.Get(ToRuby(mrb, "foo"))
+	value, err = hash.Get(mruby.ToRuby(mrb, "foo"))
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -56,7 +58,7 @@ func TestHash(t *testing.T) {
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
-	if value.Type() != TypeArray {
+	if value.Type() != mruby.TypeArray {
 		t.Fatalf("bad: %v", value.Type())
 	}
 	if value.String() != `["foo", "baz"]` {
@@ -64,7 +66,7 @@ func TestHash(t *testing.T) {
 	}
 
 	// Delete
-	value = hash.Delete(ToRuby(mrb, "foo"))
+	value = hash.Delete(mruby.ToRuby(mrb, "foo"))
 	if value.String() != "baz" {
 		t.Fatalf("bad: %s", value)
 	}
@@ -78,7 +80,7 @@ func TestHash(t *testing.T) {
 	}
 
 	// Delete non-existing
-	value = hash.Delete(ToRuby(mrb, "nope"))
+	value = hash.Delete(mruby.ToRuby(mrb, "nope"))
 	if value != nil {
 		t.Fatalf("bad: %s", value)
 	}

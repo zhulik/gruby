@@ -1,13 +1,15 @@
-package mruby
+package mruby_test
 
 import (
 	"testing"
+
+	mruby "github.com/zhulik/gruby"
 )
 
 func TestArray(t *testing.T) {
 	t.Parallel()
 
-	mrb := NewMrb()
+	mrb := mruby.NewMrb()
 	defer mrb.Close()
 
 	value, err := mrb.LoadString(`["foo", "bar", "baz", false]`)
@@ -15,7 +17,7 @@ func TestArray(t *testing.T) {
 		t.Fatalf("err: %s", err)
 	}
 
-	array := ToGo[*Array](value)
+	array := mruby.ToGo[*mruby.Array](value)
 
 	// Len
 	if n := array.Len(); n != 4 {
@@ -36,7 +38,7 @@ func TestArray(t *testing.T) {
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
-	if valType := value.Type(); valType != TypeFalse {
+	if valType := value.Type(); valType != mruby.TypeFalse {
 		t.Fatalf("bad type: %v", valType)
 	}
 	if value.String() != "false" {
