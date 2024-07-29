@@ -70,7 +70,7 @@ func (p *Parser) Parse(code string, cctx *CompileContext) ([]*ParserMessage, err
 	if p.parser.nwarn > 0 {
 		nwarn := int(p.parser.nwarn)
 		warnings = make([]*ParserMessage, nwarn)
-		for i := 0; i < nwarn; i++ {
+		for i := range nwarn {
 			msg := p.parser.warn_buffer[i]
 
 			warnings[i] = &ParserMessage{
@@ -84,7 +84,7 @@ func (p *Parser) Parse(code string, cctx *CompileContext) ([]*ParserMessage, err
 	if p.parser.nerr > 0 {
 		nerr := int(p.parser.nerr)
 		errors := make([]*ParserMessage, nerr)
-		for i := 0; i < nerr; i++ {
+		for i := range nerr {
 			msg := p.parser.error_buffer[i]
 
 			errors[i] = &ParserMessage{

@@ -245,7 +245,7 @@ func (d *decoder) decodeMap(name string, v Value, result reflect.Value) error {
 	}
 	keys := ToGo[*Array](keysRaw)
 
-	for i := 0; i < keys.Len(); i++ {
+	for i := range keys.Len() {
 		// Get the key and value in Ruby. This should do no allocations.
 		rbKey, err := keys.Get(i)
 		if err != nil {
@@ -315,7 +315,7 @@ func (d *decoder) decodeSlice(name string, v Value, result reflect.Value) error 
 	// Get the hash of the value
 	array := ToGo[*Array](v)
 
-	for i := 0; i < array.Len(); i++ {
+	for i := range array.Len() {
 		// Get the key and value in Ruby. This should do no allocations.
 		rbVal, err := array.Get(i)
 		if err != nil {
@@ -385,7 +385,7 @@ func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error
 		structs = structs[1:]
 
 		structType := structVal.Type()
-		for i := 0; i < structType.NumField(); i++ {
+		for i := range structType.NumField() {
 			fieldType := structType.Field(i)
 
 			if fieldType.Anonymous {

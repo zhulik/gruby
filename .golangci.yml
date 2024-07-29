@@ -15,7 +15,6 @@ linters:
     - depguard
 
     # TODO:
-    - intrange
     - ireturn
     - errorlint
     - err113
