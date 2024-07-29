@@ -14,7 +14,6 @@ jobs:
 
       - name: Pull mruby
         run: make mruby-build/mruby
-
       
       - name: Read .golangci-lint-version
         id: golangci_lint_version
@@ -35,9 +34,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Cache MRuby
+        uses: actions/cache@v4
+        with:
+          path: |
+            mruby-build
+            libmruby.a
+          key: ${{ runner.os }}-${{ hashFiles('Makefile') }}
+
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.golang }}
+  
 
       - name: Run tests
         run: make test
