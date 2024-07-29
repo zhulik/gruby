@@ -5,6 +5,8 @@ import (
 )
 
 func TestClassDefineClassMethod(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -19,6 +21,8 @@ func TestClassDefineClassMethod(t *testing.T) {
 }
 
 func TestClassDefineConst(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -34,6 +38,8 @@ func TestClassDefineConst(t *testing.T) {
 }
 
 func TestClassDefineMethod(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -48,6 +54,8 @@ func TestClassDefineMethod(t *testing.T) {
 }
 
 func TestClassNew(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -68,6 +76,8 @@ func TestClassNew(t *testing.T) {
 }
 
 func TestClassNewException(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 
 	defer mrb.Close()
@@ -92,6 +102,8 @@ func TestClassNewException(t *testing.T) {
 }
 
 func TestClassValue(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 

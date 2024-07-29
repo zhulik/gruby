@@ -3,6 +3,8 @@ package mruby
 import "testing"
 
 func TestEnableDisableGC(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -30,6 +32,8 @@ func TestEnableDisableGC(t *testing.T) {
 }
 
 func TestIsDead(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 
 	val, err := mrb.LoadString("$a = []")

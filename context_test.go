@@ -5,6 +5,8 @@ import (
 )
 
 func TestCompileContextFilename(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 

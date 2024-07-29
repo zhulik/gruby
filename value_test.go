@@ -6,6 +6,8 @@ import (
 )
 
 func TestExceptionString_afterClose(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	_, err := mrb.LoadString(`clearly a syntax error`)
 	mrb.Close()
@@ -17,6 +19,8 @@ func TestExceptionString_afterClose(t *testing.T) {
 }
 
 func TestExceptionBacktrace(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -70,6 +74,8 @@ func TestExceptionBacktrace(t *testing.T) {
 }
 
 func TestMrbValueCall(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -93,6 +99,8 @@ func TestMrbValueCall(t *testing.T) {
 }
 
 func TestMrbValueCallBlock(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -119,6 +127,8 @@ func TestMrbValueCallBlock(t *testing.T) {
 }
 
 func TestMrbValueValue_impl(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -126,6 +136,8 @@ func TestMrbValueValue_impl(t *testing.T) {
 }
 
 func TestMrbValueFixnum(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -139,6 +151,8 @@ func TestMrbValueFixnum(t *testing.T) {
 }
 
 func TestMrbValueString(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -152,6 +166,8 @@ func TestMrbValueString(t *testing.T) {
 }
 
 func TestMrbValueType(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -244,6 +260,8 @@ func TestMrbValueType(t *testing.T) {
 }
 
 func TestIntMrbValue(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -254,6 +272,8 @@ func TestIntMrbValue(t *testing.T) {
 }
 
 func TestStringMrbValue(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -264,6 +284,8 @@ func TestStringMrbValue(t *testing.T) {
 }
 
 func TestValueClass(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -278,6 +300,8 @@ func TestValueClass(t *testing.T) {
 }
 
 func TestValueSingletonClass(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 

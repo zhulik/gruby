@@ -5,6 +5,8 @@ import (
 )
 
 func TestParserGenerateCode(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -30,6 +32,8 @@ func TestParserGenerateCode(t *testing.T) {
 }
 
 func TestParserParse(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -46,6 +50,8 @@ func TestParserParse(t *testing.T) {
 }
 
 func TestParserParse_error(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -59,5 +65,7 @@ func TestParserParse_error(t *testing.T) {
 }
 
 func TestParserError_error(t *testing.T) {
+	t.Parallel()
+
 	var _ error = new(ParserError)
 }

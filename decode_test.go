@@ -6,6 +6,8 @@ import (
 )
 
 func TestDecode(t *testing.T) {
+	t.Parallel()
+
 	type structString struct {
 		Foo string
 	}
@@ -138,6 +140,8 @@ func TestDecode(t *testing.T) {
 }
 
 func TestDecodeInterface(t *testing.T) {
+	t.Parallel()
+
 	cases := []struct {
 		Input    string
 		Expected interface{}

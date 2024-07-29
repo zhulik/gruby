@@ -7,11 +7,15 @@ import (
 )
 
 func TestNewMrb(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	mrb.Close()
 }
 
 func TestMrbArena(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -20,6 +24,8 @@ func TestMrbArena(t *testing.T) {
 }
 
 func TestMrbModule(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -30,6 +36,8 @@ func TestMrbModule(t *testing.T) {
 }
 
 func TestMrbClass(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -46,6 +54,8 @@ func TestMrbClass(t *testing.T) {
 }
 
 func TestMrbConstDefined(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -60,6 +70,8 @@ func TestMrbConstDefined(t *testing.T) {
 }
 
 func TestMrbDefineClass(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -77,6 +89,8 @@ func TestMrbDefineClass(t *testing.T) {
 }
 
 func TestMrbDefineClass_methodException(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -99,6 +113,8 @@ func TestMrbDefineClass_methodException(t *testing.T) {
 }
 
 func TestMrbDefineClassUnder(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -125,6 +141,8 @@ func TestMrbDefineClassUnder(t *testing.T) {
 }
 
 func TestMrbDefineModule(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -136,6 +154,8 @@ func TestMrbDefineModule(t *testing.T) {
 }
 
 func TestMrbDefineModuleUnder(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -162,6 +182,8 @@ func TestMrbDefineModuleUnder(t *testing.T) {
 }
 
 func TestMrbFixnumValue(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -172,6 +194,8 @@ func TestMrbFixnumValue(t *testing.T) {
 }
 
 func TestMrbFullGC(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -195,6 +219,8 @@ type testcase struct {
 }
 
 func TestMrbGetArgs(t *testing.T) {
+	t.Parallel()
+
 	cases := []testcase{
 		{
 			`("foo")`,
@@ -303,6 +329,8 @@ func TestMrbGetArgs(t *testing.T) {
 }
 
 func TestMrbGlobalVariable(t *testing.T) {
+	t.Parallel()
+
 	const (
 		TestValue = "HELLO"
 	)
@@ -326,6 +354,8 @@ func TestMrbGlobalVariable(t *testing.T) {
 }
 
 func TestMrbInstanceVariable(t *testing.T) {
+	t.Parallel()
+
 	const (
 		GoldenRetriever = "golden retriever"
 		Husky           = "Husky"
@@ -368,6 +398,8 @@ func TestMrbInstanceVariable(t *testing.T) {
 }
 
 func TestMrbLoadString(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -381,6 +413,8 @@ func TestMrbLoadString(t *testing.T) {
 }
 
 func TestMrbLoadString_twice(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -402,6 +436,8 @@ func TestMrbLoadString_twice(t *testing.T) {
 }
 
 func TestMrbLoadStringException(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -422,6 +458,8 @@ func TestMrbLoadStringException(t *testing.T) {
 }
 
 func TestMrbRaise(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -441,6 +479,8 @@ func TestMrbRaise(t *testing.T) {
 }
 
 func TestMrbYield(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -465,6 +505,8 @@ func TestMrbYield(t *testing.T) {
 }
 
 func TestMrbYieldException(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -492,6 +534,8 @@ func TestMrbYieldException(t *testing.T) {
 }
 
 func TestMrbRun(t *testing.T) {
+	t.Parallel()
+
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -574,6 +618,8 @@ func TestMrbRun(t *testing.T) {
 }
 
 func TestMrbDefineMethodConcurrent(t *testing.T) {
+	t.Parallel()
+
 	concurrency := 100
 	numFuncs := 100
 
@@ -601,6 +647,8 @@ func TestMrbDefineMethodConcurrent(t *testing.T) {
 }
 
 func TestMrbStackedException(t *testing.T) {
+	t.Parallel()
+
 	var testClass *Class
 
 	createException := func(m *Mrb, msg string) Value {
