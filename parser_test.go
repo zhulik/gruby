@@ -1,17 +1,21 @@
-package mruby
+package mruby_test
 
 import (
 	"testing"
+
+	mruby "github.com/zhulik/gruby"
 )
 
 func TestParserGenerateCode(t *testing.T) {
-	mrb := NewMrb()
+	t.Parallel()
+
+	mrb := mruby.NewMrb()
 	defer mrb.Close()
 
-	p := NewParser(mrb)
-	defer p.Close()
+	parser := mruby.NewParser(mrb)
+	defer parser.Close()
 
-	warns, err := p.Parse(`"foo"`, nil)
+	warns, err := parser.Parse(`"foo"`, nil)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -19,7 +23,7 @@ func TestParserGenerateCode(t *testing.T) {
 		t.Fatalf("warnings: %v", warns)
 	}
 
-	proc := p.GenerateCode()
+	proc := parser.GenerateCode()
 	result, err := mrb.Run(proc, nil)
 	if err != nil {
 		t.Fatalf("err: %s", err)
@@ -30,10 +34,12 @@ func TestParserGenerateCode(t *testing.T) {
 }
 
 func TestParserParse(t *testing.T) {
-	mrb := NewMrb()
+	t.Parallel()
+
+	mrb := mruby.NewMrb()
 	defer mrb.Close()
 
-	p := NewParser(mrb)
+	p := mruby.NewParser(mrb)
 	defer p.Close()
 
 	warns, err := p.Parse(`"foo"`, nil)
@@ -46,10 +52,12 @@ func TestParserParse(t *testing.T) {
 }
 
 func TestParserParse_error(t *testing.T) {
-	mrb := NewMrb()
+	t.Parallel()
+
+	mrb := mruby.NewMrb()
 	defer mrb.Close()
 
-	p := NewParser(mrb)
+	p := mruby.NewParser(mrb)
 	defer p.Close()
 
 	_, err := p.Parse(`def foo`, nil)
@@ -59,5 +67,7 @@ func TestParserParse_error(t *testing.T) {
 }
 
 func TestParserError_error(t *testing.T) {
-	var _ error = new(ParserError)
+	t.Parallel()
+
+	var _ error = new(mruby.ParserError)
 }

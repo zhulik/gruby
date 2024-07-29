@@ -14,11 +14,11 @@ type CompileContext struct {
 }
 
 // NewCompileContext constructs a *CompileContext from a *Mrb.
-func NewCompileContext(m *Mrb) *CompileContext {
+func NewCompileContext(mrb *Mrb) *CompileContext {
 	return &CompileContext{
-		ctx:      C.mrb_ccontext_new(m.state),
+		ctx:      C.mrb_ccontext_new(mrb.state),
 		filename: "",
-		mrb:      m,
+		mrb:      mrb,
 	}
 }
 

@@ -47,22 +47,22 @@ var stateMethodTable = &stateMethods{ //nolint:gochecknoglobals
 }
 
 //export goMRBFuncCall
-func goMRBFuncCall(s *C.mrb_state, v C.mrb_value) C.mrb_value {
+func goMRBFuncCall(state *C.mrb_state, value C.mrb_value) C.mrb_value {
 	// Lookup the classes that we've registered methods for in this state
 	stateMethodTable.Mutex.Lock()
-	classTable := stateMethodTable.Map[s]
+	classTable := stateMethodTable.Map[state]
 	stateMethodTable.Mutex.Unlock()
 	if classTable == nil {
-		panic(fmt.Sprintf("func call from unknown state: %p", s))
+		panic(fmt.Sprintf("func call from unknown state: %p", state))
 	}
 
 	// Get the call info, which we use to lookup the proc
-	ci := s.c.ci
+	callInfo := state.c.ci
 
 	// Lookup the class itself
 	classTable.Mutex.Lock()
 
-	class := *(**C.struct_RClass)(unsafe.Pointer(&ci.u[0]))
+	class := *(**C.struct_RClass)(unsafe.Pointer(&callInfo.u[0]))
 	methodTable := classTable.Map[class]
 	classTable.Mutex.Unlock()
 	if methodTable == nil {
@@ -71,51 +71,51 @@ func goMRBFuncCall(s *C.mrb_state, v C.mrb_value) C.mrb_value {
 
 	// Lookup the method
 	methodTable.Mutex.Lock()
-	f := methodTable.Map[ci.mid]
+	method := methodTable.Map[callInfo.mid]
 	methodTable.Mutex.Unlock()
-	if f == nil {
+	if method == nil {
 		panic("func call on unknown method")
 	}
 
 	// Call the method to get our *Value
 	// TODO(mitchellh): reuse the Mrb instead of allocating every time
-	mrb := &Mrb{s}
-	result, exc := f(mrb, mrb.value(v))
+	mrb := &Mrb{state}
+	result, exc := method(mrb, mrb.value(value))
 
 	if result == nil {
 		result = mrb.NilValue()
 	}
 
 	if exc != nil {
-		s.exc = C._go_mrb_getobj(exc.CValue())
+		state.exc = C._go_mrb_getobj(exc.CValue())
 		return mrb.NilValue().CValue()
 	}
 
 	return result.CValue()
 }
 
-func insertMethod(s *C.mrb_state, c *C.struct_RClass, n string, f Func) {
+func insertMethod(state *C.mrb_state, class *C.struct_RClass, name string, callback Func) {
 	stateMethodTable.Mutex.Lock()
-	classLookup := stateMethodTable.Map[s]
+	classLookup := stateMethodTable.Map[state]
 	if classLookup == nil {
 		classLookup = &classMethods{Map: make(classMethodMap), Mutex: new(sync.Mutex)}
-		stateMethodTable.Map[s] = classLookup
+		stateMethodTable.Map[state] = classLookup
 	}
 	stateMethodTable.Mutex.Unlock()
 
 	classLookup.Mutex.Lock()
-	methodLookup := classLookup.Map[c]
+	methodLookup := classLookup.Map[class]
 	if methodLookup == nil {
 		methodLookup = &methods{Map: make(methodMap), Mutex: new(sync.Mutex)}
-		classLookup.Map[c] = methodLookup
+		classLookup.Map[class] = methodLookup
 	}
 	classLookup.Mutex.Unlock()
 
-	cs := C.CString(n)
-	defer C.free(unsafe.Pointer(cs))
+	cstr := C.CString(name)
+	defer C.free(unsafe.Pointer(cstr))
 
-	sym := C.mrb_intern_cstr(s, cs)
+	sym := C.mrb_intern_cstr(state, cstr)
 	methodLookup.Mutex.Lock()
-	methodLookup.Map[sym] = f
+	methodLookup.Map[sym] = callback
 	methodLookup.Mutex.Unlock()
 }

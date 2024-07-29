@@ -12,11 +12,9 @@ linters:
     - nlreturn
     - godox
     - dupword
+    - depguard
 
     # TODO:
-    - paralleltest
-    - varnamelen
-    - testpackage
     - intrange
     - ireturn
     - errorlint
@@ -37,7 +35,9 @@ linters-settings:
   govet:
     shadow: true
   varnamelen:
-    ignore-decls: []
+    ignore-decls:
+      - v Value
+      - i int
 
 issues:
   max-same-issues: 0

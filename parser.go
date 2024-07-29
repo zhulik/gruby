@@ -20,17 +20,17 @@ type Parser struct {
 // NewParser initializes the resources for a parser.
 //
 // Make sure to Close the parser when you're done with it.
-func NewParser(m *Mrb) *Parser {
-	p := C.mrb_parser_new(m.state)
+func NewParser(mrb *Mrb) *Parser {
+	parser := C.mrb_parser_new(mrb.state)
 
 	// Set capture_errors to true so we don't go just printing things
 	// out to stdout.
-	C._go_mrb_parser_set_capture_errors(p, C._go_mrb_int2bool(1))
+	C._go_mrb_parser_set_capture_errors(parser, C._go_mrb_int2bool(1))
 
 	return &Parser{
 		code:   "",
-		mrb:    m,
-		parser: p,
+		mrb:    mrb,
+		parser: parser,
 	}
 }
 
@@ -53,7 +53,7 @@ func (p *Parser) GenerateCode() Value {
 // or errors from parsing.
 //
 // The CompileContext can be nil to not set a context.
-func (p *Parser) Parse(code string, c *CompileContext) ([]*ParserMessage, error) {
+func (p *Parser) Parse(code string, cctx *CompileContext) ([]*ParserMessage, error) {
 	// We set p.code so that the string doesn't get garbage collected
 	var s *C.char = C.CString(code)
 	p.code = code
@@ -61,8 +61,8 @@ func (p *Parser) Parse(code string, c *CompileContext) ([]*ParserMessage, error)
 	p.parser.send = C._go_mrb_calc_send(s)
 
 	var ctx *C.mrbc_context
-	if c != nil {
-		ctx = c.ctx
+	if cctx != nil {
+		ctx = cctx.ctx
 	}
 	C.mrb_parser_parse(p.parser, ctx)
 

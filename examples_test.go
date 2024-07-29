@@ -1,22 +1,24 @@
-package mruby
+package mruby_test
 
 import (
 	"fmt"
+
+	mruby "github.com/zhulik/gruby"
 )
 
 func ExampleMrb_DefineClass() {
-	mrb := NewMrb()
+	mrb := mruby.NewMrb()
 	defer mrb.Close()
 
 	// Our custom function we'll expose to Ruby
-	addFunc := func(m *Mrb, self Value) (Value, Value) {
-		args := m.GetArgs()
-		return ToRuby(mrb, ToGo[int](args[0])+ToGo[int](args[1])), nil
+	addFunc := func(mrb *mruby.Mrb, self mruby.Value) (mruby.Value, mruby.Value) {
+		args := mrb.GetArgs()
+		return mruby.ToRuby(mrb, mruby.ToGo[int](args[0])+mruby.ToGo[int](args[1])), nil
 	}
 
 	// Lets define a custom class and a class method we can call.
 	class := mrb.DefineClass("Example", nil)
-	class.DefineClassMethod("add", addFunc, ArgsReq(2))
+	class.DefineClassMethod("add", addFunc, mruby.ArgsReq(2))
 
 	// Let's call it and inspect the result
 	result, err := mrb.LoadString(`Example.add(12, 30)`)
@@ -30,14 +32,14 @@ func ExampleMrb_DefineClass() {
 }
 
 func ExampleDecode() {
-	mrb := NewMrb()
+	mrb := mruby.NewMrb()
 	defer mrb.Close()
 
 	// Our custom function we'll expose to Ruby
 	var logData interface{}
-	logFunc := func(m *Mrb, self Value) (Value, Value) {
+	logFunc := func(m *mruby.Mrb, self mruby.Value) (mruby.Value, mruby.Value) {
 		args := m.GetArgs()
-		if err := Decode(&logData, args[0]); err != nil {
+		if err := mruby.Decode(&logData, args[0]); err != nil {
 			panic(err)
 		}
 
@@ -46,7 +48,7 @@ func ExampleDecode() {
 
 	// Lets define a custom class and a class method we can call.
 	class := mrb.DefineClass("Example", nil)
-	class.DefineClassMethod("log", logFunc, ArgsReq(1))
+	class.DefineClassMethod("log", logFunc, mruby.ArgsReq(1))
 
 	// Let's call it and inspect the result
 	if _, err := mrb.LoadString(`Example.log({"foo" => "bar"})`); err != nil {
@@ -59,18 +61,18 @@ func ExampleDecode() {
 }
 
 func ExampleSimulateFiles() { //nolint:govet
-	mrb := NewMrb()
+	mrb := mruby.NewMrb()
 	defer mrb.Close()
 
-	ctx1 := NewCompileContext(mrb)
+	ctx1 := mruby.NewCompileContext(mrb)
 	defer ctx1.Close()
 	ctx1.SetFilename("foo.rb")
 
-	ctx2 := NewCompileContext(mrb)
+	ctx2 := mruby.NewCompileContext(mrb)
 	defer ctx2.Close()
 	ctx2.SetFilename("bar.rb")
 
-	parser := NewParser(mrb)
+	parser := mruby.NewParser(mrb)
 	defer parser.Close()
 
 	if _, err := parser.Parse("def foo; bar; end", ctx1); err != nil {

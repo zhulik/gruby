@@ -1,11 +1,15 @@
-package mruby
+package mruby_test
 
 import (
 	"reflect"
 	"testing"
+
+	mruby "github.com/zhulik/gruby"
 )
 
 func TestDecode(t *testing.T) {
+	t.Parallel()
+
 	type structString struct {
 		Foo string
 	}
@@ -112,32 +116,34 @@ func TestDecode(t *testing.T) {
 		},
 	}
 
-	for _, tc := range cases {
-		mrb := NewMrb()
-		value, err := mrb.LoadString(tc.Input)
+	for _, tcase := range cases {
+		mrb := mruby.NewMrb()
+		value, err := mrb.LoadString(tcase.Input)
 		if err != nil {
 			mrb.Close()
-			t.Fatalf("err: %s\n\n%s", err, tc.Input)
+			t.Fatalf("err: %s\n\n%s", err, tcase.Input)
 		}
 
-		err = Decode(tc.Output, value)
+		err = mruby.Decode(tcase.Output, value)
 		mrb.Close()
 		if err != nil {
-			t.Fatalf("input=%s output=%+v err: %s", tc.Input, tc.Output, err)
+			t.Fatalf("input=%s output=%+v err: %s", tcase.Input, tcase.Output, err)
 		}
 
-		val := reflect.ValueOf(tc.Output)
+		val := reflect.ValueOf(tcase.Output)
 		for val.Kind() == reflect.Ptr {
 			val = reflect.Indirect(val)
 		}
 		actual := val.Interface()
-		if !reflect.DeepEqual(actual, tc.Expected) {
-			t.Fatalf("bad: %#v\n\n%#v", actual, tc.Expected)
+		if !reflect.DeepEqual(actual, tcase.Expected) {
+			t.Fatalf("bad: %#v\n\n%#v", actual, tcase.Expected)
 		}
 	}
 }
 
 func TestDecodeInterface(t *testing.T) {
+	t.Parallel()
+
 	cases := []struct {
 		Input    string
 		Expected interface{}
@@ -189,23 +195,23 @@ func TestDecodeInterface(t *testing.T) {
 		},
 	}
 
-	for _, tc := range cases {
-		mrb := NewMrb()
-		value, err := mrb.LoadString(tc.Input)
+	for _, tcase := range cases {
+		mrb := mruby.NewMrb()
+		value, err := mrb.LoadString(tcase.Input)
 		if err != nil {
 			mrb.Close()
-			t.Fatalf("err: %s\n\n%s", err, tc.Input)
+			t.Fatalf("err: %s\n\n%s", err, tcase.Input)
 		}
 
 		var result interface{}
-		err = Decode(&result, value)
+		err = mruby.Decode(&result, value)
 		mrb.Close()
 		if err != nil {
 			t.Fatalf("err: %s", err)
 		}
 
-		if !reflect.DeepEqual(result, tc.Expected) {
-			t.Fatalf("bad: \n\n%s\n\n%#v\n\n%#v", tc.Input, result, tc.Expected)
+		if !reflect.DeepEqual(result, tcase.Expected) {
+			t.Fatalf("bad: \n\n%s\n\n%#v\n\n%#v", tcase.Input, result, tcase.Expected)
 		}
 	}
 }

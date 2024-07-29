@@ -42,16 +42,16 @@ type MrbValue struct {
 
 // SetInstanceVariable sets an instance variable on this value.
 func (v *MrbValue) SetInstanceVariable(variable string, value Value) {
-	cs := C.CString(variable)
-	defer C.free(unsafe.Pointer(cs))
-	C._go_mrb_iv_set(v.state, v.value, C.mrb_intern_cstr(v.state, cs), value.CValue())
+	cstr := C.CString(variable)
+	defer C.free(unsafe.Pointer(cstr))
+	C._go_mrb_iv_set(v.state, v.value, C.mrb_intern_cstr(v.state, cstr), value.CValue())
 }
 
 // GetInstanceVariable gets an instance variable on this value.
 func (v *MrbValue) GetInstanceVariable(variable string) Value {
-	cs := C.CString(variable)
-	defer C.free(unsafe.Pointer(cs))
-	return v.Mrb().value(C._go_mrb_iv_get(v.state, v.value, C.mrb_intern_cstr(v.state, cs)))
+	cstr := C.CString(variable)
+	defer C.free(unsafe.Pointer(cstr))
+	return v.Mrb().value(C._go_mrb_iv_get(v.state, v.value, C.mrb_intern_cstr(v.state, cstr)))
 }
 
 // Call calls a method with the given name and arguments on this
@@ -92,15 +92,15 @@ func (v *MrbValue) call(method string, args []Value, block Value) (Value, error)
 		blockV = &val
 	}
 
-	cs := C.CString(method)
-	defer C.free(unsafe.Pointer(cs))
+	cstr := C.CString(method)
+	defer C.free(unsafe.Pointer(cstr))
 
 	// If we have a block, we have to call a separate function to
 	// pass a block in. Otherwise, we just call it directly.
 	result := C._go_mrb_call(
 		v.state,
 		v.value,
-		C.mrb_intern_cstr(v.state, cs),
+		C.mrb_intern_cstr(v.state, cstr),
 		C.mrb_int(len(argv)),
 		argvPtr,
 		blockV)
@@ -168,11 +168,11 @@ func (e *ExceptionError) Error() string {
 //-------------------------------------------------------------------
 
 func ToGo[T any](value Value) T {
-	var t T
+	var empty T
 
 	var result any
 
-	switch any(t).(type) {
+	switch any(empty).(type) {
 	case string:
 		str := C.mrb_obj_as_string(value.Mrb().state, value.CValue())
 		result = C.GoString(C._go_RSTRING_PTR(str))
@@ -192,25 +192,25 @@ func ToGo[T any](value Value) T {
 }
 
 func ToRuby[T any](mrb *Mrb, value T) Value {
-	var t T
+	var empty T
 
 	val := any(value)
 
-	switch any(t).(type) {
+	switch any(empty).(type) {
 	case string:
-		cs := C.CString(val.(string))
-		defer C.free(unsafe.Pointer(cs))
-		return mrb.value(C.mrb_str_new_cstr(mrb.state, cs))
+		cstr := C.CString(val.(string))
+		defer C.free(unsafe.Pointer(cstr))
+		return mrb.value(C.mrb_str_new_cstr(mrb.state, cstr))
 	case int, int16, int32, int64:
 		return mrb.value(C.mrb_fixnum_value(C.mrb_int(val.(int))))
 	case float64, float32:
 		return mrb.value(C.mrb_float_value(mrb.state, C.mrb_float(C.long(val.(float32)))))
 	case *Array:
-		panic(fmt.Sprintf("unknown type %+v", t))
+		panic(fmt.Sprintf("unknown type %+v", empty))
 	case *Hash:
-		panic(fmt.Sprintf("unknown type %+v", t))
+		panic(fmt.Sprintf("unknown type %+v", empty))
 	default:
-		panic(fmt.Sprintf("unknown type %+v", t))
+		panic(fmt.Sprintf("unknown type %+v", empty))
 	}
 }
 
@@ -237,22 +237,22 @@ func (v *MrbValue) SingletonClass() *Class {
 // Internal Functions
 //-------------------------------------------------------------------
 
-func newExceptionValue(s *C.mrb_state) *ExceptionError {
-	mrb := &Mrb{s}
+func newExceptionValue(state *C.mrb_state) *ExceptionError {
+	mrb := &Mrb{state}
 
-	if s.exc == nil {
+	if state.exc == nil {
 		panic("exception value init without exception")
 	}
 
-	arenaIndex := C._go_mrb_gc_arena_save(s)
-	defer C._go_mrb_gc_arena_restore(s, arenaIndex)
+	arenaIndex := C._go_mrb_gc_arena_save(state)
+	defer C._go_mrb_gc_arena_restore(state, arenaIndex)
 
 	// Convert the RObject* to an mrb_value
-	value := C.mrb_obj_value(unsafe.Pointer(s.exc))
+	value := C.mrb_obj_value(unsafe.Pointer(state.exc))
 
 	// Retrieve and convert backtrace to []string (avoiding reflection in Decode)
 	var backtrace []string
-	mrbBacktraceValue := mrb.value(C.mrb_exc_backtrace(s, value))
+	mrbBacktraceValue := mrb.value(C.mrb_exc_backtrace(state, value))
 	if mrbBacktraceValue.Type() == TypeArray {
 		mrbBacktrace := ToGo[*Array](mrbBacktraceValue)
 		for i := 0; i < mrbBacktrace.Len(); i++ {
