@@ -84,7 +84,7 @@ func goMRBFuncCall(s *C.mrb_state, v C.mrb_value) C.mrb_value {
 	// Call the method to get our *Value
 	// TODO(mitchellh): reuse the Mrb instead of allocating every time
 	mrb := &Mrb{s}
-	result, exc := f(mrb, newValue(s, v))
+	result, exc := f(mrb, mrb.value(v))
 
 	if result == nil {
 		result = mrb.NilValue()

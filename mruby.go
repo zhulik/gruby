@@ -19,7 +19,7 @@ type Mrb struct {
 func (m *Mrb) GetGlobalVariable(name string) Value {
 	cs := C.CString(name)
 	defer C.free(unsafe.Pointer(cs))
-	return newValue(m.state, C._go_mrb_gv_get(m.state, C.mrb_intern_cstr(m.state, cs)))
+	return m.value(C._go_mrb_gv_get(m.state, C.mrb_intern_cstr(m.state, cs)))
 }
 
 // SetGlobalVariable sets the value of the global variable by the given name.
@@ -176,7 +176,7 @@ func (m *Mrb) GetArgs() []Value {
 	values := make([]Value, count)
 
 	for i := 0; i < int(count); i++ {
-		values[i] = newValue(m.state, getArgAccumulator[i])
+		values[i] = m.value(getArgAccumulator[i])
 	}
 
 	return values
@@ -203,7 +203,7 @@ func (m *Mrb) LoadString(code string) (Value, error) {
 		return nil, exc
 	}
 
-	return newValue(m.state, value), nil
+	return m.value(value), nil
 }
 
 // Run executes the given value, which should be a proc type.
@@ -226,7 +226,7 @@ func (m *Mrb) Run(v Value, self Value) (Value, error) {
 		return nil, exc
 	}
 
-	return newValue(m.state, value), nil
+	return m.value(value), nil
 }
 
 // RunWithContext is a context-aware parser (aka, it does not discard state
@@ -252,7 +252,7 @@ func (m *Mrb) RunWithContext(v Value, self Value, stackKeep int) (int, Value, er
 		return stackKeep, nil, exc
 	}
 
-	return int(i), newValue(m.state, value), nil
+	return int(i), m.value(value), nil
 }
 
 // Yield yields to a block with the given arguments.
@@ -284,7 +284,7 @@ func (m *Mrb) Yield(block Value, args ...Value) (Value, error) {
 		return nil, exc
 	}
 
-	return newValue(m.state, result), nil
+	return m.value(result), nil
 }
 
 //-------------------------------------------------------------------
@@ -360,34 +360,41 @@ func (m *Mrb) KernelModule() *Class {
 
 // TopSelf returns the top-level `self` value.
 func (m *Mrb) TopSelf() Value {
-	return newValue(m.state, C.mrb_obj_value(unsafe.Pointer(m.state.top_self)))
+	return m.value(C.mrb_obj_value(unsafe.Pointer(m.state.top_self)))
 }
 
 // FalseValue returns a Value for "false"
 func (m *Mrb) FalseValue() Value {
-	return newValue(m.state, C.mrb_false_value())
+	return m.value(C.mrb_false_value())
 }
 
 // NilValue returns "nil"
 func (m *Mrb) NilValue() Value {
-	return newValue(m.state, C.mrb_nil_value())
+	return m.value(C.mrb_nil_value())
 }
 
 // TrueValue returns a Value for "true"
 func (m *Mrb) TrueValue() Value {
-	return newValue(m.state, C.mrb_true_value())
+	return m.value(C.mrb_true_value())
 }
 
 // FixnumValue returns a Value for a fixed number.
 func (m *Mrb) FixnumValue(v int) Value {
-	return newValue(m.state, C.mrb_fixnum_value(C.mrb_int(v)))
+	return m.value(C.mrb_fixnum_value(C.mrb_int(v)))
 }
 
 // StringValue returns a Value for a string.
 func (m *Mrb) StringValue(s string) Value {
 	cs := C.CString(s)
 	defer C.free(unsafe.Pointer(cs))
-	return newValue(m.state, C.mrb_str_new_cstr(m.state, cs))
+	return m.value(C.mrb_str_new_cstr(m.state, cs))
+}
+
+func (m *Mrb) value(v C.mrb_value) Value {
+	return &MrbValue{
+		state: m.state,
+		value: v,
+	}
 }
 
 func checkException(state *C.mrb_state) error {

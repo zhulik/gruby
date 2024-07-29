@@ -22,7 +22,7 @@ func (v *Array) Len() int {
 func (v *Array) Get(idx int) (Value, error) {
 	result := C.mrb_ary_entry(v.CValue(), C.mrb_int(idx))
 
-	val := newValue(v.Mrb().state, result)
+	val := v.Mrb().value(result)
 	if val.Type() == TypeNil {
 		val = nil
 	}

@@ -49,7 +49,7 @@ func (v *MrbValue) SetInstanceVariable(variable string, value Value) {
 func (v *MrbValue) GetInstanceVariable(variable string) Value {
 	cs := C.CString(variable)
 	defer C.free(unsafe.Pointer(cs))
-	return newValue(v.state, C._go_mrb_iv_get(v.state, v.value, C.mrb_intern_cstr(v.state, cs)))
+	return v.Mrb().value(C._go_mrb_iv_get(v.state, v.value, C.mrb_intern_cstr(v.state, cs)))
 }
 
 // Call calls a method with the given name and arguments on this
@@ -107,7 +107,7 @@ func (v *MrbValue) call(method string, args []Value, block Value) (Value, error)
 		return nil, exc
 	}
 
-	return newValue(v.state, result), nil
+	return v.Mrb().value(result), nil
 }
 
 // IsDead tells you if an object has been collected by the GC or not.
@@ -213,6 +213,8 @@ func (v *MrbValue) SingletonClass() *Class {
 //-------------------------------------------------------------------
 
 func newExceptionValue(s *C.mrb_state) *Exception {
+	mrb := &Mrb{s}
+
 	if s.exc == nil {
 		panic("exception value init without exception")
 	}
@@ -225,7 +227,7 @@ func newExceptionValue(s *C.mrb_state) *Exception {
 
 	// Retrieve and convert backtrace to []string (avoiding reflection in Decode)
 	var backtrace []string
-	mrbBacktraceValue := newValue(s, C.mrb_exc_backtrace(s, value))
+	mrbBacktraceValue := mrb.value(C.mrb_exc_backtrace(s, value))
 	if mrbBacktraceValue.Type() == TypeArray {
 		mrbBacktrace := ToGo[*Array](mrbBacktraceValue)
 		for i := 0; i < mrbBacktrace.Len(); i++ {
@@ -245,19 +247,12 @@ func newExceptionValue(s *C.mrb_state) *Exception {
 		}
 	}
 
-	result := newValue(s, value)
+	result := mrb.value(value)
 	return &Exception{
 		Value:     result,
 		Message:   result.String(),
 		File:      file,
 		Line:      line,
 		Backtrace: backtrace,
-	}
-}
-
-func newValue(s *C.mrb_state, v C.mrb_value) Value {
-	return &MrbValue{
-		state: s,
-		value: v,
 	}
 }

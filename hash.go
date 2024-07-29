@@ -16,7 +16,7 @@ func (h *Hash) Delete(key Value) Value {
 	keyVal := key.CValue()
 	result := C.mrb_hash_delete_key(h.Mrb().state, h.CValue(), keyVal)
 
-	val := newValue(h.Mrb().state, result)
+	val := h.Mrb().value(result)
 	if val.Type() == TypeNil {
 		return nil
 	}
@@ -28,7 +28,7 @@ func (h *Hash) Delete(key Value) Value {
 func (h *Hash) Get(key Value) (Value, error) {
 	keyVal := key.CValue()
 	result := C.mrb_hash_get(h.Mrb().state, h.CValue(), keyVal)
-	return newValue(h.Mrb().state, result), nil
+	return h.Mrb().value(result), nil
 }
 
 // Set sets a value on the hash
@@ -44,5 +44,5 @@ func (h *Hash) Set(key, val Value) error {
 // you see fit.
 func (h *Hash) Keys() (Value, error) {
 	result := C.mrb_hash_keys(h.Mrb().state, h.CValue())
-	return newValue(h.Mrb().state, result), nil
+	return h.Mrb().value(result), nil
 }

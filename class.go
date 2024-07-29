@@ -18,14 +18,6 @@ func (c *Class) String() string {
 	return ToGo[string](c)
 }
 
-func (c *Class) Call(method string, args ...Value) (Value, error) {
-	return c.Value.Call(method, args...)
-}
-
-func (c *Class) CallBlock(method string, args ...Value) (Value, error) {
-	return c.Value.CallBlock(method, args...)
-}
-
 // DefineClassMethod defines a class-level method on the given class.
 func (c *Class) DefineClassMethod(name string, cb Func, as ArgSpec) {
 	insertMethod(c.Mrb().state, c.class.c, name, cb)
@@ -64,11 +56,6 @@ func (c *Class) DefineMethod(name string, cb Func, as ArgSpec) {
 		C.mrb_aspec(as))
 }
 
-// Type returns the ValueType of the underlying MrbValue
-func (c *Class) Type() ValueType {
-	return TypeClass
-}
-
 // New instantiates the class with the given args.
 func (c *Class) New(args ...Value) (Value, error) {
 	var argv []C.mrb_value
@@ -88,12 +75,12 @@ func (c *Class) New(args ...Value) (Value, error) {
 		return nil, exc
 	}
 
-	return newValue(c.Mrb().state, result), nil
+	return c.Mrb().value(result), nil
 }
 
 func newClass(mrb *Mrb, c *C.struct_RClass) *Class {
 	return &Class{
-		Value: newValue(mrb.state, C.mrb_obj_value(unsafe.Pointer(c))),
+		Value: mrb.value(C.mrb_obj_value(unsafe.Pointer(c))),
 		class: c,
 	}
 }
