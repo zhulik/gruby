@@ -83,7 +83,7 @@ func TestMrbValueCall(t *testing.T) {
 		t.Fatalf("expected exception")
 	}
 
-	result, err := value.Call("==", mrb.StringValue("foo"))
+	result, err := value.Call("==", ToRuby(mrb, "foo"))
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -106,7 +106,7 @@ func TestMrbValueCallBlock(t *testing.T) {
 		t.Fatalf("err: %s", err)
 	}
 
-	result, err := value.CallBlock("gsub", mrb.StringValue("foo"), block)
+	result, err := value.CallBlock("gsub", ToRuby(mrb, "foo"), block)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -247,7 +247,7 @@ func TestIntMrbValue(t *testing.T) {
 	mrb := NewMrb()
 	defer mrb.Close()
 
-	var value Value = mrb.FixnumValue(42)
+	var value Value = ToRuby(mrb, 42)
 	if ToGo[int](value) != 42 {
 		t.Fatalf("bad value")
 	}
@@ -257,7 +257,7 @@ func TestStringMrbValue(t *testing.T) {
 	mrb := NewMrb()
 	defer mrb.Close()
 
-	var value Value = mrb.StringValue("foo")
+	var value Value = ToRuby(mrb, "foo")
 	if value.String() != "foo" {
 		t.Fatalf("bad value")
 	}
@@ -283,7 +283,7 @@ func TestValueSingletonClass(t *testing.T) {
 
 	fn := func(m *Mrb, self Value) (Value, Value) {
 		args := m.GetArgs()
-		return mrb.FixnumValue(ToGo[int](args[0]) + ToGo[int](args[1])), nil
+		return ToRuby(mrb, ToGo[int](args[0])+ToGo[int](args[1])), nil
 	}
 
 	mrb.TopSelf().SingletonClass().DefineMethod("add", fn, ArgsReq(2))

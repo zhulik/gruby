@@ -18,6 +18,7 @@ type Value interface { //nolint:interfacebloat
 
 	Mrb() *Mrb
 	CValue() C.mrb_value
+
 	Type() ValueType
 	IsDead() bool
 	Class() *Class
@@ -187,6 +188,29 @@ func ToGo[T any](value Value) T {
 	}
 
 	return result.(T)
+}
+
+func ToRuby[T any](mrb *Mrb, value T) Value {
+	var t T
+
+	val := any(value)
+
+	switch any(t).(type) {
+	case string:
+		cs := C.CString(val.(string))
+		defer C.free(unsafe.Pointer(cs))
+		return mrb.value(C.mrb_str_new_cstr(mrb.state, cs))
+	case int, int16, int32, int64:
+		return mrb.value(C.mrb_fixnum_value(C.mrb_int(val.(int))))
+	case float64, float32:
+		return mrb.value(C.mrb_float_value(mrb.state, C.mrb_float(C.long(val.(float32)))))
+	case *Array:
+		panic(fmt.Sprintf("unknown type %+v", t))
+	case *Hash:
+		panic(fmt.Sprintf("unknown type %+v", t))
+	default:
+		panic(fmt.Sprintf("unknown type %+v", t))
+	}
 }
 
 // String returns the "to_s" result of this value.

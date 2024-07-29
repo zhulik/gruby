@@ -11,7 +11,7 @@ func ExampleMrb_DefineClass() {
 	// Our custom function we'll expose to Ruby
 	addFunc := func(m *Mrb, self Value) (Value, Value) {
 		args := m.GetArgs()
-		return mrb.FixnumValue(ToGo[int](args[0]) + ToGo[int](args[1])), nil
+		return ToRuby(mrb, ToGo[int](args[0])+ToGo[int](args[1])), nil
 	}
 
 	// Lets define a custom class and a class method we can call.

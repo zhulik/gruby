@@ -165,7 +165,7 @@ func TestMrbFixnumValue(t *testing.T) {
 	mrb := NewMrb()
 	defer mrb.Close()
 
-	value := mrb.FixnumValue(42)
+	value := ToRuby(mrb, 42)
 	if value.Type() != TypeFixnum {
 		t.Fatalf("should be fixnum")
 	}
@@ -176,7 +176,7 @@ func TestMrbFullGC(t *testing.T) {
 	defer mrb.Close()
 
 	ai := mrb.ArenaSave()
-	value := mrb.StringValue("foo")
+	value := ToRuby(mrb, "foo")
 	if value.IsDead() {
 		t.Fatal("should not be dead")
 	}
@@ -316,7 +316,7 @@ func TestMrbGlobalVariable(t *testing.T) {
 	if value.String() != TestValue {
 		t.Fatalf("wrong value for $a: expected '%s', found '%s'", TestValue, value.String())
 	}
-	mrb.SetGlobalVariable("$b", mrb.StringValue(TestValue))
+	mrb.SetGlobalVariable("$b", ToRuby(mrb, TestValue))
 	value, err := mrb.LoadString(`$b`)
 	if err != nil {
 		t.Fatalf("err: %s", err)
@@ -353,7 +353,7 @@ func TestMrbInstanceVariable(t *testing.T) {
 	if dogClass == nil {
 		t.Fatalf("dog class not found")
 	}
-	inst, err := dogClass.New(mrb.StringValue(GoldenRetriever))
+	inst, err := dogClass.New(ToRuby(mrb, GoldenRetriever))
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -361,7 +361,7 @@ func TestMrbInstanceVariable(t *testing.T) {
 	if value.String() != GoldenRetriever {
 		t.Fatalf("wrong value for Dog.@breed. expected: '%s', found: '%s'", GoldenRetriever, value.String())
 	}
-	inst.SetInstanceVariable("@breed", mrb.StringValue(Husky))
+	inst.SetInstanceVariable("@breed", ToRuby(mrb, Husky))
 	value = inst.GetInstanceVariable("@breed")
 	if value.String() != Husky {
 		t.Fatalf("wrong value for Dog.@breed. expected: '%s', found: '%s'", Husky, value.String())
@@ -446,7 +446,7 @@ func TestMrbYield(t *testing.T) {
 	defer mrb.Close()
 
 	cb := func(m *Mrb, self Value) (Value, Value) {
-		result, err := m.Yield(m.GetArgs()[0], mrb.FixnumValue(12), mrb.FixnumValue(30))
+		result, err := m.Yield(m.GetArgs()[0], ToRuby(mrb, 12), ToRuby(mrb, 30))
 		if err != nil {
 			t.Fatalf("err: %s", err)
 		}
@@ -605,7 +605,7 @@ func TestMrbStackedException(t *testing.T) {
 	var testClass *Class
 
 	createException := func(m *Mrb, msg string) Value {
-		val, err := m.Class("Exception", nil).New(m.StringValue(msg))
+		val, err := m.Class("Exception", nil).New(ToRuby(m, msg))
 		if err != nil {
 			panic(fmt.Sprintf("could not construct exception for return: %v", err))
 		}

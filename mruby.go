@@ -378,18 +378,6 @@ func (m *Mrb) TrueValue() Value {
 	return m.value(C.mrb_true_value())
 }
 
-// FixnumValue returns a Value for a fixed number.
-func (m *Mrb) FixnumValue(v int) Value {
-	return m.value(C.mrb_fixnum_value(C.mrb_int(v)))
-}
-
-// StringValue returns a Value for a string.
-func (m *Mrb) StringValue(s string) Value {
-	cs := C.CString(s)
-	defer C.free(unsafe.Pointer(cs))
-	return m.value(C.mrb_str_new_cstr(m.state, cs))
-}
-
 func (m *Mrb) value(v C.mrb_value) Value {
 	return &MrbValue{
 		state: m.state,

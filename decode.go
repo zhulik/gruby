@@ -495,7 +495,7 @@ func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error
 // a hash.
 func decodeStructHashGetter(mrb *Mrb, h *Hash) decodeStructGetter {
 	return func(key string) (Value, error) {
-		rbKey := mrb.StringValue(key)
+		rbKey := ToRuby(mrb, key)
 		return h.Get(rbKey)
 	}
 }
