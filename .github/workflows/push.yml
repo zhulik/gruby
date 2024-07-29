@@ -44,5 +44,11 @@ jobs:
         with:
           go-version: ${{ matrix.golang }}
 
+      - name: Cache MRuby
+        uses: actions/cache@v4
+        with:
+          path: mruby-build
+          key: ${{ runner.os }}-${{ hashFiles('Makefile') }}
+
       - name: Run tests
         run: make test
