@@ -16,10 +16,10 @@ type Mrb struct {
 }
 
 // GetGlobalVariable returns the value of the global variable by the given name.
-func (m *Mrb) GetGlobalVariable(name string) *MrbValue {
+func (m *Mrb) GetGlobalVariable(name string) Value {
 	cs := C.CString(name)
 	defer C.free(unsafe.Pointer(cs))
-	return newValue(m.state, C._go_mrb_gv_get(m.state, C.mrb_intern_cstr(m.state, cs)))
+	return m.value(C._go_mrb_gv_get(m.state, C.mrb_intern_cstr(m.state, cs)))
 }
 
 // SetGlobalVariable sets the value of the global variable by the given name.
@@ -27,8 +27,7 @@ func (m *Mrb) SetGlobalVariable(name string, value Value) {
 	cs := C.CString(name)
 	defer C.free(unsafe.Pointer(cs))
 
-	v := value.MrbValue(m)
-	C._go_mrb_gv_set(m.state, C.mrb_intern_cstr(m.state, cs), v.value)
+	C._go_mrb_gv_set(m.state, C.mrb_intern_cstr(m.state, cs), value.CValue())
 }
 
 // ArenaIndex represents the index into the arena portion of the GC.
@@ -148,7 +147,7 @@ func (m *Mrb) ConstDefined(name string, scope Value) bool {
 	cs := C.CString(name)
 	defer C.free(unsafe.Pointer(cs))
 
-	scopeV := scope.MrbValue(m).value
+	scopeV := scope.CValue()
 	b := C.mrb_const_defined(
 		m.state, scopeV, C.mrb_intern_cstr(m.state, cs))
 
@@ -163,7 +162,7 @@ func (m *Mrb) FullGC() {
 
 // GetArgs returns all the arguments that were given to the currnetly
 // called function (currently on the stack).
-func (m *Mrb) GetArgs() []*MrbValue {
+func (m *Mrb) GetArgs() []Value {
 	getArgLock.Lock()
 	defer getArgLock.Unlock()
 
@@ -174,10 +173,10 @@ func (m *Mrb) GetArgs() []*MrbValue {
 	count := C._go_mrb_get_args_all(m.state)
 
 	// Convert those all to values
-	values := make([]*MrbValue, count)
+	values := make([]Value, count)
 
 	for i := 0; i < int(count); i++ {
-		values[i] = newValue(m.state, getArgAccumulator[i])
+		values[i] = m.value(getArgAccumulator[i])
 	}
 
 	return values
@@ -195,7 +194,7 @@ func (m *Mrb) IncrementalGC() {
 
 // LoadString loads the given code, executes it, and returns its final
 // value that it might return.
-func (m *Mrb) LoadString(code string) (*MrbValue, error) {
+func (m *Mrb) LoadString(code string) (Value, error) {
 	cs := C.CString(code)
 	defer C.free(unsafe.Pointer(cs))
 
@@ -204,7 +203,7 @@ func (m *Mrb) LoadString(code string) (*MrbValue, error) {
 		return nil, exc
 	}
 
-	return newValue(m.state, value), nil
+	return m.value(value), nil
 }
 
 // Run executes the given value, which should be a proc type.
@@ -212,22 +211,22 @@ func (m *Mrb) LoadString(code string) (*MrbValue, error) {
 // If you're looking to execute code directly a string, look at LoadString.
 //
 // If self is nil, it is set to the top-level self.
-func (m *Mrb) Run(v Value, self Value) (*MrbValue, error) {
+func (m *Mrb) Run(v Value, self Value) (Value, error) {
 	if self == nil {
 		self = m.TopSelf()
 	}
 
-	mrbV := v.MrbValue(m)
-	mrbSelf := self.MrbValue(m)
+	mrbV := v.CValue()
+	mrbSelf := self.CValue()
 
-	proc := C._go_mrb_proc_ptr(mrbV.value)
-	value := C.mrb_vm_run(m.state, proc, mrbSelf.value, 0)
+	proc := C._go_mrb_proc_ptr(mrbV)
+	value := C.mrb_vm_run(m.state, proc, mrbSelf, 0)
 
 	if exc := checkException(m.state); exc != nil {
 		return nil, exc
 	}
 
-	return newValue(m.state, value), nil
+	return m.value(value), nil
 }
 
 // RunWithContext is a context-aware parser (aka, it does not discard state
@@ -236,31 +235,31 @@ func (m *Mrb) Run(v Value, self Value) (*MrbValue, error) {
 // traverse ruby parse invocations.
 //
 // Otherwise, it is very similar in function to Run()
-func (m *Mrb) RunWithContext(v Value, self Value, stackKeep int) (int, *MrbValue, error) {
+func (m *Mrb) RunWithContext(v Value, self Value, stackKeep int) (int, Value, error) {
 	if self == nil {
 		self = m.TopSelf()
 	}
 
-	mrbV := v.MrbValue(m)
-	mrbSelf := self.MrbValue(m)
-	proc := C._go_mrb_proc_ptr(mrbV.value)
+	mrbV := v.CValue()
+	mrbSelf := self.CValue()
+	proc := C._go_mrb_proc_ptr(mrbV)
 
 	i := C.int(stackKeep)
 
-	value := C._go_mrb_vm_run(m.state, proc, mrbSelf.value, &i)
+	value := C._go_mrb_vm_run(m.state, proc, mrbSelf, &i)
 
 	if exc := checkException(m.state); exc != nil {
 		return stackKeep, nil, exc
 	}
 
-	return int(i), newValue(m.state, value), nil
+	return int(i), m.value(value), nil
 }
 
 // Yield yields to a block with the given arguments.
 //
 // This should be called within the context of a Func.
-func (m *Mrb) Yield(block Value, args ...Value) (*MrbValue, error) {
-	mrbBlock := block.MrbValue(m)
+func (m *Mrb) Yield(block Value, args ...Value) (Value, error) {
+	mrbBlock := block.CValue()
 
 	var argv []C.mrb_value
 	var argvPtr *C.mrb_value
@@ -269,7 +268,7 @@ func (m *Mrb) Yield(block Value, args ...Value) (*MrbValue, error) {
 		// Make the raw byte slice to hold our arguments we'll pass to C
 		argv = make([]C.mrb_value, len(args))
 		for i, arg := range args {
-			argv[i] = arg.MrbValue(m).value
+			argv[i] = arg.CValue()
 		}
 
 		argvPtr = &argv[0]
@@ -277,7 +276,7 @@ func (m *Mrb) Yield(block Value, args ...Value) (*MrbValue, error) {
 
 	result := C._go_mrb_yield_argv(
 		m.state,
-		mrbBlock.value,
+		mrbBlock,
 		C.mrb_int(len(argv)),
 		argvPtr)
 
@@ -285,7 +284,7 @@ func (m *Mrb) Yield(block Value, args ...Value) (*MrbValue, error) {
 		return nil, exc
 	}
 
-	return newValue(m.state, result), nil
+	return m.value(result), nil
 }
 
 //-------------------------------------------------------------------
@@ -360,35 +359,30 @@ func (m *Mrb) KernelModule() *Class {
 }
 
 // TopSelf returns the top-level `self` value.
-func (m *Mrb) TopSelf() *MrbValue {
-	return newValue(m.state, C.mrb_obj_value(unsafe.Pointer(m.state.top_self)))
+func (m *Mrb) TopSelf() Value {
+	return m.value(C.mrb_obj_value(unsafe.Pointer(m.state.top_self)))
 }
 
 // FalseValue returns a Value for "false"
-func (m *Mrb) FalseValue() *MrbValue {
-	return newValue(m.state, C.mrb_false_value())
+func (m *Mrb) FalseValue() Value {
+	return m.value(C.mrb_false_value())
 }
 
 // NilValue returns "nil"
-func (m *Mrb) NilValue() *MrbValue {
-	return newValue(m.state, C.mrb_nil_value())
+func (m *Mrb) NilValue() Value {
+	return m.value(C.mrb_nil_value())
 }
 
 // TrueValue returns a Value for "true"
-func (m *Mrb) TrueValue() *MrbValue {
-	return newValue(m.state, C.mrb_true_value())
+func (m *Mrb) TrueValue() Value {
+	return m.value(C.mrb_true_value())
 }
 
-// FixnumValue returns a Value for a fixed number.
-func (m *Mrb) FixnumValue(v int) *MrbValue {
-	return newValue(m.state, C.mrb_fixnum_value(C.mrb_int(v)))
-}
-
-// StringValue returns a Value for a string.
-func (m *Mrb) StringValue(s string) *MrbValue {
-	cs := C.CString(s)
-	defer C.free(unsafe.Pointer(cs))
-	return newValue(m.state, C.mrb_str_new_cstr(m.state, cs))
+func (m *Mrb) value(v C.mrb_value) Value {
+	return &MrbValue{
+		state: m.state,
+		value: v,
+	}
 }
 
 func checkException(state *C.mrb_state) error {

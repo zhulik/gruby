@@ -97,7 +97,7 @@ func main() {
 	// exception to raise (if any).
 	addFunc := func(m *mruby.Mrb, self *mruby.MrbValue) (mruby.Value, mruby.Value) {
 		args := m.GetArgs()
-		return mruby.Int(args[0].Fixnum() + args[1].Fixnum()), nil
+		return mruby.Int(ToGo[int](args[0]) + ToGo[int](args[1])), nil
 	}
 
 	// Lets define a custom class and a class method we can call.

@@ -9,9 +9,9 @@ func ExampleMrb_DefineClass() {
 	defer mrb.Close()
 
 	// Our custom function we'll expose to Ruby
-	addFunc := func(m *Mrb, self *MrbValue) (Value, Value) {
+	addFunc := func(m *Mrb, self Value) (Value, Value) {
 		args := m.GetArgs()
-		return Int(args[0].Fixnum() + args[1].Fixnum()), nil
+		return ToRuby(mrb, ToGo[int](args[0])+ToGo[int](args[1])), nil
 	}
 
 	// Lets define a custom class and a class method we can call.
@@ -35,7 +35,7 @@ func ExampleDecode() {
 
 	// Our custom function we'll expose to Ruby
 	var logData interface{}
-	logFunc := func(m *Mrb, self *MrbValue) (Value, Value) {
+	logFunc := func(m *Mrb, self Value) (Value, Value) {
 		args := m.GetArgs()
 		if err := Decode(&logData, args[0]); err != nil {
 			panic(err)

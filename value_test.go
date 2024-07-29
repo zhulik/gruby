@@ -83,7 +83,7 @@ func TestMrbValueCall(t *testing.T) {
 		t.Fatalf("expected exception")
 	}
 
-	result, err := value.Call("==", String("foo"))
+	result, err := value.Call("==", ToRuby(mrb, "foo"))
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -106,7 +106,7 @@ func TestMrbValueCallBlock(t *testing.T) {
 		t.Fatalf("err: %s", err)
 	}
 
-	result, err := value.CallBlock("gsub", String("foo"), block)
+	result, err := value.CallBlock("gsub", ToRuby(mrb, "foo"), block)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -115,16 +115,6 @@ func TestMrbValueCallBlock(t *testing.T) {
 	}
 	if result.String() != "bar" {
 		t.Fatalf("bad: %s", result)
-	}
-}
-
-func TestMrbValueValue(t *testing.T) {
-	mrb := NewMrb()
-	defer mrb.Close()
-
-	falseV := mrb.FalseValue()
-	if falseV.MrbValue(mrb) != falseV {
-		t.Fatal("should be the same")
 	}
 }
 
@@ -143,7 +133,7 @@ func TestMrbValueFixnum(t *testing.T) {
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
-	if value.Fixnum() != 42 {
+	if ToGo[int](value) != 42 {
 		t.Fatalf("bad fixnum")
 	}
 }
@@ -257,9 +247,8 @@ func TestIntMrbValue(t *testing.T) {
 	mrb := NewMrb()
 	defer mrb.Close()
 
-	var value Value = Int(42)
-	v := value.MrbValue(mrb)
-	if v.Fixnum() != 42 {
+	var value Value = ToRuby(mrb, 42)
+	if ToGo[int](value) != 42 {
 		t.Fatalf("bad value")
 	}
 }
@@ -268,9 +257,8 @@ func TestStringMrbValue(t *testing.T) {
 	mrb := NewMrb()
 	defer mrb.Close()
 
-	var value Value = String("foo")
-	v := value.MrbValue(mrb)
-	if v.String() != "foo" {
+	var value Value = ToRuby(mrb, "foo")
+	if value.String() != "foo" {
 		t.Fatalf("bad value")
 	}
 }
@@ -293,9 +281,9 @@ func TestValueSingletonClass(t *testing.T) {
 	mrb := NewMrb()
 	defer mrb.Close()
 
-	fn := func(m *Mrb, self *MrbValue) (Value, Value) {
+	fn := func(m *Mrb, self Value) (Value, Value) {
 		args := m.GetArgs()
-		return Int(args[0].Fixnum() + args[1].Fixnum()), nil
+		return ToRuby(mrb, ToGo[int](args[0])+ToGo[int](args[1])), nil
 	}
 
 	mrb.TopSelf().SingletonClass().DefineMethod("add", fn, ArgsReq(2))

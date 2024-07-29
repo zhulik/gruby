@@ -23,7 +23,7 @@ func TestClassDefineConst(t *testing.T) {
 	defer mrb.Close()
 
 	class := mrb.DefineClass("Hello", mrb.ObjectClass())
-	class.DefineConst("FOO", String("bar"))
+	class.DefineConst("FOO", ToRuby(mrb, "bar"))
 	value, err := mrb.LoadString("Hello::FOO")
 	if err != nil {
 		t.Fatalf("err: %s", err)
@@ -96,8 +96,7 @@ func TestClassValue(t *testing.T) {
 	defer mrb.Close()
 
 	class := mrb.DefineClass("Hello", mrb.ObjectClass())
-	value := class.MrbValue(mrb)
-	if value.Type() != TypeClass {
-		t.Fatalf("bad: %d", value.Type())
+	if class.Type() != TypeClass {
+		t.Fatalf("bad: %d", class.Type())
 	}
 }

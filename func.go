@@ -16,7 +16,7 @@ import (
 // The first return value is the actual return value for the code.
 //
 // The second return value is an exception, if any. This will be raised.
-type Func func(m *Mrb, self *MrbValue) (Value, Value)
+type Func func(m *Mrb, self Value) (Value, Value)
 
 type (
 	classMethodMap map[*C.struct_RClass]*methods
@@ -84,18 +84,18 @@ func goMRBFuncCall(s *C.mrb_state, v C.mrb_value) C.mrb_value {
 	// Call the method to get our *Value
 	// TODO(mitchellh): reuse the Mrb instead of allocating every time
 	mrb := &Mrb{s}
-	result, exc := f(mrb, newValue(s, v))
+	result, exc := f(mrb, mrb.value(v))
 
 	if result == nil {
 		result = mrb.NilValue()
 	}
 
 	if exc != nil {
-		s.exc = C._go_mrb_getobj(exc.MrbValue(mrb).value)
-		return mrb.NilValue().value
+		s.exc = C._go_mrb_getobj(exc.CValue())
+		return mrb.NilValue().CValue()
 	}
 
-	return result.MrbValue(mrb).value
+	return result.CValue()
 }
 
 func insertMethod(s *C.mrb_state, c *C.struct_RClass, n string, f Func) {

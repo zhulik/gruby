@@ -7,22 +7,22 @@ import "C"
 //
 // A Array can be obtained by calling the Array function on MrbValue.
 type Array struct {
-	*MrbValue
+	Value
 }
 
 // Len returns the length of the array.
 func (v *Array) Len() int {
-	return int(C._go_RARRAY_LEN(v.value))
+	return int(C._go_RARRAY_LEN(v.CValue()))
 }
 
 // Get gets an element form the Array by index.
 //
 // This does not copy the element. This is a pointer/reference directly
 // to the element in the array.
-func (v *Array) Get(idx int) (*MrbValue, error) {
-	result := C.mrb_ary_entry(v.value, C.mrb_int(idx))
+func (v *Array) Get(idx int) (Value, error) {
+	result := C.mrb_ary_entry(v.CValue(), C.mrb_int(idx))
 
-	val := newValue(v.state, result)
+	val := v.Mrb().value(result)
 	if val.Type() == TypeNil {
 		val = nil
 	}

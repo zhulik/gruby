@@ -13,21 +13,23 @@ import (
 
 // Value is an interface that should be implemented by anything that can
 // be represents as an mruby value.
-type Value interface {
-	MrbValue(*Mrb) *MrbValue
+type Value interface { //nolint:interfacebloat
+	String() string
+
+	Mrb() *Mrb
+	CValue() C.mrb_value
+
+	Type() ValueType
+	IsDead() bool
+	Class() *Class
+	SingletonClass() *Class
+
+	SetInstanceVariable(variable string, value Value)
+	GetInstanceVariable(variable string) Value
+
+	Call(method string, args ...Value) (Value, error)
+	CallBlock(method string, args ...Value) (Value, error)
 }
-
-// Int is the basic ruby Integer type.
-type Int int
-
-// NilType is the object representation of NilClass
-type NilType [0]byte
-
-// String is objects of the type String.
-type String string
-
-// Nil is a constant that can be used as a Nil Value
-var Nil NilType
 
 // MrbValue is a "value" internally in mruby. A "value" is what mruby calls
 // basically anything in Ruby: a class, an object (instance), a variable,
@@ -37,34 +39,30 @@ type MrbValue struct {
 	state *C.mrb_state
 }
 
-func init() {
-	Nil = [0]byte{}
-}
-
 // SetInstanceVariable sets an instance variable on this value.
-func (v *MrbValue) SetInstanceVariable(variable string, value *MrbValue) {
+func (v *MrbValue) SetInstanceVariable(variable string, value Value) {
 	cs := C.CString(variable)
 	defer C.free(unsafe.Pointer(cs))
-	C._go_mrb_iv_set(v.state, v.value, C.mrb_intern_cstr(v.state, cs), value.value)
+	C._go_mrb_iv_set(v.state, v.value, C.mrb_intern_cstr(v.state, cs), value.CValue())
 }
 
 // GetInstanceVariable gets an instance variable on this value.
-func (v *MrbValue) GetInstanceVariable(variable string) *MrbValue {
+func (v *MrbValue) GetInstanceVariable(variable string) Value {
 	cs := C.CString(variable)
 	defer C.free(unsafe.Pointer(cs))
-	return newValue(v.state, C._go_mrb_iv_get(v.state, v.value, C.mrb_intern_cstr(v.state, cs)))
+	return v.Mrb().value(C._go_mrb_iv_get(v.state, v.value, C.mrb_intern_cstr(v.state, cs)))
 }
 
 // Call calls a method with the given name and arguments on this
 // value.
-func (v *MrbValue) Call(method string, args ...Value) (*MrbValue, error) {
+func (v *MrbValue) Call(method string, args ...Value) (Value, error) {
 	return v.call(method, args, nil)
 }
 
 // CallBlock is the same as call except that it expects the last
 // argument to be a Proc that will be passed into the function call.
 // It is an error if args is empty or if there is no block on the end.
-func (v *MrbValue) CallBlock(method string, args ...Value) (*MrbValue, error) {
+func (v *MrbValue) CallBlock(method string, args ...Value) (Value, error) {
 	if len(args) == 0 {
 		return nil, fmt.Errorf("args must be non-empty and have a proc at the end")
 	}
@@ -73,17 +71,15 @@ func (v *MrbValue) CallBlock(method string, args ...Value) (*MrbValue, error) {
 	return v.call(method, args[:n-1], args[n-1])
 }
 
-func (v *MrbValue) call(method string, args []Value, block Value) (*MrbValue, error) {
+func (v *MrbValue) call(method string, args []Value, block Value) (Value, error) {
 	var argv []C.mrb_value
 	var argvPtr *C.mrb_value
-
-	mrb := &Mrb{v.state}
 
 	if len(args) > 0 {
 		// Make the raw byte slice to hold our arguments we'll pass to C
 		argv = make([]C.mrb_value, len(args))
 		for i, arg := range args {
-			argv[i] = arg.MrbValue(mrb).value
+			argv[i] = arg.CValue()
 		}
 
 		argvPtr = &argv[0]
@@ -91,7 +87,7 @@ func (v *MrbValue) call(method string, args []Value, block Value) (*MrbValue, er
 
 	var blockV *C.mrb_value
 	if block != nil {
-		val := block.MrbValue(mrb).value
+		val := block.CValue()
 		blockV = &val
 	}
 
@@ -112,17 +108,12 @@ func (v *MrbValue) call(method string, args []Value, block Value) (*MrbValue, er
 		return nil, exc
 	}
 
-	return newValue(v.state, result), nil
+	return v.Mrb().value(result), nil
 }
 
 // IsDead tells you if an object has been collected by the GC or not.
 func (v *MrbValue) IsDead() bool {
 	return C.ushort(C._go_isdead(v.state, v.value)) != 0
-}
-
-// MrbValue so that *MrbValue implements the "Value" interface.
-func (v *MrbValue) MrbValue(*Mrb) *MrbValue {
-	return v
 }
 
 // Mrb returns the Mrb state for this value.
@@ -152,10 +143,15 @@ func (v *MrbValue) Type() ValueType {
 	return ValueType(C._go_mrb_type(v.value))
 }
 
+// CValue returns underlying mrb_value.
+func (v *MrbValue) CValue() C.mrb_value {
+	return v.value
+}
+
 // Exception is a special type of value that represents an error
 // and implements the Error interface.
 type Exception struct {
-	*MrbValue
+	Value
 	File      string
 	Line      int
 	Message   string
@@ -166,49 +162,60 @@ func (e *Exception) Error() string {
 	return e.Message
 }
 
-func (e *Exception) String() string {
-	return e.Message
-}
-
 //-------------------------------------------------------------------
-// Type conversions to Go types
+// Type conversion to Go types
 //-------------------------------------------------------------------
 
-// Array returns the Array value of this value. If the Type of the MrbValue
-// is not a TypeArray, then this will panic. If the MrbValue has a
-// `to_a` function, you must call that manually prior to calling this
-// method.
-func (v *MrbValue) Array() *Array {
-	return &Array{v}
+func ToGo[T any](value Value) T {
+	var t T
+
+	var result any
+
+	switch any(t).(type) {
+	case string:
+		str := C.mrb_obj_as_string(value.Mrb().state, value.CValue())
+		result = C.GoString(C._go_RSTRING_PTR(str))
+	case int, int16, int32, int64:
+		result = int(C._go_mrb_fixnum(value.CValue()))
+	case float64, float32:
+		result = float64(C._go_mrb_float(value.CValue()))
+	case *Array:
+		result = &Array{value}
+	case *Hash:
+		result = &Hash{value}
+	default:
+		panic(fmt.Sprintf("unknown type %+v", value))
+	}
+
+	return result.(T)
 }
 
-// Fixnum returns the numeric value of this object if the Type() is
-// TypeFixnum. Calling this with any other type will result in undefined
-// behavior.
-func (v *MrbValue) Fixnum() int {
-	return int(C._go_mrb_fixnum(v.value))
-}
+func ToRuby[T any](mrb *Mrb, value T) Value {
+	var t T
 
-// Float returns the numeric value of this object if the Type() is
-// TypeFloat. Calling this with any other type will result in undefined
-// behavior.
-func (v *MrbValue) Float() float64 {
-	return float64(C._go_mrb_float(v.value))
-}
+	val := any(value)
 
-// Hash returns the Hash value of this value. If the Type of the MrbValue
-// is not a ValueTypeHash, then this will panic. If the MrbValue has a
-// `to_h` function, you must call that manually prior to calling this
-// method.
-func (v *MrbValue) Hash() *Hash {
-	return &Hash{v}
+	switch any(t).(type) {
+	case string:
+		cs := C.CString(val.(string))
+		defer C.free(unsafe.Pointer(cs))
+		return mrb.value(C.mrb_str_new_cstr(mrb.state, cs))
+	case int, int16, int32, int64:
+		return mrb.value(C.mrb_fixnum_value(C.mrb_int(val.(int))))
+	case float64, float32:
+		return mrb.value(C.mrb_float_value(mrb.state, C.mrb_float(C.long(val.(float32)))))
+	case *Array:
+		panic(fmt.Sprintf("unknown type %+v", t))
+	case *Hash:
+		panic(fmt.Sprintf("unknown type %+v", t))
+	default:
+		panic(fmt.Sprintf("unknown type %+v", t))
+	}
 }
 
 // String returns the "to_s" result of this value.
 func (v *MrbValue) String() string {
-	value := C.mrb_obj_as_string(v.state, v.value)
-	result := C.GoString(C._go_RSTRING_PTR(value))
-	return result
+	return ToGo[string](v)
 }
 
 // Class returns the *Class of a value.
@@ -226,29 +233,12 @@ func (v *MrbValue) SingletonClass() *Class {
 }
 
 //-------------------------------------------------------------------
-// Native Go types implementing the Value interface
-//-------------------------------------------------------------------
-
-// MrbValue returns the native MRB value
-func (i Int) MrbValue(m *Mrb) *MrbValue {
-	return m.FixnumValue(int(i))
-}
-
-// MrbValue returns the native MRB value
-func (NilType) MrbValue(m *Mrb) *MrbValue {
-	return m.NilValue()
-}
-
-// MrbValue returns the native MRB value
-func (s String) MrbValue(m *Mrb) *MrbValue {
-	return m.StringValue(string(s))
-}
-
-//-------------------------------------------------------------------
 // Internal Functions
 //-------------------------------------------------------------------
 
 func newExceptionValue(s *C.mrb_state) *Exception {
+	mrb := &Mrb{s}
+
 	if s.exc == nil {
 		panic("exception value init without exception")
 	}
@@ -261,9 +251,9 @@ func newExceptionValue(s *C.mrb_state) *Exception {
 
 	// Retrieve and convert backtrace to []string (avoiding reflection in Decode)
 	var backtrace []string
-	mrbBacktraceValue := newValue(s, C.mrb_exc_backtrace(s, value))
+	mrbBacktraceValue := mrb.value(C.mrb_exc_backtrace(s, value))
 	if mrbBacktraceValue.Type() == TypeArray {
-		mrbBacktrace := mrbBacktraceValue.Array()
+		mrbBacktrace := ToGo[*Array](mrbBacktraceValue)
 		for i := 0; i < mrbBacktrace.Len(); i++ {
 			ln, _ := mrbBacktrace.Get(i)
 			backtrace = append(backtrace, ln.String())
@@ -281,19 +271,12 @@ func newExceptionValue(s *C.mrb_state) *Exception {
 		}
 	}
 
-	result := newValue(s, value)
+	result := mrb.value(value)
 	return &Exception{
-		MrbValue:  result,
+		Value:     result,
 		Message:   result.String(),
 		File:      file,
 		Line:      line,
 		Backtrace: backtrace,
-	}
-}
-
-func newValue(s *C.mrb_state, v C.mrb_value) *MrbValue {
-	return &MrbValue{
-		state: s,
-		value: v,
 	}
 }
