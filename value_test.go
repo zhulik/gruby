@@ -83,7 +83,7 @@ func TestMrbValueCall(t *testing.T) {
 		t.Fatalf("expected exception")
 	}
 
-	result, err := value.Call("==", String("foo"))
+	result, err := value.Call("==", mrb.StringValue("foo"))
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -106,7 +106,7 @@ func TestMrbValueCallBlock(t *testing.T) {
 		t.Fatalf("err: %s", err)
 	}
 
-	result, err := value.CallBlock("gsub", String("foo"), block)
+	result, err := value.CallBlock("gsub", mrb.StringValue("foo"), block)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -123,7 +123,7 @@ func TestMrbValueValue(t *testing.T) {
 	defer mrb.Close()
 
 	falseV := mrb.FalseValue()
-	if falseV.MrbValue(mrb) != falseV {
+	if falseV.MrbValue() != falseV {
 		t.Fatal("should be the same")
 	}
 }
@@ -257,8 +257,8 @@ func TestIntMrbValue(t *testing.T) {
 	mrb := NewMrb()
 	defer mrb.Close()
 
-	var value Value = Int(42)
-	v := value.MrbValue(mrb)
+	var value Value = mrb.FixnumValue(42)
+	v := value.MrbValue()
 	if v.Fixnum() != 42 {
 		t.Fatalf("bad value")
 	}
@@ -268,8 +268,8 @@ func TestStringMrbValue(t *testing.T) {
 	mrb := NewMrb()
 	defer mrb.Close()
 
-	var value Value = String("foo")
-	v := value.MrbValue(mrb)
+	var value Value = mrb.StringValue("foo")
+	v := value.MrbValue()
 	if v.String() != "foo" {
 		t.Fatalf("bad value")
 	}
@@ -295,7 +295,7 @@ func TestValueSingletonClass(t *testing.T) {
 
 	fn := func(m *Mrb, self *MrbValue) (Value, Value) {
 		args := m.GetArgs()
-		return Int(args[0].Fixnum() + args[1].Fixnum()), nil
+		return mrb.FixnumValue(args[0].Fixnum() + args[1].Fixnum()), nil
 	}
 
 	mrb.TopSelf().SingletonClass().DefineMethod("add", fn, ArgsReq(2))

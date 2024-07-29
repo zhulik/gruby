@@ -91,11 +91,11 @@ func goMRBFuncCall(s *C.mrb_state, v C.mrb_value) C.mrb_value {
 	}
 
 	if exc != nil {
-		s.exc = C._go_mrb_getobj(exc.MrbValue(mrb).value)
+		s.exc = C._go_mrb_getobj(exc.MrbValue().value)
 		return mrb.NilValue().value
 	}
 
-	return result.MrbValue(mrb).value
+	return result.MrbValue().value
 }
 
 func insertMethod(s *C.mrb_state, c *C.struct_RClass, n string, f Func) {

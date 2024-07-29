@@ -13,7 +13,7 @@ type Hash struct {
 // Delete deletes a key from the hash, returning its existing value,
 // or nil if there wasn't a value.
 func (h *Hash) Delete(key Value) (*MrbValue, error) {
-	keyVal := key.MrbValue(&Mrb{h.state}).value
+	keyVal := key.MrbValue().value
 	result := C.mrb_hash_delete_key(h.state, h.value, keyVal)
 
 	val := newValue(h.state, result)
@@ -26,15 +26,15 @@ func (h *Hash) Delete(key Value) (*MrbValue, error) {
 
 // Get reads a value from the hash.
 func (h *Hash) Get(key Value) (*MrbValue, error) {
-	keyVal := key.MrbValue(&Mrb{h.state}).value
+	keyVal := key.MrbValue().value
 	result := C.mrb_hash_get(h.state, h.value, keyVal)
 	return newValue(h.state, result), nil
 }
 
 // Set sets a value on the hash
 func (h *Hash) Set(key, val Value) error {
-	keyVal := key.MrbValue(&Mrb{h.state}).value
-	valVal := val.MrbValue(&Mrb{h.state}).value
+	keyVal := key.MrbValue().value
+	valVal := val.MrbValue().value
 	C.mrb_hash_set(h.state, h.value, keyVal, valVal)
 	return nil
 }

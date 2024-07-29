@@ -27,7 +27,7 @@ func (m *Mrb) SetGlobalVariable(name string, value Value) {
 	cs := C.CString(name)
 	defer C.free(unsafe.Pointer(cs))
 
-	v := value.MrbValue(m)
+	v := value.MrbValue()
 	C._go_mrb_gv_set(m.state, C.mrb_intern_cstr(m.state, cs), v.value)
 }
 
@@ -148,7 +148,7 @@ func (m *Mrb) ConstDefined(name string, scope Value) bool {
 	cs := C.CString(name)
 	defer C.free(unsafe.Pointer(cs))
 
-	scopeV := scope.MrbValue(m).value
+	scopeV := scope.MrbValue().value
 	b := C.mrb_const_defined(
 		m.state, scopeV, C.mrb_intern_cstr(m.state, cs))
 
@@ -217,8 +217,8 @@ func (m *Mrb) Run(v Value, self Value) (*MrbValue, error) {
 		self = m.TopSelf()
 	}
 
-	mrbV := v.MrbValue(m)
-	mrbSelf := self.MrbValue(m)
+	mrbV := v.MrbValue()
+	mrbSelf := self.MrbValue()
 
 	proc := C._go_mrb_proc_ptr(mrbV.value)
 	value := C.mrb_vm_run(m.state, proc, mrbSelf.value, 0)
@@ -241,8 +241,8 @@ func (m *Mrb) RunWithContext(v Value, self Value, stackKeep int) (int, *MrbValue
 		self = m.TopSelf()
 	}
 
-	mrbV := v.MrbValue(m)
-	mrbSelf := self.MrbValue(m)
+	mrbV := v.MrbValue()
+	mrbSelf := self.MrbValue()
 	proc := C._go_mrb_proc_ptr(mrbV.value)
 
 	i := C.int(stackKeep)
@@ -260,7 +260,7 @@ func (m *Mrb) RunWithContext(v Value, self Value, stackKeep int) (int, *MrbValue
 //
 // This should be called within the context of a Func.
 func (m *Mrb) Yield(block Value, args ...Value) (*MrbValue, error) {
-	mrbBlock := block.MrbValue(m)
+	mrbBlock := block.MrbValue()
 
 	var argv []C.mrb_value
 	var argvPtr *C.mrb_value
@@ -269,7 +269,7 @@ func (m *Mrb) Yield(block Value, args ...Value) (*MrbValue, error) {
 		// Make the raw byte slice to hold our arguments we'll pass to C
 		argv = make([]C.mrb_value, len(args))
 		for i, arg := range args {
-			argv[i] = arg.MrbValue(m).value
+			argv[i] = arg.MrbValue().value
 		}
 
 		argvPtr = &argv[0]

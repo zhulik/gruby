@@ -14,20 +14,8 @@ import (
 // Value is an interface that should be implemented by anything that can
 // be represents as an mruby value.
 type Value interface {
-	MrbValue(*Mrb) *MrbValue
+	MrbValue() *MrbValue
 }
-
-// Int is the basic ruby Integer type.
-type Int int
-
-// NilType is the object representation of NilClass
-type NilType [0]byte
-
-// String is objects of the type String.
-type String string
-
-// Nil is a constant that can be used as a Nil Value
-var Nil NilType
 
 // MrbValue is a "value" internally in mruby. A "value" is what mruby calls
 // basically anything in Ruby: a class, an object (instance), a variable,
@@ -35,10 +23,6 @@ var Nil NilType
 type MrbValue struct {
 	value C.mrb_value
 	state *C.mrb_state
-}
-
-func init() {
-	Nil = [0]byte{}
 }
 
 // SetInstanceVariable sets an instance variable on this value.
@@ -77,13 +61,11 @@ func (v *MrbValue) call(method string, args []Value, block Value) (*MrbValue, er
 	var argv []C.mrb_value
 	var argvPtr *C.mrb_value
 
-	mrb := &Mrb{v.state}
-
 	if len(args) > 0 {
 		// Make the raw byte slice to hold our arguments we'll pass to C
 		argv = make([]C.mrb_value, len(args))
 		for i, arg := range args {
-			argv[i] = arg.MrbValue(mrb).value
+			argv[i] = arg.MrbValue().value
 		}
 
 		argvPtr = &argv[0]
@@ -91,7 +73,7 @@ func (v *MrbValue) call(method string, args []Value, block Value) (*MrbValue, er
 
 	var blockV *C.mrb_value
 	if block != nil {
-		val := block.MrbValue(mrb).value
+		val := block.MrbValue().value
 		blockV = &val
 	}
 
@@ -121,7 +103,7 @@ func (v *MrbValue) IsDead() bool {
 }
 
 // MrbValue so that *MrbValue implements the "Value" interface.
-func (v *MrbValue) MrbValue(*Mrb) *MrbValue {
+func (v *MrbValue) MrbValue() *MrbValue {
 	return v
 }
 
@@ -223,25 +205,6 @@ func (v *MrbValue) SingletonClass() *Class {
 	mrb := &Mrb{v.state}
 	sclass := C._go_mrb_class_ptr(C.mrb_singleton_class(v.state, v.value))
 	return newClass(mrb, sclass)
-}
-
-//-------------------------------------------------------------------
-// Native Go types implementing the Value interface
-//-------------------------------------------------------------------
-
-// MrbValue returns the native MRB value
-func (i Int) MrbValue(m *Mrb) *MrbValue {
-	return m.FixnumValue(int(i))
-}
-
-// MrbValue returns the native MRB value
-func (NilType) MrbValue(m *Mrb) *MrbValue {
-	return m.NilValue()
-}
-
-// MrbValue returns the native MRB value
-func (s String) MrbValue(m *Mrb) *MrbValue {
-	return m.StringValue(string(s))
 }
 
 //-------------------------------------------------------------------

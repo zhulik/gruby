@@ -446,7 +446,7 @@ func TestMrbYield(t *testing.T) {
 	defer mrb.Close()
 
 	cb := func(m *Mrb, self *MrbValue) (Value, Value) {
-		result, err := m.Yield(m.GetArgs()[0], Int(12), Int(30))
+		result, err := m.Yield(m.GetArgs()[0], mrb.FixnumValue(12), mrb.FixnumValue(30))
 		if err != nil {
 			t.Fatalf("err: %s", err)
 		}
@@ -605,7 +605,7 @@ func TestMrbStackedException(t *testing.T) {
 	var testClass *Class
 
 	createException := func(m *Mrb, msg string) Value {
-		val, err := m.Class("Exception", nil).New(String(msg))
+		val, err := m.Class("Exception", nil).New(m.StringValue(msg))
 		if err != nil {
 			panic(fmt.Sprintf("could not construct exception for return: %v", err))
 		}

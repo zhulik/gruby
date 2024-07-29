@@ -3,7 +3,7 @@ package mruby
 import "testing"
 
 func testCallback(m *Mrb, self *MrbValue) (Value, Value) {
-	return Int(42), nil
+	return m.FixnumValue(42), nil
 }
 
 func testCallbackResult(t *testing.T, v *MrbValue) {

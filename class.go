@@ -33,8 +33,7 @@ func (c *Class) DefineConst(name string, value Value) {
 	cs := C.CString(name)
 	defer C.free(unsafe.Pointer(cs))
 
-	C.mrb_define_const(
-		c.mrb.state, c.class, cs, value.MrbValue(c.mrb).value)
+	C.mrb_define_const(c.mrb.state, c.class, cs, value.MrbValue().value)
 }
 
 // DefineMethod defines an instance method on the class.
@@ -54,7 +53,7 @@ func (c *Class) DefineMethod(name string, cb Func, as ArgSpec) {
 
 // MrbValue returns a *Value for this Class. *Values are sometimes required
 // as arguments where classes should be valid.
-func (c *Class) MrbValue(m *Mrb) *MrbValue {
+func (c *Class) MrbValue() *MrbValue {
 	return newValue(c.mrb.state, C.mrb_obj_value(unsafe.Pointer(c.class)))
 }
 
@@ -66,7 +65,7 @@ func (c *Class) New(args ...Value) (*MrbValue, error) {
 		// Make the raw byte slice to hold our arguments we'll pass to C
 		argv = make([]C.mrb_value, len(args))
 		for i, arg := range args {
-			argv[i] = arg.MrbValue(c.mrb).value
+			argv[i] = arg.MrbValue().value
 		}
 
 		argvPtr = &argv[0]
