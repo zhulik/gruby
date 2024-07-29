@@ -12,7 +12,7 @@ type Array struct {
 
 // Len returns the length of the array.
 func (v *Array) Len() int {
-	return int(C.mrb_ary_len(v.state, v.value))
+	return int(C._go_RARRAY_LEN(v.value))
 }
 
 // Get gets an element form the Array by index.

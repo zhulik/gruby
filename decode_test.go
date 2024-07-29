@@ -123,7 +123,7 @@ func TestDecode(t *testing.T) {
 		err = Decode(tc.Output, value)
 		mrb.Close()
 		if err != nil {
-			t.Fatalf("err: %s", err)
+			t.Fatalf("input=%s output=%+v err: %s", tc.Input, tc.Output, err)
 		}
 
 		val := reflect.ValueOf(tc.Output)

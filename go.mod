@@ -1,3 +1,3 @@
-module github.com/mitchellh/go-mruby
+module github.com/zhulik/gruby
 
-go 1.14
+go 1.22

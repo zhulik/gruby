@@ -69,6 +69,7 @@ func TestClassNew(t *testing.T) {
 
 func TestClassNewException(t *testing.T) {
 	mrb := NewMrb()
+
 	defer mrb.Close()
 
 	class := mrb.DefineClass("Hello", mrb.ObjectClass())

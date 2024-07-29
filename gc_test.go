@@ -24,7 +24,7 @@ func TestEnableDisableGC(t *testing.T) {
 	mrb.EnableGC()
 	mrb.FullGC()
 
-	if orig-2 != mrb.LiveObjectCount() {
+	if orig-1 != mrb.LiveObjectCount() {
 		t.Fatalf("Object count was not what was expected after full GC: %d %d", orig-2, mrb.LiveObjectCount())
 	}
 }

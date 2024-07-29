@@ -1,6 +1,8 @@
 package mruby
 
-import "unsafe"
+import (
+	"unsafe"
+)
 
 // #cgo CFLAGS: -Imruby-build/mruby/include
 // #cgo LDFLAGS: ${SRCDIR}/libmruby.a -lm
@@ -52,7 +54,7 @@ func NewMrb() *Mrb {
 //
 // See ArenaSave for more documentation.
 func (m *Mrb) ArenaRestore(idx ArenaIndex) {
-	C.mrb_gc_arena_restore(m.state, C.int(idx))
+	C._go_mrb_gc_arena_restore(m.state, C.int(idx))
 }
 
 // ArenaSave saves the index into the arena.
@@ -74,7 +76,7 @@ func (m *Mrb) ArenaRestore(idx ArenaIndex) {
 // period of time, you might not have to worry about saving/restoring the
 // arena.
 func (m *Mrb) ArenaSave() ArenaIndex {
-	return ArenaIndex(C.mrb_gc_arena_save(m.state))
+	return ArenaIndex(C._go_mrb_gc_arena_save(m.state))
 }
 
 // EnableGC enables the garbage collector for this mruby instance. It returns
@@ -149,7 +151,9 @@ func (m *Mrb) ConstDefined(name string, scope Value) bool {
 	scopeV := scope.MrbValue(m).value
 	b := C.mrb_const_defined(
 		m.state, scopeV, C.mrb_intern_cstr(m.state, cs))
-	return C.ushort(b) != 0
+
+	// TODO: a go helper funciton?
+	return C._go_mrb_bool2int(b) != 0
 }
 
 // FullGC executes a complete GC cycle on the VM.
@@ -217,7 +221,7 @@ func (m *Mrb) Run(v Value, self Value) (*MrbValue, error) {
 	mrbSelf := self.MrbValue(m)
 
 	proc := C._go_mrb_proc_ptr(mrbV.value)
-	value := C.mrb_run(m.state, proc, mrbSelf.value)
+	value := C.mrb_vm_run(m.state, proc, mrbSelf.value, 0)
 
 	if exc := checkException(m.state); exc != nil {
 		return nil, exc
@@ -243,7 +247,7 @@ func (m *Mrb) RunWithContext(v Value, self Value, stackKeep int) (int, *MrbValue
 
 	i := C.int(stackKeep)
 
-	value := C._go_mrb_context_run(m.state, proc, mrbSelf.value, &i)
+	value := C._go_mrb_vm_run(m.state, proc, mrbSelf.value, &i)
 
 	if exc := checkException(m.state); exc != nil {
 		return stackKeep, nil, exc
@@ -299,8 +303,7 @@ func (m *Mrb) DefineClass(name string, super *Class) *Class {
 	cs := C.CString(name)
 	defer C.free(unsafe.Pointer(cs))
 
-	return newClass(
-		m, C.mrb_define_class(m.state, cs, super.class))
+	return newClass(m, C.mrb_define_class(m.state, cs, super.class))
 }
 
 // DefineClassUnder defines a new class under another class.
