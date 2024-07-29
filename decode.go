@@ -60,7 +60,7 @@ type decoder struct {
 
 type decodeStructGetter func(string) (Value, error)
 
-func (d *decoder) decode(name string, v Value, result reflect.Value) error {
+func (d *decoder) decode(name string, v Value, result reflect.Value) error { //nolint:cyclop
 	val := result
 
 	// If we have an interface with a valid value, we use that
@@ -151,7 +151,7 @@ func (d *decoder) decodeInt(name string, v Value, result reflect.Value) error {
 	return nil
 }
 
-func (d *decoder) decodeInterface(name string, v Value, result reflect.Value) error {
+func (d *decoder) decodeInterface(name string, v Value, result reflect.Value) error { //nolint:cyclop
 	var set reflect.Value
 	redecode := true
 
@@ -205,7 +205,7 @@ func (d *decoder) decodeInterface(name string, v Value, result reflect.Value) er
 	return nil
 }
 
-func (d *decoder) decodeMap(name string, v Value, result reflect.Value) error { //nolint:funlen
+func (d *decoder) decodeMap(name string, v Value, result reflect.Value) error { //nolint:funlen,cyclop
 	if v.Type() != TypeHash {
 		return fmt.Errorf("%s: not a hash type for map (%v)", name, v.Type())
 	}
@@ -353,7 +353,7 @@ func (d *decoder) decodeString(name string, v Value, result reflect.Value) error
 	return nil
 }
 
-func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error { //nolint:funlen
+func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error { //nolint:funlen,cyclop
 	var get decodeStructGetter
 
 	// We're going to be allocating some garbage, so set the arena

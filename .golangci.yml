@@ -22,7 +22,6 @@ linters:
     - errcheck
     - exhaustive
     - gocognit
-    - cyclop
 
 linters-settings:
   errcheck:
@@ -46,3 +45,4 @@ issues:
         - revive
         - goconst
         - funlen
+        - cyclop
