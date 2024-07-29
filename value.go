@@ -266,7 +266,7 @@ func newExceptionValue(s *C.mrb_state) *ExceptionError {
 	line := 0
 	if len(backtrace) > 0 {
 		fileAndLine := strings.Split(backtrace[0], ":")
-		if len(fileAndLine) >= 2 {
+		if len(fileAndLine) >= 2 { //nolint:mnd
 			file = fileAndLine[0]
 			line, _ = strconv.Atoi(fileAndLine[1])
 		}

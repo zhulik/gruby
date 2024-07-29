@@ -19,16 +19,11 @@ linters:
     - testpackage
     - intrange
     - ireturn
-    - mnd
     - errorlint
     - err113
-    - goconst
-    - gochecknoinits
     - forcetypeassert
-    - exhaustruct
     - errcheck
     - exhaustive
-
     - funlen
     - gocognit
     - cyclop
@@ -51,4 +46,4 @@ issues:
     - path: _test\.go
       linters:
         - revive
-        - wrapcheck
+        - goconst

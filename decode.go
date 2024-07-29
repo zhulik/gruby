@@ -374,7 +374,7 @@ func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error
 	// This slice will keep track of all the structs we'll be decoding.
 	// There can be more than one struct if there are embedded structs
 	// that are squashed.
-	structs := make([]reflect.Value, 1, 5)
+	structs := make([]reflect.Value, 1, 5) //nolint:mnd
 	structs[0] = result
 
 	// Compile the list of all the fields that we're going to be decoding
@@ -440,7 +440,7 @@ func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error
 		fieldName := strings.ToLower(fieldType.Name)
 
 		tagValue := fieldType.Tag.Get(tagName)
-		tagParts := strings.SplitN(tagValue, ",", 2)
+		tagParts := strings.SplitN(tagValue, ",", 2) //nolint:mnd
 		if len(tagParts) >= 2 && tagParts[1] == "decodedFields" {
 			decodedFieldsVal = append(decodedFieldsVal, field)
 			continue

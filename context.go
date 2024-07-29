@@ -16,8 +16,9 @@ type CompileContext struct {
 // NewCompileContext constructs a *CompileContext from a *Mrb.
 func NewCompileContext(m *Mrb) *CompileContext {
 	return &CompileContext{
-		ctx: C.mrb_ccontext_new(m.state),
-		mrb: m,
+		ctx:      C.mrb_ccontext_new(m.state),
+		filename: "",
+		mrb:      m,
 	}
 }
 
