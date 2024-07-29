@@ -353,7 +353,7 @@ func (d *decoder) decodeString(name string, v Value, result reflect.Value) error
 	return nil
 }
 
-func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error { //nolint:funlen,cyclop
+func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error { //nolint:funlen,cyclop,gocognit
 	var get decodeStructGetter
 
 	// We're going to be allocating some garbage, so set the arena

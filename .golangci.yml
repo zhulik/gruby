@@ -21,7 +21,6 @@ linters:
     - forcetypeassert
     - errcheck
     - exhaustive
-    - gocognit
 
 linters-settings:
   errcheck:
@@ -46,3 +45,4 @@ issues:
         - goconst
         - funlen
         - cyclop
+        - gocognit
