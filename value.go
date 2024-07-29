@@ -255,7 +255,7 @@ func newExceptionValue(state *C.mrb_state) *ExceptionError {
 	mrbBacktraceValue := mrb.value(C.mrb_exc_backtrace(state, value))
 	if mrbBacktraceValue.Type() == TypeArray {
 		mrbBacktrace := ToGo[*Array](mrbBacktraceValue)
-		for i := 0; i < mrbBacktrace.Len(); i++ {
+		for i := range mrbBacktrace.Len() {
 			ln, _ := mrbBacktrace.Get(i)
 			backtrace = append(backtrace, ln.String())
 		}

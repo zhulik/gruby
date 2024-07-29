@@ -15,16 +15,12 @@ linters:
     - depguard
 
     # TODO:
-    - intrange
     - ireturn
     - errorlint
     - err113
     - forcetypeassert
     - errcheck
     - exhaustive
-    - funlen
-    - gocognit
-    - cyclop
 
 linters-settings:
   errcheck:
@@ -47,3 +43,6 @@ issues:
       linters:
         - revive
         - goconst
+        - funlen
+        - cyclop
+        - gocognit

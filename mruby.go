@@ -175,7 +175,7 @@ func (m *Mrb) GetArgs() []Value {
 	// Convert those all to values
 	values := make([]Value, count)
 
-	for i := 0; i < int(count); i++ {
+	for i := range int(count) {
 		values[i] = m.value(getArgAccumulator[i])
 	}
 

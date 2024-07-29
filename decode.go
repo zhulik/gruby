@@ -60,7 +60,7 @@ type decoder struct {
 
 type decodeStructGetter func(string) (Value, error)
 
-func (d *decoder) decode(name string, v Value, result reflect.Value) error {
+func (d *decoder) decode(name string, v Value, result reflect.Value) error { //nolint:cyclop
 	val := result
 
 	// If we have an interface with a valid value, we use that
@@ -151,7 +151,7 @@ func (d *decoder) decodeInt(name string, v Value, result reflect.Value) error {
 	return nil
 }
 
-func (d *decoder) decodeInterface(name string, v Value, result reflect.Value) error {
+func (d *decoder) decodeInterface(name string, v Value, result reflect.Value) error { //nolint:cyclop
 	var set reflect.Value
 	redecode := true
 
@@ -205,7 +205,7 @@ func (d *decoder) decodeInterface(name string, v Value, result reflect.Value) er
 	return nil
 }
 
-func (d *decoder) decodeMap(name string, v Value, result reflect.Value) error {
+func (d *decoder) decodeMap(name string, v Value, result reflect.Value) error { //nolint:funlen,cyclop
 	if v.Type() != TypeHash {
 		return fmt.Errorf("%s: not a hash type for map (%v)", name, v.Type())
 	}
@@ -245,7 +245,7 @@ func (d *decoder) decodeMap(name string, v Value, result reflect.Value) error {
 	}
 	keys := ToGo[*Array](keysRaw)
 
-	for i := 0; i < keys.Len(); i++ {
+	for i := range keys.Len() {
 		// Get the key and value in Ruby. This should do no allocations.
 		rbKey, err := keys.Get(i)
 		if err != nil {
@@ -315,7 +315,7 @@ func (d *decoder) decodeSlice(name string, v Value, result reflect.Value) error 
 	// Get the hash of the value
 	array := ToGo[*Array](v)
 
-	for i := 0; i < array.Len(); i++ {
+	for i := range array.Len() {
 		// Get the key and value in Ruby. This should do no allocations.
 		rbVal, err := array.Get(i)
 		if err != nil {
@@ -353,7 +353,7 @@ func (d *decoder) decodeString(name string, v Value, result reflect.Value) error
 	return nil
 }
 
-func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error {
+func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error { //nolint:funlen,cyclop,gocognit
 	var get decodeStructGetter
 
 	// We're going to be allocating some garbage, so set the arena
@@ -385,7 +385,7 @@ func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error
 		structs = structs[1:]
 
 		structType := structVal.Type()
-		for i := 0; i < structType.NumField(); i++ {
+		for i := range structType.NumField() {
 			fieldType := structType.Field(i)
 
 			if fieldType.Anonymous {

@@ -263,7 +263,7 @@ func TestMrbGetArgs(t *testing.T) {
 
 	// lots of this effort is centered around testing multithreaded behavior.
 
-	for i := 0; i < 1000; i++ {
+	for range 1000 {
 		errChan := make(chan error, len(cases))
 
 		for _, tcase := range cases {
@@ -631,11 +631,11 @@ func TestMrbDefineMethodConcurrent(t *testing.T) {
 
 	syncChan := make(chan struct{}, concurrency)
 
-	for i := 0; i < concurrency; i++ {
+	for range concurrency {
 		go func() {
 			mrb := mruby.NewMrb()
 			defer mrb.Close()
-			for i := 0; i < numFuncs; i++ {
+			for i := range numFuncs {
 				mrb.TopSelf().SingletonClass().DefineMethod(fmt.Sprintf("test%d", i), callback, mruby.ArgsAny())
 			}
 
@@ -643,7 +643,7 @@ func TestMrbDefineMethodConcurrent(t *testing.T) {
 		}()
 	}
 
-	for i := 0; i < concurrency; i++ {
+	for range concurrency {
 		<-syncChan
 	}
 }
