@@ -1,15 +1,15 @@
 package mruby
 
+// #include <stdlib.h>
+// #include "gomruby.h"
+import "C"
+
 import (
 	"fmt"
 	"strconv"
 	"strings"
 	"unsafe"
 )
-
-// #include <stdlib.h>
-// #include "gomruby.h"
-import "C"
 
 // Value is an interface that should be implemented by anything that can
 // be represents as an mruby value.
@@ -254,7 +254,7 @@ func newExceptionValue(s *C.mrb_state) *Exception {
 	}
 
 	arenaIndex := C._go_mrb_gc_arena_save(s)
-	defer C._go_mrb_gc_arena_restore(s, C.int(arenaIndex))
+	defer C._go_mrb_gc_arena_restore(s, arenaIndex)
 
 	// Convert the RObject* to an mrb_value
 	value := C.mrb_obj_value(unsafe.Pointer(s.exc))

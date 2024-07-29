@@ -7,6 +7,8 @@ func testCallback(m *Mrb, self *MrbValue) (Value, Value) {
 }
 
 func testCallbackResult(t *testing.T, v *MrbValue) {
+	t.Helper()
+
 	if v.Type() != TypeFixnum {
 		t.Fatalf("bad type: %d", v.Type())
 	}

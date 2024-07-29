@@ -1,14 +1,14 @@
 package mruby
 
+// #include <stdlib.h>
+// #include "gomruby.h"
+import "C"
+
 import (
 	"bytes"
 	"fmt"
 	"unsafe"
 )
-
-// #include <stdlib.h>
-// #include "gomruby.h"
-import "C"
 
 // Parser is a parser for Ruby code.
 type Parser struct {

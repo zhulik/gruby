@@ -1,7 +1,9 @@
 MRUBY_COMMIT ?= 3.3.0
 MRUBY_VENDOR_DIR ?= mruby-build
 
-all: libmruby.a test
+GOLANGCI_LINT_VERSION := $(shell cat .golangci-lint-version)
+
+all: libmruby.a lint test
 
 clean:
 	rm -rf ${MRUBY_VENDOR_DIR}
@@ -18,6 +20,15 @@ ${MRUBY_VENDOR_DIR}/mruby:
 	cd ${MRUBY_VENDOR_DIR}/mruby && git checkout ${MRUBY_COMMIT}
 
 test: libmruby.a
-	go test -v
+	go test -race
 
 .PHONY: all clean libmruby.a test
+
+lint: bin/golangci-lint
+	./bin/golangci-lint run
+
+lint-fix: bin/golangci-lint
+	./bin/golangci-lint run --fix
+
+bin/golangci-lint: .golangci-lint-version
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- v$(GOLANGCI_LINT_VERSION)

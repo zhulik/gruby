@@ -152,7 +152,7 @@ func (m *Mrb) ConstDefined(name string, scope Value) bool {
 	b := C.mrb_const_defined(
 		m.state, scopeV, C.mrb_intern_cstr(m.state, cs))
 
-	// TODO: a go helper funciton?
+	// TODO: a go helper function?
 	return C._go_mrb_bool2int(b) != 0
 }
 

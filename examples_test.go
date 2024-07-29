@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func Example_CustomFunction() {
+func ExampleMrb_DefineClass() {
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -29,7 +29,7 @@ func Example_CustomFunction() {
 	// Result: 42
 }
 
-func Example_Decode() {
+func ExampleDecode() {
 	mrb := NewMrb()
 	defer mrb.Close()
 
@@ -58,7 +58,7 @@ func Example_Decode() {
 	// Result: map[foo:bar]
 }
 
-func Example_SimulateFiles() {
+func ExampleSimulateFiles() { //nolint:govet
 	mrb := NewMrb()
 	defer mrb.Close()
 
