@@ -188,7 +188,7 @@ func ToGo[T any](value Value) T {
 		panic(fmt.Sprintf("unknown type %+v", value))
 	}
 
-	return result.(T)
+	return result.(T) //nolint:forcetypeassert
 }
 
 func ToRuby[T any](mrb *Mrb, value T) Value {
@@ -198,13 +198,13 @@ func ToRuby[T any](mrb *Mrb, value T) Value {
 
 	switch any(empty).(type) {
 	case string:
-		cstr := C.CString(val.(string))
+		cstr := C.CString(val.(string)) //nolint:forcetypeassert
 		defer C.free(unsafe.Pointer(cstr))
 		return mrb.value(C.mrb_str_new_cstr(mrb.state, cstr))
 	case int, int16, int32, int64:
-		return mrb.value(C.mrb_fixnum_value(C.mrb_int(val.(int))))
+		return mrb.value(C.mrb_fixnum_value(C.mrb_int(val.(int)))) //nolint:forcetypeassert
 	case float64, float32:
-		return mrb.value(C.mrb_float_value(mrb.state, C.mrb_float(C.long(val.(float32)))))
+		return mrb.value(C.mrb_float_value(mrb.state, C.mrb_float(C.long(val.(float32))))) //nolint:forcetypeassert
 	case *Array:
 		panic(fmt.Sprintf("unknown type %+v", empty))
 	case *Hash:

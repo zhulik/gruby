@@ -20,7 +20,6 @@ linters:
 
     # TODO:
     - err113
-    - forcetypeassert
 
 linters-settings:
   errcheck:
