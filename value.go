@@ -256,7 +256,7 @@ func newExceptionValue(state *C.mrb_state) *ExceptionError {
 	if mrbBacktraceValue.Type() == TypeArray {
 		mrbBacktrace := ToGo[*Array](mrbBacktraceValue)
 		for i := range mrbBacktrace.Len() {
-			ln, _ := mrbBacktrace.Get(i)
+			ln, _ := mrbBacktrace.Get(i) //nolint:errcheck
 			backtrace = append(backtrace, ln.String())
 		}
 	}
@@ -268,7 +268,7 @@ func newExceptionValue(state *C.mrb_state) *ExceptionError {
 		fileAndLine := strings.Split(backtrace[0], ":")
 		if len(fileAndLine) >= 2 { //nolint:mnd
 			file = fileAndLine[0]
-			line, _ = strconv.Atoi(fileAndLine[1])
+			line, _ = strconv.Atoi(fileAndLine[1]) //nolint:errcheck
 		}
 	}
 

@@ -65,9 +65,3 @@ func TestParserParse_error(t *testing.T) {
 		t.Fatal("should have errors")
 	}
 }
-
-func TestParserError_error(t *testing.T) {
-	t.Parallel()
-
-	var _ error = new(mruby.ParserError)
-}

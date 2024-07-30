@@ -22,7 +22,6 @@ linters:
     - errorlint
     - err113
     - forcetypeassert
-    - errcheck
 
 linters-settings:
   errcheck:
