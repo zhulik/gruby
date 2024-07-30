@@ -1,6 +1,7 @@
 package mruby_test
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"testing"
@@ -99,7 +100,8 @@ func TestMrbDefineClass_methodException(t *testing.T) {
 	callback := func(mrb *mruby.Mrb, self mruby.Value) (mruby.Value, mruby.Value) {
 		value, err := mrb.LoadString(`raise "exception"`)
 		if err != nil {
-			exc := err.(*mruby.ExceptionError)
+			var exc *mruby.ExceptionError
+			errors.As(err, &exc)
 			return nil, exc.Value
 		}
 
@@ -280,7 +282,7 @@ func TestMrbGetArgs(t *testing.T) {
 				class.DefineClassMethod("test", testFunc, mruby.ArgsAny())
 				_, err := mrb.LoadString("Hello.test" + tcase.args)
 				if err != nil {
-					errChan <- fmt.Errorf("err: %s", err)
+					errChan <- err
 					return
 				}
 
@@ -515,7 +517,8 @@ func TestMrbYieldException(t *testing.T) {
 	callback := func(m *mruby.Mrb, self mruby.Value) (mruby.Value, mruby.Value) {
 		result, err := m.Yield(m.GetArgs()[0])
 		if err != nil {
-			exc := err.(*mruby.ExceptionError)
+			var exc *mruby.ExceptionError
+			errors.As(err, &exc)
 			return nil, exc.Value
 		}
 

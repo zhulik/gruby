@@ -1,6 +1,7 @@
 package mruby_test
 
 import (
+	"errors"
 	"testing"
 
 	mruby "github.com/zhulik/gruby"
@@ -24,6 +25,7 @@ func testCallbackResult(t *testing.T, value mruby.Value) {
 
 func testCallbackException(m *mruby.Mrb, self mruby.Value) (mruby.Value, mruby.Value) {
 	_, e := m.LoadString(`raise 'Exception'`)
-	v := e.(*mruby.ExceptionError)
-	return nil, v.Value
+	var err *mruby.ExceptionError
+	errors.As(e, &err)
+	return nil, err.Value
 }

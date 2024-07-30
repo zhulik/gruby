@@ -19,7 +19,6 @@ linters:
     - exhaustive
 
     # TODO:
-    - errorlint
     - err113
     - forcetypeassert
 

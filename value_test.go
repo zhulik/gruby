@@ -1,6 +1,7 @@
 package mruby_test
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
@@ -57,7 +58,9 @@ func TestExceptionBacktrace(t *testing.T) {
 		t.Fatalf("expected exception")
 	}
 
-	exc := err.(*mruby.ExceptionError)
+	var exc *mruby.ExceptionError
+	errors.As(err, &exc)
+
 	if exc.Message != "Exception" {
 		t.Fatalf("bad exception message: %s", exc.Message)
 	}
