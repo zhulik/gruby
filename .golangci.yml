@@ -13,9 +13,9 @@ linters:
     - godox
     - dupword
     - depguard
+    - ireturn
 
     # TODO:
-    - ireturn
     - errorlint
     - err113
     - forcetypeassert
