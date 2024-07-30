@@ -15,12 +15,14 @@ linters:
     - depguard
     - ireturn
 
+    # False positives
+    - exhaustive
+
     # TODO:
     - errorlint
     - err113
     - forcetypeassert
     - errcheck
-    - exhaustive
 
 linters-settings:
   errcheck:
