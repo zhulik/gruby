@@ -12,6 +12,8 @@ import (
 	"unsafe"
 )
 
+var ErrEmptyArgs = errors.New("args must be non-empty and have a proc at the end")
+
 // Value is an interface that should be implemented by anything that can
 // be represents as an mruby value.
 type Value interface { //nolint:interfacebloat
@@ -65,7 +67,7 @@ func (v *MrbValue) Call(method string, args ...Value) (Value, error) {
 // It is an error if args is empty or if there is no block on the end.
 func (v *MrbValue) CallBlock(method string, args ...Value) (Value, error) {
 	if len(args) == 0 {
-		return nil, errors.New("args must be non-empty and have a proc at the end")
+		return nil, ErrEmptyArgs
 	}
 
 	n := len(args)

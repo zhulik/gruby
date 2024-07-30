@@ -12,6 +12,12 @@ import (
 // This is the tag to use with structures to have settings for mruby.
 const tagName = "mruby"
 
+var (
+	ErrValueMustBePointer = errors.New("result must be a pointer")
+	ErrUnknownType        = errors.New("unknown type")
+	ErrNonStringKeys      = errors.New("keys must be strings")
+)
+
 // Decode converts the Ruby value to a Go value.
 //
 // The Decode process may call Ruby code and may generate Ruby garbage,
@@ -47,7 +53,7 @@ func Decode(out interface{}, v Value) error {
 	// able to write to it.
 	val := reflect.ValueOf(out)
 	if val.Kind() != reflect.Ptr {
-		return errors.New("result must be a pointer")
+		return ErrValueMustBePointer
 	}
 
 	var d decoder
@@ -105,8 +111,7 @@ func (d *decoder) decode(name string, v Value, result reflect.Value) error { //n
 	default:
 	}
 
-	return fmt.Errorf(
-		"%s: unknown kind to decode into: %s", name, val.Kind())
+	return fmt.Errorf("%w: name=%s type=%+v", ErrUnknownType, name, val.Kind())
 }
 
 func (d *decoder) decodeBool(name string, v Value, result reflect.Value) error {
@@ -116,18 +121,18 @@ func (d *decoder) decodeBool(name string, v Value, result reflect.Value) error {
 	case TypeTrue:
 		result.Set(reflect.ValueOf(true))
 	default:
-		return fmt.Errorf("%s: unknown type %v", name, typ)
+		return fmt.Errorf("%w: name=%s type=%+v", ErrUnknownType, name, typ)
 	}
 
 	return nil
 }
 
 func (d *decoder) decodeFloat(name string, v Value, result reflect.Value) error {
-	switch t := v.Type(); t {
+	switch typ := v.Type(); typ {
 	case TypeFloat:
 		result.Set(reflect.ValueOf(ToGo[float64](v)))
 	default:
-		return fmt.Errorf("%s: unknown type %v", name, t)
+		return fmt.Errorf("%w: name=%s type=%+v", ErrUnknownType, name, typ)
 	}
 
 	return nil
@@ -145,7 +150,7 @@ func (d *decoder) decodeInt(name string, v Value, result reflect.Value) error {
 
 		result.SetInt(v)
 	default:
-		return fmt.Errorf("%s: unknown type %v", name, typ)
+		return fmt.Errorf("%w: name=%s type=%+v", ErrUnknownType, name, typ)
 	}
 
 	return nil
@@ -185,9 +190,7 @@ func (d *decoder) decodeInterface(name string, v Value, result reflect.Value) er
 	case TypeString:
 		set = reflect.Indirect(reflect.New(reflect.TypeOf("")))
 	default:
-		return fmt.Errorf(
-			"%s: cannot decode into interface: %v",
-			name, typ)
+		return fmt.Errorf("%w: name=%s type=%+v", ErrUnknownType, name, typ)
 	}
 
 	// Set the result to what its supposed to be, then reset
@@ -207,7 +210,7 @@ func (d *decoder) decodeInterface(name string, v Value, result reflect.Value) er
 
 func (d *decoder) decodeMap(name string, v Value, result reflect.Value) error { //nolint:funlen,cyclop
 	if v.Type() != TypeHash {
-		return fmt.Errorf("%s: not a hash type for map (%v)", name, v.Type())
+		return fmt.Errorf("%w: name=%s type=%+v", ErrUnknownType, name, v.Type())
 	}
 
 	// If we have an interface, then we can address the interface,
@@ -221,8 +224,7 @@ func (d *decoder) decodeMap(name string, v Value, result reflect.Value) error { 
 	resultElemType := resultType.Elem()
 	resultKeyType := resultType.Key()
 	if resultKeyType.Kind() != reflect.String {
-		return fmt.Errorf(
-			"%s: map must have string keys", name)
+		return fmt.Errorf("%w: name=%s", ErrNonStringKeys, name)
 	}
 
 	// Make a map if it is nil
@@ -347,7 +349,7 @@ func (d *decoder) decodeString(name string, v Value, result reflect.Value) error
 	case TypeString:
 		result.Set(reflect.ValueOf(v.String()).Convert(result.Type()))
 	default:
-		return fmt.Errorf("%s: unknown type to string: %v", name, typ)
+		return fmt.Errorf("%w: name=%s type=%+v", ErrUnknownType, name, typ)
 	}
 
 	return nil
@@ -368,7 +370,7 @@ func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error
 	case TypeObject:
 		get = decodeStructObjectMethods(mrb, v)
 	default:
-		return fmt.Errorf("%s: not an object type for struct (%v)", name, typ)
+		return fmt.Errorf("%w: name=%s type=%+v", ErrUnknownType, name, typ)
 	}
 
 	// This slice will keep track of all the structs we'll be decoding.
@@ -391,9 +393,7 @@ func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error
 			if fieldType.Anonymous {
 				fieldKind := fieldType.Type.Kind()
 				if fieldKind != reflect.Struct {
-					return fmt.Errorf(
-						"%s: unsupported type to struct: %s",
-						fieldType.Name, fieldKind)
+					return fmt.Errorf("%w: name=%s type=%+v", ErrUnknownType, fieldType.Name, fieldKind)
 				}
 
 				// We have an embedded field. We "squash" the fields down

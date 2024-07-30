@@ -18,9 +18,6 @@ linters:
     # False positives
     - exhaustive
 
-    # TODO:
-    - err113
-
 linters-settings:
   errcheck:
     check-blank: true
@@ -45,3 +42,4 @@ issues:
         - funlen
         - cyclop
         - gocognit
+        - err113
