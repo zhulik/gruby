@@ -1,6 +1,6 @@
-package mruby
+package gruby
 
-// #include "gomruby.h"
+// #include "gruby.h"
 import "C"
 
 // Array represents an MrbValue that is a Array in Ruby.

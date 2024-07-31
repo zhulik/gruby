@@ -1,15 +1,15 @@
-package mruby_test
+package gruby_test
 
 import (
 	"testing"
 
-	mruby "github.com/zhulik/gruby"
+	"github.com/zhulik/gruby"
 )
 
 func TestEnableDisableGC(t *testing.T) {
 	t.Parallel()
 
-	mrb := mruby.NewMrb()
+	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	mrb.FullGC()
@@ -38,7 +38,7 @@ func TestEnableDisableGC(t *testing.T) {
 func TestIsDead(t *testing.T) {
 	t.Parallel()
 
-	mrb := mruby.NewMrb()
+	mrb := gruby.NewMrb()
 
 	val, err := mrb.LoadString("$a = []")
 	if err != nil {

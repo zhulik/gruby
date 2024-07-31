@@ -1,19 +1,19 @@
-package mruby_test
+package gruby_test
 
 import (
 	"testing"
 
-	mruby "github.com/zhulik/gruby"
+	"github.com/zhulik/gruby"
 )
 
 func TestClassDefineClassMethod(t *testing.T) {
 	t.Parallel()
 
-	mrb := mruby.NewMrb()
+	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	class := mrb.DefineClass("Hello", mrb.ObjectClass())
-	class.DefineClassMethod("foo", testCallback, mruby.ArgsNone())
+	class.DefineClassMethod("foo", testCallback, gruby.ArgsNone())
 	value, err := mrb.LoadString("Hello.foo")
 	if err != nil {
 		t.Fatalf("err: %s", err)
@@ -25,11 +25,11 @@ func TestClassDefineClassMethod(t *testing.T) {
 func TestClassDefineConst(t *testing.T) {
 	t.Parallel()
 
-	mrb := mruby.NewMrb()
+	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	class := mrb.DefineClass("Hello", mrb.ObjectClass())
-	class.DefineConst("FOO", mruby.ToRuby(mrb, "bar"))
+	class.DefineConst("FOO", gruby.ToRuby(mrb, "bar"))
 	value, err := mrb.LoadString("Hello::FOO")
 	if err != nil {
 		t.Fatalf("err: %s", err)
@@ -42,11 +42,11 @@ func TestClassDefineConst(t *testing.T) {
 func TestClassDefineMethod(t *testing.T) {
 	t.Parallel()
 
-	mrb := mruby.NewMrb()
+	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	class := mrb.DefineClass("Hello", mrb.ObjectClass())
-	class.DefineMethod("foo", testCallback, mruby.ArgsNone())
+	class.DefineMethod("foo", testCallback, gruby.ArgsNone())
 	value, err := mrb.LoadString("Hello.new.foo")
 	if err != nil {
 		t.Fatalf("err: %s", err)
@@ -58,11 +58,11 @@ func TestClassDefineMethod(t *testing.T) {
 func TestClassNew(t *testing.T) {
 	t.Parallel()
 
-	mrb := mruby.NewMrb()
+	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	class := mrb.DefineClass("Hello", mrb.ObjectClass())
-	class.DefineMethod("foo", testCallback, mruby.ArgsNone())
+	class.DefineMethod("foo", testCallback, gruby.ArgsNone())
 
 	instance, err := class.New()
 	if err != nil {
@@ -80,12 +80,12 @@ func TestClassNew(t *testing.T) {
 func TestClassNewException(t *testing.T) {
 	t.Parallel()
 
-	mrb := mruby.NewMrb()
+	mrb := gruby.NewMrb()
 
 	defer mrb.Close()
 
 	class := mrb.DefineClass("Hello", mrb.ObjectClass())
-	class.DefineMethod("initialize", testCallbackException, mruby.ArgsNone())
+	class.DefineMethod("initialize", testCallbackException, gruby.ArgsNone())
 
 	_, err := class.New()
 	if err == nil {
@@ -106,11 +106,11 @@ func TestClassNewException(t *testing.T) {
 func TestClassValue(t *testing.T) {
 	t.Parallel()
 
-	mrb := mruby.NewMrb()
+	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	class := mrb.DefineClass("Hello", mrb.ObjectClass())
-	if class.Type() != mruby.TypeClass {
+	if class.Type() != gruby.TypeClass {
 		t.Fatalf("bad: %d", class.Type())
 	}
 }

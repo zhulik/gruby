@@ -1,4 +1,4 @@
-package mruby
+package gruby
 
 import (
 	"unsafe"
@@ -7,23 +7,23 @@ import (
 // #cgo CFLAGS: -Imruby-build/mruby/include
 // #cgo LDFLAGS: ${SRCDIR}/libmruby.a -lm
 // #include <stdlib.h>
-// #include "gomruby.h"
+// #include "gruby.h"
 import "C"
 
-// Mrb represents a single instance of mruby.
-type Mrb struct {
+// GRuby represents a single instance of gruby.
+type GRuby struct {
 	state *C.mrb_state
 }
 
 // GetGlobalVariable returns the value of the global variable by the given name.
-func (m *Mrb) GetGlobalVariable(name string) Value {
+func (m *GRuby) GetGlobalVariable(name string) Value {
 	cstr := C.CString(name)
 	defer C.free(unsafe.Pointer(cstr))
 	return m.value(C._go_mrb_gv_get(m.state, C.mrb_intern_cstr(m.state, cstr)))
 }
 
 // SetGlobalVariable sets the value of the global variable by the given name.
-func (m *Mrb) SetGlobalVariable(name string, value Value) {
+func (m *GRuby) SetGlobalVariable(name string, value Value) {
 	cstr := C.CString(name)
 	defer C.free(unsafe.Pointer(cstr))
 
@@ -40,10 +40,10 @@ type ArenaIndex int
 //
 // When you're finished with the VM, clean up all resources it is using
 // by calling the Close method.
-func NewMrb() *Mrb {
+func NewMrb() *GRuby {
 	state := C.mrb_open()
 
-	return &Mrb{
+	return &GRuby{
 		state: state,
 	}
 }
@@ -52,7 +52,7 @@ func NewMrb() *Mrb {
 // can be garbage collected in the future.
 //
 // See ArenaSave for more documentation.
-func (m *Mrb) ArenaRestore(idx ArenaIndex) {
+func (m *GRuby) ArenaRestore(idx ArenaIndex) {
 	C._go_mrb_gc_arena_restore(m.state, C.int(idx))
 }
 
@@ -74,24 +74,24 @@ func (m *Mrb) ArenaRestore(idx ArenaIndex) {
 // garbage collected anyways, so if you're only calling mruby for a short
 // period of time, you might not have to worry about saving/restoring the
 // arena.
-func (m *Mrb) ArenaSave() ArenaIndex {
+func (m *GRuby) ArenaSave() ArenaIndex {
 	return ArenaIndex(C._go_mrb_gc_arena_save(m.state))
 }
 
 // EnableGC enables the garbage collector for this mruby instance. It returns
 // true if garbage collection was previously disabled.
-func (m *Mrb) EnableGC() {
+func (m *GRuby) EnableGC() {
 	C._go_enable_gc(m.state)
 }
 
 // DisableGC disables the garbage collector for this mruby instance. It returns
 // true if it was previously disabled.
-func (m *Mrb) DisableGC() {
+func (m *GRuby) DisableGC() {
 	C._go_disable_gc(m.state)
 }
 
 // LiveObjectCount returns the number of objects that have not been collected (aka, alive).
-func (m *Mrb) LiveObjectCount() int {
+func (m *GRuby) LiveObjectCount() int {
 	return int(C._go_gc_live(m.state))
 }
 
@@ -100,7 +100,7 @@ func (m *Mrb) LiveObjectCount() int {
 // application (like a panic, but not a Go panic).
 //
 // super can be nil, in which case the Object class will be used.
-func (m *Mrb) Class(name string, super *Class) *Class {
+func (m *GRuby) Class(name string, super *Class) *Class {
 	cstr := C.CString(name)
 	defer C.free(unsafe.Pointer(cstr))
 
@@ -117,7 +117,7 @@ func (m *Mrb) Class(name string, super *Class) *Class {
 // Module returns the named module as a *Class. If the module is invalid,
 // NameError is triggered within your program and SIGABRT is sent to the
 // application.
-func (m *Mrb) Module(name string) *Class {
+func (m *GRuby) Module(name string) *Class {
 	cstr := C.CString(name)
 	defer C.free(unsafe.Pointer(cstr))
 
@@ -128,7 +128,7 @@ func (m *Mrb) Module(name string) *Class {
 
 // Close a Mrb, this must be called to properly free resources, and
 // should only be called once.
-func (m *Mrb) Close() {
+func (m *GRuby) Close() {
 	// Delete all the methods from the state
 	stateMethodTable.Mutex.Lock()
 	delete(stateMethodTable.Map, m.state)
@@ -143,7 +143,7 @@ func (m *Mrb) Close() {
 // This should be used, for example, before a call to Class, because a
 // failure in Class will crash your program (by design). You can retrieve
 // the Value of a Class by calling Value().
-func (m *Mrb) ConstDefined(name string, scope Value) bool {
+func (m *GRuby) ConstDefined(name string, scope Value) bool {
 	cstr := C.CString(name)
 	defer C.free(unsafe.Pointer(cstr))
 
@@ -156,13 +156,13 @@ func (m *Mrb) ConstDefined(name string, scope Value) bool {
 }
 
 // FullGC executes a complete GC cycle on the VM.
-func (m *Mrb) FullGC() {
+func (m *GRuby) FullGC() {
 	C.mrb_full_gc(m.state)
 }
 
 // GetArgs returns all the arguments that were given to the currnetly
 // called function (currently on the stack).
-func (m *Mrb) GetArgs() []Value {
+func (m *GRuby) GetArgs() []Value {
 	getArgLock.Lock()
 	defer getArgLock.Unlock()
 
@@ -188,13 +188,13 @@ func (m *Mrb) GetArgs() []Value {
 //
 // This function is best called periodically when executing Ruby in
 // the VM many times (thousands of times).
-func (m *Mrb) IncrementalGC() {
+func (m *GRuby) IncrementalGC() {
 	C.mrb_incremental_gc(m.state)
 }
 
 // LoadString loads the given code, executes it, and returns its final
 // value that it might return.
-func (m *Mrb) LoadString(code string) (Value, error) {
+func (m *GRuby) LoadString(code string) (Value, error) {
 	cstr := C.CString(code)
 	defer C.free(unsafe.Pointer(cstr))
 
@@ -211,7 +211,7 @@ func (m *Mrb) LoadString(code string) (Value, error) {
 // If you're looking to execute code directly a string, look at LoadString.
 //
 // If self is nil, it is set to the top-level self.
-func (m *Mrb) Run(v Value, self Value) (Value, error) {
+func (m *GRuby) Run(v Value, self Value) (Value, error) {
 	if self == nil {
 		self = m.TopSelf()
 	}
@@ -235,7 +235,7 @@ func (m *Mrb) Run(v Value, self Value) (Value, error) {
 // traverse ruby parse invocations.
 //
 // Otherwise, it is very similar in function to Run()
-func (m *Mrb) RunWithContext(v Value, self Value, stackKeep int) (int, Value, error) {
+func (m *GRuby) RunWithContext(v Value, self Value, stackKeep int) (int, Value, error) {
 	if self == nil {
 		self = m.TopSelf()
 	}
@@ -258,7 +258,7 @@ func (m *Mrb) RunWithContext(v Value, self Value, stackKeep int) (int, Value, er
 // Yield yields to a block with the given arguments.
 //
 // This should be called within the context of a Func.
-func (m *Mrb) Yield(block Value, args ...Value) (Value, error) {
+func (m *GRuby) Yield(block Value, args ...Value) (Value, error) {
 	mrbBlock := block.CValue()
 
 	var argv []C.mrb_value
@@ -294,7 +294,7 @@ func (m *Mrb) Yield(block Value, args ...Value) (Value, error) {
 // DefineClass defines a new top-level class.
 //
 // If super is nil, the class will be defined under Object.
-func (m *Mrb) DefineClass(name string, super *Class) *Class {
+func (m *GRuby) DefineClass(name string, super *Class) *Class {
 	if super == nil {
 		super = m.ObjectClass()
 	}
@@ -309,7 +309,7 @@ func (m *Mrb) DefineClass(name string, super *Class) *Class {
 //
 // This is, for example, how you would define the World class in
 // `Hello::World` where Hello is the "outer" class.
-func (m *Mrb) DefineClassUnder(name string, super *Class, outer *Class) *Class {
+func (m *GRuby) DefineClassUnder(name string, super *Class, outer *Class) *Class {
 	if super == nil {
 		super = m.ObjectClass()
 	}
@@ -325,14 +325,14 @@ func (m *Mrb) DefineClassUnder(name string, super *Class, outer *Class) *Class {
 }
 
 // DefineModule defines a top-level module.
-func (m *Mrb) DefineModule(name string) *Class {
+func (m *GRuby) DefineModule(name string) *Class {
 	cstr := C.CString(name)
 	defer C.free(unsafe.Pointer(cstr))
 	return newClass(m, C.mrb_define_module(m.state, cstr))
 }
 
 // DefineModuleUnder defines a module under another class/module.
-func (m *Mrb) DefineModuleUnder(name string, outer *Class) *Class {
+func (m *GRuby) DefineModuleUnder(name string, outer *Class) *Class {
 	if outer == nil {
 		outer = m.ObjectClass()
 	}
@@ -349,36 +349,36 @@ func (m *Mrb) DefineModuleUnder(name string, outer *Class) *Class {
 //-------------------------------------------------------------------
 
 // ObjectClass returns the Object top-level class.
-func (m *Mrb) ObjectClass() *Class {
+func (m *GRuby) ObjectClass() *Class {
 	return newClass(m, m.state.object_class)
 }
 
 // KernelModule returns the Kernel top-level module.
-func (m *Mrb) KernelModule() *Class {
+func (m *GRuby) KernelModule() *Class {
 	return newClass(m, m.state.kernel_module)
 }
 
 // TopSelf returns the top-level `self` value.
-func (m *Mrb) TopSelf() Value {
+func (m *GRuby) TopSelf() Value {
 	return m.value(C.mrb_obj_value(unsafe.Pointer(m.state.top_self)))
 }
 
 // FalseValue returns a Value for "false"
-func (m *Mrb) FalseValue() Value {
+func (m *GRuby) FalseValue() Value {
 	return m.value(C.mrb_false_value())
 }
 
 // NilValue returns "nil"
-func (m *Mrb) NilValue() Value {
+func (m *GRuby) NilValue() Value {
 	return m.value(C.mrb_nil_value())
 }
 
 // TrueValue returns a Value for "true"
-func (m *Mrb) TrueValue() Value {
+func (m *GRuby) TrueValue() Value {
 	return m.value(C.mrb_true_value())
 }
 
-func (m *Mrb) value(v C.mrb_value) Value {
+func (m *GRuby) value(v C.mrb_value) Value {
 	return &MrbValue{
 		state: m.state,
 		value: v,

@@ -1,12 +1,12 @@
-package mruby
+package gruby
 
 import "unsafe"
 
 // #include <stdlib.h>
-// #include "gomruby.h"
+// #include "gruby.h"
 import "C"
 
-// Class is a class in mruby. To obtain a Class, use DefineClass or
+// Class is a class in gruby. To obtain a Class, use DefineClass or
 // one of the variants on the Mrb structure.
 type Class struct {
 	Value
@@ -78,7 +78,7 @@ func (c *Class) New(args ...Value) (Value, error) {
 	return c.Mrb().value(result), nil
 }
 
-func newClass(mrb *Mrb, c *C.struct_RClass) *Class {
+func newClass(mrb *GRuby, c *C.struct_RClass) *Class {
 	return &Class{
 		Value: mrb.value(C.mrb_obj_value(unsafe.Pointer(c))),
 		class: c,

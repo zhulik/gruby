@@ -1,7 +1,7 @@
-package mruby
+package gruby
 
 // #include <stdlib.h>
-// #include "gomruby.h"
+// #include "gruby.h"
 import "C"
 
 import (
@@ -13,14 +13,14 @@ import (
 // Parser is a parser for Ruby code.
 type Parser struct {
 	code   string
-	mrb    *Mrb
+	mrb    *GRuby
 	parser *C.struct_mrb_parser_state
 }
 
 // NewParser initializes the resources for a parser.
 //
 // Make sure to Close the parser when you're done with it.
-func NewParser(mrb *Mrb) *Parser {
+func NewParser(mrb *GRuby) *Parser {
 	parser := C.mrb_parser_new(mrb.state)
 
 	// Set capture_errors to true so we don't go just printing things

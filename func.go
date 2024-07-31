@@ -1,7 +1,7 @@
-package mruby
+package gruby
 
 // #include <stdlib.h>
-// #include "gomruby.h"
+// #include "gruby.h"
 import "C"
 
 import (
@@ -16,7 +16,7 @@ import (
 // The first return value is the actual return value for the code.
 //
 // The second return value is an exception, if any. This will be raised.
-type Func func(m *Mrb, self Value) (Value, Value)
+type Func func(m *GRuby, self Value) (Value, Value)
 
 type (
 	classMethodMap map[*C.struct_RClass]*methods
@@ -79,7 +79,7 @@ func goMRBFuncCall(state *C.mrb_state, value C.mrb_value) C.mrb_value {
 
 	// Call the method to get our *Value
 	// TODO(mitchellh): reuse the Mrb instead of allocating every time
-	mrb := &Mrb{state}
+	mrb := &GRuby{state}
 	result, exc := method(mrb, mrb.value(value))
 
 	if result == nil {

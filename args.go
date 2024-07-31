@@ -1,8 +1,8 @@
-package mruby
+package gruby
 
 import "sync"
 
-// #include "gomruby.h"
+// #include "gruby.h"
 import "C"
 
 // ArgSpec defines how many arguments a function should take and

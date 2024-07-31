@@ -1,6 +1,6 @@
-package mruby
+package gruby
 
-// #include "gomruby.h"
+// #include "gruby.h"
 import "C"
 
 // CompileContext represents a context for code compilation.
@@ -10,11 +10,11 @@ import "C"
 type CompileContext struct {
 	ctx      *C.mrbc_context
 	filename string
-	mrb      *Mrb
+	mrb      *GRuby
 }
 
 // NewCompileContext constructs a *CompileContext from a *Mrb.
-func NewCompileContext(mrb *Mrb) *CompileContext {
+func NewCompileContext(mrb *GRuby) *CompileContext {
 	return &CompileContext{
 		ctx:      C.mrb_ccontext_new(mrb.state),
 		filename: "",

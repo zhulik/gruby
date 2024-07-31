@@ -1,24 +1,24 @@
-package mruby_test
+package gruby_test
 
 import (
 	"fmt"
 
-	mruby "github.com/zhulik/gruby"
+	"github.com/zhulik/gruby"
 )
 
-func ExampleMrb_DefineClass() {
-	mrb := mruby.NewMrb()
+func ExampleGRuby_DefineClass() {
+	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	// Our custom function we'll expose to Ruby
-	addFunc := func(mrb *mruby.Mrb, self mruby.Value) (mruby.Value, mruby.Value) {
+	addFunc := func(mrb *gruby.GRuby, self gruby.Value) (gruby.Value, gruby.Value) {
 		args := mrb.GetArgs()
-		return mruby.ToRuby(mrb, mruby.ToGo[int](args[0])+mruby.ToGo[int](args[1])), nil
+		return gruby.ToRuby(mrb, gruby.ToGo[int](args[0])+gruby.ToGo[int](args[1])), nil
 	}
 
 	// Lets define a custom class and a class method we can call.
 	class := mrb.DefineClass("Example", nil)
-	class.DefineClassMethod("add", addFunc, mruby.ArgsReq(2))
+	class.DefineClassMethod("add", addFunc, gruby.ArgsReq(2))
 
 	// Let's call it and inspect the result
 	result, err := mrb.LoadString(`Example.add(12, 30)`)
@@ -32,14 +32,14 @@ func ExampleMrb_DefineClass() {
 }
 
 func ExampleDecode() {
-	mrb := mruby.NewMrb()
+	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	// Our custom function we'll expose to Ruby
 	var logData interface{}
-	logFunc := func(m *mruby.Mrb, self mruby.Value) (mruby.Value, mruby.Value) {
+	logFunc := func(m *gruby.GRuby, self gruby.Value) (gruby.Value, gruby.Value) {
 		args := m.GetArgs()
-		if err := mruby.Decode(&logData, args[0]); err != nil {
+		if err := gruby.Decode(&logData, args[0]); err != nil {
 			panic(err)
 		}
 
@@ -48,7 +48,7 @@ func ExampleDecode() {
 
 	// Lets define a custom class and a class method we can call.
 	class := mrb.DefineClass("Example", nil)
-	class.DefineClassMethod("log", logFunc, mruby.ArgsReq(1))
+	class.DefineClassMethod("log", logFunc, gruby.ArgsReq(1))
 
 	// Let's call it and inspect the result
 	if _, err := mrb.LoadString(`Example.log({"foo" => "bar"})`); err != nil {
@@ -61,18 +61,18 @@ func ExampleDecode() {
 }
 
 func ExampleSimulateFiles() { //nolint:govet
-	mrb := mruby.NewMrb()
+	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
-	ctx1 := mruby.NewCompileContext(mrb)
+	ctx1 := gruby.NewCompileContext(mrb)
 	defer ctx1.Close()
 	ctx1.SetFilename("foo.rb")
 
-	ctx2 := mruby.NewCompileContext(mrb)
+	ctx2 := gruby.NewCompileContext(mrb)
 	defer ctx2.Close()
 	ctx2.SetFilename("bar.rb")
 
-	parser := mruby.NewParser(mrb)
+	parser := gruby.NewParser(mrb)
 	defer parser.Close()
 
 	if _, err := parser.Parse("def foo; bar; end", ctx1); err != nil {

@@ -1,4 +1,4 @@
-package mruby
+package gruby
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-// This is the tag to use with structures to have settings for mruby.
+// This is the tag to use with structures to have settings for gruby.
 const tagName = "mruby"
 
 var (
@@ -490,7 +490,7 @@ func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error
 
 // decodeStructHashGetter is a decodeStructGetter that reads values from
 // a hash.
-func decodeStructHashGetter(mrb *Mrb, h *Hash) decodeStructGetter {
+func decodeStructHashGetter(mrb *GRuby, h *Hash) decodeStructGetter {
 	return func(key string) (Value, error) {
 		rbKey := ToRuby(mrb, key)
 		return h.Get(rbKey)
@@ -499,7 +499,7 @@ func decodeStructHashGetter(mrb *Mrb, h *Hash) decodeStructGetter {
 
 // decodeStructObjectMethods is a decodeStructGetter that reads values from
 // an object by calling methods.
-func decodeStructObjectMethods(_ *Mrb, v Value) decodeStructGetter {
+func decodeStructObjectMethods(_ *GRuby, v Value) decodeStructGetter {
 	return func(key string) (Value, error) {
 		return v.Call(key)
 	}

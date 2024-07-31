@@ -1,18 +1,18 @@
-package mruby_test
+package gruby_test
 
 import (
 	"testing"
 
-	mruby "github.com/zhulik/gruby"
+	"github.com/zhulik/gruby"
 )
 
 func TestParserGenerateCode(t *testing.T) {
 	t.Parallel()
 
-	mrb := mruby.NewMrb()
+	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
-	parser := mruby.NewParser(mrb)
+	parser := gruby.NewParser(mrb)
 	defer parser.Close()
 
 	warns, err := parser.Parse(`"foo"`, nil)
@@ -36,10 +36,10 @@ func TestParserGenerateCode(t *testing.T) {
 func TestParserParse(t *testing.T) {
 	t.Parallel()
 
-	mrb := mruby.NewMrb()
+	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
-	p := mruby.NewParser(mrb)
+	p := gruby.NewParser(mrb)
 	defer p.Close()
 
 	warns, err := p.Parse(`"foo"`, nil)
@@ -54,10 +54,10 @@ func TestParserParse(t *testing.T) {
 func TestParserParse_error(t *testing.T) {
 	t.Parallel()
 
-	mrb := mruby.NewMrb()
+	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
-	p := mruby.NewParser(mrb)
+	p := gruby.NewParser(mrb)
 	defer p.Close()
 
 	_, err := p.Parse(`def foo`, nil)

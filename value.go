@@ -1,7 +1,7 @@
-package mruby
+package gruby
 
 // #include <stdlib.h>
-// #include "gomruby.h"
+// #include "gruby.h"
 import "C"
 
 import (
@@ -19,7 +19,7 @@ var ErrEmptyArgs = errors.New("args must be non-empty and have a proc at the end
 type Value interface { //nolint:interfacebloat
 	String() string
 
-	Mrb() *Mrb
+	Mrb() *GRuby
 	CValue() C.mrb_value
 
 	Type() ValueType
@@ -34,7 +34,7 @@ type Value interface { //nolint:interfacebloat
 	CallBlock(method string, args ...Value) (Value, error)
 }
 
-// MrbValue is a "value" internally in mruby. A "value" is what mruby calls
+// MrbValue is a "value" internally in gruby. A "value" is what mruby calls
 // basically anything in Ruby: a class, an object (instance), a variable,
 // etc.
 type MrbValue struct {
@@ -120,8 +120,8 @@ func (v *MrbValue) IsDead() bool {
 }
 
 // Mrb returns the Mrb state for this value.
-func (v *MrbValue) Mrb() *Mrb {
-	return &Mrb{v.state}
+func (v *MrbValue) Mrb() *GRuby {
+	return &GRuby{v.state}
 }
 
 // GCProtect protects this value from being garbage collected.
@@ -193,7 +193,7 @@ func ToGo[T any](value Value) T {
 	return result.(T) //nolint:forcetypeassert
 }
 
-func ToRuby[T any](mrb *Mrb, value T) Value {
+func ToRuby[T any](mrb *GRuby, value T) Value {
 	var empty T
 
 	val := any(value)
@@ -223,14 +223,14 @@ func (v *MrbValue) String() string {
 
 // Class returns the *Class of a value.
 func (v *MrbValue) Class() *Class {
-	mrb := &Mrb{v.state}
+	mrb := &GRuby{v.state}
 	return newClass(mrb, C.mrb_class(v.state, v.value))
 }
 
 // SingletonClass returns the singleton class (a class isolated just for the
 // scope of the object) for the given value.
 func (v *MrbValue) SingletonClass() *Class {
-	mrb := &Mrb{v.state}
+	mrb := &GRuby{v.state}
 	sclass := C._go_mrb_class_ptr(C.mrb_singleton_class(v.state, v.value))
 	return newClass(mrb, sclass)
 }
@@ -240,7 +240,7 @@ func (v *MrbValue) SingletonClass() *Class {
 //-------------------------------------------------------------------
 
 func newExceptionValue(state *C.mrb_state) *ExceptionError {
-	mrb := &Mrb{state}
+	mrb := &GRuby{state}
 
 	if state.exc == nil {
 		panic("exception value init without exception")

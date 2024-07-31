@@ -1,31 +1,31 @@
-package mruby_test
+package gruby_test
 
 import (
 	"errors"
 	"testing"
 
-	mruby "github.com/zhulik/gruby"
+	"github.com/zhulik/gruby"
 )
 
-func testCallback(mrb *mruby.Mrb, self mruby.Value) (mruby.Value, mruby.Value) {
-	return mruby.ToRuby(mrb, 42), nil
+func testCallback(mrb *gruby.GRuby, self gruby.Value) (gruby.Value, gruby.Value) {
+	return gruby.ToRuby(mrb, 42), nil
 }
 
-func testCallbackResult(t *testing.T, value mruby.Value) {
+func testCallbackResult(t *testing.T, value gruby.Value) {
 	t.Helper()
 
-	if value.Type() != mruby.TypeFixnum {
+	if value.Type() != gruby.TypeFixnum {
 		t.Fatalf("bad type: %d", value.Type())
 	}
 
-	if mruby.ToGo[int](value) != 42 {
-		t.Fatalf("bad: %d", mruby.ToGo[int](value))
+	if gruby.ToGo[int](value) != 42 {
+		t.Fatalf("bad: %d", gruby.ToGo[int](value))
 	}
 }
 
-func testCallbackException(m *mruby.Mrb, self mruby.Value) (mruby.Value, mruby.Value) {
+func testCallbackException(m *gruby.GRuby, self gruby.Value) (gruby.Value, gruby.Value) {
 	_, e := m.LoadString(`raise 'Exception'`)
-	var err *mruby.ExceptionError
+	var err *gruby.ExceptionError
 	errors.As(e, &err)
 	return nil, err.Value
 }

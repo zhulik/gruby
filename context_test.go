@@ -1,18 +1,18 @@
-package mruby_test
+package gruby_test
 
 import (
 	"testing"
 
-	mruby "github.com/zhulik/gruby"
+	"github.com/zhulik/gruby"
 )
 
 func TestCompileContextFilename(t *testing.T) {
 	t.Parallel()
 
-	mrb := mruby.NewMrb()
+	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
-	ctx := mruby.NewCompileContext(mrb)
+	ctx := gruby.NewCompileContext(mrb)
 	defer ctx.Close()
 
 	if ctx.Filename() != "" {

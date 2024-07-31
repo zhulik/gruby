@@ -1,6 +1,6 @@
-package mruby
+package gruby
 
-// #include "gomruby.h"
+// #include "gruby.h"
 import "C"
 
 // Hash represents an MrbValue that is a Hash in Ruby.

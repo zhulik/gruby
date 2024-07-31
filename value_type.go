@@ -1,7 +1,7 @@
-package mruby
+package gruby
 
 // #include <stdlib.h>
-// #include "gomruby.h"
+// #include "gruby.h"
 import "C"
 
 // ValueType is an enum of types that a Value can be and is returned by

@@ -1,10 +1,10 @@
-package mruby_test
+package gruby_test
 
 import (
 	"reflect"
 	"testing"
 
-	mruby "github.com/zhulik/gruby"
+	"github.com/zhulik/gruby"
 )
 
 func TestDecode(t *testing.T) {
@@ -117,14 +117,14 @@ func TestDecode(t *testing.T) {
 	}
 
 	for _, tcase := range cases {
-		mrb := mruby.NewMrb()
+		mrb := gruby.NewMrb()
 		value, err := mrb.LoadString(tcase.Input)
 		if err != nil {
 			mrb.Close()
 			t.Fatalf("err: %s\n\n%s", err, tcase.Input)
 		}
 
-		err = mruby.Decode(tcase.Output, value)
+		err = gruby.Decode(tcase.Output, value)
 		mrb.Close()
 		if err != nil {
 			t.Fatalf("input=%s output=%+v err: %s", tcase.Input, tcase.Output, err)
@@ -196,7 +196,7 @@ func TestDecodeInterface(t *testing.T) {
 	}
 
 	for _, tcase := range cases {
-		mrb := mruby.NewMrb()
+		mrb := gruby.NewMrb()
 		value, err := mrb.LoadString(tcase.Input)
 		if err != nil {
 			mrb.Close()
@@ -204,7 +204,7 @@ func TestDecodeInterface(t *testing.T) {
 		}
 
 		var result interface{}
-		err = mruby.Decode(&result, value)
+		err = gruby.Decode(&result, value)
 		mrb.Close()
 		if err != nil {
 			t.Fatalf("err: %s", err)
