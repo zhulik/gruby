@@ -3,11 +3,13 @@ package gruby_test
 import (
 	"testing"
 
+	. "github.com/onsi/gomega"
 	"github.com/zhulik/gruby"
 )
 
 func TestParserGenerateCode(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
@@ -16,25 +18,18 @@ func TestParserGenerateCode(t *testing.T) {
 	defer parser.Close()
 
 	warns, err := parser.Parse(`"foo"`, nil)
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-	if warns != nil {
-		t.Fatalf("warnings: %v", warns)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(warns).To(BeNil())
 
 	proc := parser.GenerateCode()
 	result, err := mrb.Run(proc, nil)
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-	if result.String() != "foo" {
-		t.Fatalf("bad: %s", result.String())
-	}
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(result.String()).To(Equal("foo"))
 }
 
 func TestParserParse(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
@@ -43,16 +38,13 @@ func TestParserParse(t *testing.T) {
 	defer p.Close()
 
 	warns, err := p.Parse(`"foo"`, nil)
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-	if warns != nil {
-		t.Fatalf("warnings: %v", warns)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(warns).To(BeNil())
 }
 
 func TestParserParse_error(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
@@ -61,7 +53,5 @@ func TestParserParse_error(t *testing.T) {
 	defer p.Close()
 
 	_, err := p.Parse(`def foo`, nil)
-	if err == nil {
-		t.Fatal("should have errors")
-	}
+	g.Expect(err).To(HaveOccurred())
 }

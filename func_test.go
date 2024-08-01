@@ -2,8 +2,12 @@ package gruby_test
 
 import (
 	"errors"
+	"fmt"
+	"runtime"
 	"testing"
 
+	"github.com/onsi/gomega"
+	"github.com/onsi/gomega/types"
 	"github.com/zhulik/gruby"
 )
 
@@ -11,16 +15,9 @@ func testCallback(mrb *gruby.GRuby, self gruby.Value) (gruby.Value, gruby.Value)
 	return gruby.ToRuby(mrb, 42), nil
 }
 
-func testCallbackResult(t *testing.T, value gruby.Value) {
-	t.Helper()
-
-	if value.Type() != gruby.TypeFixnum {
-		t.Fatalf("bad type: %d", value.Type())
-	}
-
-	if gruby.ToGo[int](value) != 42 {
-		t.Fatalf("bad: %d", gruby.ToGo[int](value))
-	}
+func testCallbackResult(g G, value gruby.Value) {
+	g.Expect(value.Type()).To(gomega.Equal(gruby.TypeFixnum))
+	g.Expect(gruby.ToGo[int](value)).To(gomega.Equal(42))
 }
 
 func testCallbackException(m *gruby.GRuby, self gruby.Value) (gruby.Value, gruby.Value) {
@@ -28,4 +25,24 @@ func testCallbackException(m *gruby.GRuby, self gruby.Value) (gruby.Value, gruby
 	var err *gruby.ExceptionError
 	errors.As(e, &err)
 	return nil, err.Value
+}
+
+type G interface {
+	Expect(actual any, extra ...any) types.Assertion
+}
+
+func NewG(t *testing.T) G {
+	t.Helper()
+
+	return gomega.NewWithT(t).
+		ConfigureWithFailHandler(func(message string, callerSkip ...int) {
+			t.Helper()
+
+			_, file, line, ok := runtime.Caller(callerSkip[0] + 1)
+			if !ok {
+				t.Fatal("failed to get caller information")
+			}
+			fmt.Printf("\n%s:%d\n%s\n\n", file, line, message) //nolint:forbidigo
+			t.FailNow()
+		})
 }

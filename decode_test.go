@@ -4,11 +4,13 @@ import (
 	"reflect"
 	"testing"
 
+	. "github.com/onsi/gomega"
 	"github.com/zhulik/gruby"
 )
 
 func TestDecode(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	type structString struct {
 		Foo string
@@ -115,34 +117,26 @@ func TestDecode(t *testing.T) {
 			structString{Foo: "bar"},
 		},
 	}
-
 	for _, tcase := range cases {
 		mrb := gruby.NewMrb()
 		value, err := mrb.LoadString(tcase.Input)
-		if err != nil {
-			mrb.Close()
-			t.Fatalf("err: %s\n\n%s", err, tcase.Input)
-		}
+		g.Expect(err).ToNot(HaveOccurred())
 
 		err = gruby.Decode(tcase.Output, value)
 		mrb.Close()
-		if err != nil {
-			t.Fatalf("input=%s output=%+v err: %s", tcase.Input, tcase.Output, err)
-		}
+		g.Expect(err).ToNot(HaveOccurred())
 
 		val := reflect.ValueOf(tcase.Output)
 		for val.Kind() == reflect.Ptr {
 			val = reflect.Indirect(val)
 		}
-		actual := val.Interface()
-		if !reflect.DeepEqual(actual, tcase.Expected) {
-			t.Fatalf("bad: %#v\n\n%#v", actual, tcase.Expected)
-		}
+		g.Expect(val.Interface()).To(Equal(tcase.Expected))
 	}
 }
 
 func TestDecodeInterface(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	cases := []struct {
 		Input    string
@@ -198,21 +192,14 @@ func TestDecodeInterface(t *testing.T) {
 	for _, tcase := range cases {
 		mrb := gruby.NewMrb()
 		value, err := mrb.LoadString(tcase.Input)
-		if err != nil {
-			mrb.Close()
-			t.Fatalf("err: %s\n\n%s", err, tcase.Input)
-		}
+		g.Expect(err).ToNot(HaveOccurred())
 
 		var result interface{}
 		err = gruby.Decode(&result, value)
 		mrb.Close()
-		if err != nil {
-			t.Fatalf("err: %s", err)
-		}
 
-		if !reflect.DeepEqual(result, tcase.Expected) {
-			t.Fatalf("bad: \n\n%s\n\n%#v\n\n%#v", tcase.Input, result, tcase.Expected)
-		}
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(result).To(Equal(tcase.Expected))
 	}
 }
 

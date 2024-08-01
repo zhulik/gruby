@@ -3,11 +3,13 @@ package gruby_test
 import (
 	"testing"
 
+	. "github.com/onsi/gomega"
 	"github.com/zhulik/gruby"
 )
 
 func TestCompileContextFilename(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
@@ -15,13 +17,9 @@ func TestCompileContextFilename(t *testing.T) {
 	ctx := gruby.NewCompileContext(mrb)
 	defer ctx.Close()
 
-	if ctx.Filename() != "" {
-		t.Fatalf("bad filename: %s", ctx.Filename())
-	}
+	g.Expect(ctx.Filename()).To(BeEmpty())
 
 	ctx.SetFilename("foo")
 
-	if ctx.Filename() != "foo" {
-		t.Fatalf("bad filename: %s", ctx.Filename())
-	}
+	g.Expect(ctx.Filename()).To(Equal("foo"))
 }

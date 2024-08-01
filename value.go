@@ -208,12 +208,10 @@ func ToRuby[T any](mrb *GRuby, value T) Value {
 	case float64, float32:
 		return mrb.value(C.mrb_float_value(mrb.state, C.mrb_float(C.long(val.(float32))))) //nolint:forcetypeassert
 	case *Array:
-		panic(fmt.Sprintf("unknown type %+v", empty))
 	case *Hash:
-		panic(fmt.Sprintf("unknown type %+v", empty))
-	default:
-		panic(fmt.Sprintf("unknown type %+v", empty))
 	}
+
+	panic(fmt.Sprintf("unknown type %+v", empty))
 }
 
 // String returns the "to_s" result of this value.
@@ -243,7 +241,7 @@ func newExceptionValue(state *C.mrb_state) *ExceptionError {
 	mrb := &GRuby{state}
 
 	if state.exc == nil {
-		panic("exception value init without exception")
+		return nil
 	}
 
 	arenaIndex := C._go_mrb_gc_arena_save(state)

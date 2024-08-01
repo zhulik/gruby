@@ -6,15 +6,9 @@ import (
 	"reflect"
 	"testing"
 
+	. "github.com/onsi/gomega"
 	"github.com/zhulik/gruby"
 )
-
-func TestNewMrb(t *testing.T) {
-	t.Parallel()
-
-	mrb := gruby.NewMrb()
-	mrb.Close()
-}
 
 func TestMrbArena(t *testing.T) {
 	t.Parallel()
@@ -28,71 +22,62 @@ func TestMrbArena(t *testing.T) {
 
 func TestMrbModule(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	module := mrb.Module("Kernel")
-	if module == nil {
-		t.Fatal("module was nil and should not be")
-	}
+	g.Expect(module).ToNot(BeNil())
 }
 
 func TestMrbClass(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	class := mrb.Class("Object", nil)
-	if class == nil {
-		t.Fatal("class should not be nil")
-	}
+	g.Expect(class).ToNot(BeNil())
 
 	mrb.DefineClass("Hello", mrb.ObjectClass())
 	class = mrb.Class("Hello", mrb.ObjectClass())
-	if class == nil {
-		t.Fatal("class should not be nil")
-	}
+	g.Expect(class).ToNot(BeNil())
 }
 
 func TestMrbConstDefined(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
-	if !mrb.ConstDefined("Object", mrb.ObjectClass()) {
-		t.Fatal("Object should be defined")
-	}
+	g.Expect(mrb.ConstDefined("Object", mrb.ObjectClass())).To(BeTrue())
 
 	mrb.DefineClass("Hello", mrb.ObjectClass())
-	if !mrb.ConstDefined("Hello", mrb.ObjectClass()) {
-		t.Fatal("Hello should be defined")
-	}
+	g.Expect(mrb.ConstDefined("Hello", mrb.ObjectClass())).To(BeTrue())
 }
 
 func TestMrbDefineClass(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	mrb.DefineClass("Hello", mrb.ObjectClass())
 	_, err := mrb.LoadString("Hello")
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
 	mrb.DefineClass("World", nil)
 	_, err = mrb.LoadString("World")
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 }
 
 func TestMrbDefineClass_methodException(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
@@ -111,13 +96,12 @@ func TestMrbDefineClass_methodException(t *testing.T) {
 	class := mrb.DefineClass("Hello", mrb.ObjectClass())
 	class.DefineClassMethod("foo", callback, gruby.ArgsNone())
 	_, err := mrb.LoadString(`Hello.foo`)
-	if err == nil {
-		t.Fatal("should error")
-	}
+	g.Expect(err).To(HaveOccurred())
 }
 
 func TestMrbDefineClassUnder(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
@@ -125,40 +109,34 @@ func TestMrbDefineClassUnder(t *testing.T) {
 	// Define an outer
 	hello := mrb.DefineClass("Hello", mrb.ObjectClass())
 	_, err := mrb.LoadString("Hello")
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
 	// Inner
 	mrb.DefineClassUnder("World", nil, hello)
 	_, err = mrb.LoadString("Hello::World")
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
 	// Inner defaults
 	mrb.DefineClassUnder("Another", nil, nil)
 	_, err = mrb.LoadString("Another")
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 }
 
 func TestMrbDefineModule(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	mrb.DefineModule("Hello")
 	_, err := mrb.LoadString("Hello")
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 }
 
 func TestMrbDefineModuleUnder(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
@@ -166,54 +144,44 @@ func TestMrbDefineModuleUnder(t *testing.T) {
 	// Define an outer
 	hello := mrb.DefineModule("Hello")
 	_, err := mrb.LoadString("Hello")
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
 	// Inner
 	mrb.DefineModuleUnder("World", hello)
 	_, err = mrb.LoadString("Hello::World")
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
 	// Inner defaults
 	mrb.DefineModuleUnder("Another", nil)
 	_, err = mrb.LoadString("Another")
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 }
 
 func TestMrbFixnumValue(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	value := gruby.ToRuby(mrb, 42)
-	if value.Type() != gruby.TypeFixnum {
-		t.Fatalf("should be fixnum")
-	}
+	g.Expect(value.Type()).To(Equal(gruby.TypeFixnum))
 }
 
 func TestMrbFullGC(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	aidx := mrb.ArenaSave()
 	value := gruby.ToRuby(mrb, "foo")
-	if value.IsDead() {
-		t.Fatal("should not be dead")
-	}
+	g.Expect(value.IsDead()).To(BeFalse())
 
 	mrb.ArenaRestore(aidx)
 	mrb.FullGC()
-	if !value.IsDead() {
-		t.Fatal("should be dead")
-	}
+	g.Expect(value.IsDead()).To(BeTrue())
 }
 
 type testcase struct {
@@ -224,6 +192,7 @@ type testcase struct {
 
 func TestMrbGetArgs(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	cases := []testcase{
 		{
@@ -325,40 +294,35 @@ func TestMrbGetArgs(t *testing.T) {
 		}
 
 		for range cases {
-			if err := <-errChan; err != nil {
-				t.Fatal(err)
-			}
+			g.Expect(<-errChan).ToNot(HaveOccurred())
 		}
 	}
 }
 
 func TestMrbGlobalVariable(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	const (
 		TestValue = "HELLO"
 	)
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
-	if _, err := mrb.LoadString(fmt.Sprintf(`$a = "%s"`, TestValue)); err != nil {
-		t.Fatalf("err: %s", err)
-	}
+	_, err := mrb.LoadString(fmt.Sprintf(`$a = "%s"`, TestValue))
+	g.Expect(err).ToNot(HaveOccurred())
+
 	value := mrb.GetGlobalVariable("$a")
-	if value.String() != TestValue {
-		t.Fatalf("wrong value for $a: expected '%s', found '%s'", TestValue, value.String())
-	}
+	g.Expect(value.String()).To(Equal(TestValue))
+
 	mrb.SetGlobalVariable("$b", gruby.ToRuby(mrb, TestValue))
-	value, err := mrb.LoadString(`$b`)
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-	if value.String() != TestValue {
-		t.Fatalf("wrong value for $b: expected '%s', found '%s'", TestValue, value.String())
-	}
+	value, err = mrb.LoadString(`$b`)
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(value.String()).To(Equal(TestValue))
 }
 
 func TestMrbInstanceVariable(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	const (
 		GoldenRetriever = "golden retriever"
@@ -379,90 +343,70 @@ func TestMrbInstanceVariable(t *testing.T) {
 			end
 		end
 	`)
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 	dogClass := mrb.Class("Dog", nil)
-	if dogClass == nil {
-		t.Fatalf("dog class not found")
-	}
+	g.Expect(dogClass).ToNot(BeNil())
+
 	inst, err := dogClass.New(gruby.ToRuby(mrb, GoldenRetriever))
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
+
 	value := inst.GetInstanceVariable("@breed")
-	if value.String() != GoldenRetriever {
-		t.Fatalf("wrong value for Dog.@breed. expected: '%s', found: '%s'", GoldenRetriever, value.String())
-	}
+	g.Expect(value.String()).To(Equal(GoldenRetriever))
+
 	inst.SetInstanceVariable("@breed", gruby.ToRuby(mrb, Husky))
 	value = inst.GetInstanceVariable("@breed")
-	if value.String() != Husky {
-		t.Fatalf("wrong value for Dog.@breed. expected: '%s', found: '%s'", Husky, value.String())
-	}
+	g.Expect(value.String()).To(Equal(Husky))
 }
 
 func TestMrbLoadString(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	value, err := mrb.LoadString(`"HELLO"`)
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-	if value == nil {
-		t.Fatalf("should have value")
-	}
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(value).ToNot(BeNil())
 }
 
 func TestMrbLoadString_twice(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	value, err := mrb.LoadString(`"HELLO"`)
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-	if value == nil {
-		t.Fatalf("should have value")
-	}
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(value).ToNot(BeNil())
 
 	value, err = mrb.LoadString(`"WORLD"`)
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-	if value.String() != "WORLD" {
-		t.Fatalf("bad: %s", value)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
+
+	g.Expect(value.String()).To(Equal("WORLD"))
 }
 
 func TestMrbLoadStringException(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	_, err := mrb.LoadString(`raise "An exception"`)
 
-	if err == nil {
-		t.Fatal("exception expected")
-	}
+	g.Expect(err).To(HaveOccurred())
 
 	value, err := mrb.LoadString(`"test"`)
-	if err != nil {
-		t.Fatal("exception should have been cleared")
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
-	if value.String() != "test" {
-		t.Fatal("bad test value returned")
-	}
+	g.Expect(value.String()).To(Equal("test"))
 }
 
 func TestMrbRaise(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
@@ -474,25 +418,20 @@ func TestMrbRaise(t *testing.T) {
 	class := mrb.DefineClass("Hello", mrb.ObjectClass())
 	class.DefineClassMethod("foo", callback, gruby.ArgsReq(1))
 	_, err := mrb.LoadString(`Hello.foo(ArgumentError.new("ouch"))`)
-	if err == nil {
-		t.Fatal("should have error")
-	}
-	if err.Error() != "ouch" {
-		t.Fatalf("bad: %s", err)
-	}
+	g.Expect(err).To(HaveOccurred())
+	g.Expect(err.Error()).To(Equal("ouch"))
 }
 
 func TestMrbYield(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	callback := func(m *gruby.GRuby, self gruby.Value) (gruby.Value, gruby.Value) {
 		result, err := m.Yield(m.GetArgs()[0], gruby.ToRuby(mrb, 12), gruby.ToRuby(mrb, 30))
-		if err != nil {
-			t.Fatalf("err: %s", err)
-		}
+		g.Expect(err).ToNot(HaveOccurred())
 
 		return result, nil
 	}
@@ -500,16 +439,13 @@ func TestMrbYield(t *testing.T) {
 	class := mrb.DefineClass("Hello", mrb.ObjectClass())
 	class.DefineClassMethod("foo", callback, gruby.ArgsBlock())
 	value, err := mrb.LoadString(`Hello.foo { |a, b| a + b }`)
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-	if gruby.ToGo[int](value) != 42 {
-		t.Fatalf("bad: %s", value)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(gruby.ToGo[int](value)).To(Equal(42))
 }
 
 func TestMrbYieldException(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
@@ -528,18 +464,15 @@ func TestMrbYieldException(t *testing.T) {
 	class := mrb.DefineClass("Hello", mrb.ObjectClass())
 	class.DefineClassMethod("foo", callback, gruby.ArgsBlock())
 	_, err := mrb.LoadString(`Hello.foo { raise "exception" }`)
-	if err == nil {
-		t.Fatal("should error")
-	}
+	g.Expect(err).To(HaveOccurred())
 
 	_, err = mrb.LoadString(`Hello.foo { 1 }`)
-	if err != nil {
-		t.Fatal("exception should have been cleared")
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 }
 
 func TestMrbRun(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
@@ -557,73 +490,50 @@ func TestMrbRun(t *testing.T) {
 		end`,
 		context,
 	)
-	if err != nil {
-		t.Fatal(err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
 	proc := parser.GenerateCode()
 
 	// Enable proc exception raising & verify
 	_, err = mrb.LoadString(`$do_raise = true`)
-	if err != nil {
-		t.Fatal(err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
 	_, err = mrb.Run(proc, nil)
-	if err == nil {
-		t.Fatalf("expected exception, %#v", err)
-	}
+	g.Expect(err).To(HaveOccurred())
 
 	// Disable proc exception raising
 	// If we still have an exception, it wasn't cleared from the previous invocation.
 	_, err = mrb.LoadString(`$do_raise = false`)
-	if err != nil {
-		t.Fatal(err)
-	}
-	rval, err := mrb.Run(proc, nil)
-	if err != nil {
-		t.Fatalf("unexpected exception, %#v", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
-	if rval.String() != "rval" {
-		t.Fatalf("expected return value 'rval', got %#v", rval)
-	}
+	rval, err := mrb.Run(proc, nil)
+	g.Expect(err).ToNot(HaveOccurred())
+
+	g.Expect(rval.String()).To(Equal("rval"))
 
 	_, err = parser.Parse(`a = 10`, context)
-	if err != nil {
-		t.Fatal(err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 	proc = parser.GenerateCode()
 
 	stackKeep, _, err := mrb.RunWithContext(proc, nil, 0)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if stackKeep != 2 {
-		t.Fatalf("stack value was %d not 2; some variables may not have been captured", stackKeep)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(stackKeep).To(Equal(2), "some variables may not have been captured")
 
 	_, err = parser.Parse(`a`, context)
-	if err != nil {
-		t.Fatal(err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
 	proc = parser.GenerateCode()
 
 	var ret gruby.Value
 	_, ret, err = mrb.RunWithContext(proc, nil, stackKeep)
-	if err != nil {
-		t.Fatal(err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
-	if ret.String() != "10" {
-		t.Fatalf("Captured variable was not expected value: was %q", ret.String())
-	}
+	g.Expect(ret.String()).To(Equal("10"))
 }
 
 func TestMrbDefineMethodConcurrent(t *testing.T) {
 	t.Parallel()
+	// g := NewG(t)
 
 	concurrency := 100
 	numFuncs := 100
@@ -653,15 +563,13 @@ func TestMrbDefineMethodConcurrent(t *testing.T) {
 
 func TestMrbStackedException(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	var testClass *gruby.Class
 
 	createException := func(m *gruby.GRuby, msg string) gruby.Value {
 		val, err := m.Class("Exception", nil).New(gruby.ToRuby(m, msg))
-		if err != nil {
-			panic(fmt.Sprintf("could not construct exception for return: %v", err))
-		}
-
+		g.Expect(err).ToNot(HaveOccurred())
 		return val
 	}
 
@@ -694,10 +602,7 @@ func TestMrbStackedException(t *testing.T) {
 	mrb.TopSelf().SingletonClass().DefineMethod("test", testFunc, gruby.ArgsReq(0)|gruby.ArgsOpt(3))
 
 	_, err := mrb.LoadString("test")
-	if err == nil {
-		t.Fatal("No exception when one was expected")
-		return
-	}
+	g.Expect(err).To(HaveOccurred())
 
 	mrb.Close()
 	mrb = gruby.NewMrb()
@@ -716,15 +621,8 @@ func TestMrbStackedException(t *testing.T) {
 
 	// TODO: fix me and enable back
 	result, err := mrb.LoadString("myeval { raise 'foo' }")
-	if err == nil {
-		t.Fatal("did not error")
-		return
-	}
-
-	if result != nil {
-		t.Fatal("result was not cleared")
-		return
-	}
+	g.Expect(err).To(HaveOccurred())
+	g.Expect(result).To(BeNil())
 
 	mrb.Close()
 }

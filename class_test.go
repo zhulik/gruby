@@ -3,11 +3,13 @@ package gruby_test
 import (
 	"testing"
 
+	. "github.com/onsi/gomega"
 	"github.com/zhulik/gruby"
 )
 
 func TestClassDefineClassMethod(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
@@ -15,15 +17,14 @@ func TestClassDefineClassMethod(t *testing.T) {
 	class := mrb.DefineClass("Hello", mrb.ObjectClass())
 	class.DefineClassMethod("foo", testCallback, gruby.ArgsNone())
 	value, err := mrb.LoadString("Hello.foo")
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
-	testCallbackResult(t, value)
+	testCallbackResult(g, value)
 }
 
 func TestClassDefineConst(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
@@ -31,16 +32,14 @@ func TestClassDefineConst(t *testing.T) {
 	class := mrb.DefineClass("Hello", mrb.ObjectClass())
 	class.DefineConst("FOO", gruby.ToRuby(mrb, "bar"))
 	value, err := mrb.LoadString("Hello::FOO")
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-	if value.String() != "bar" {
-		t.Fatalf("bad: %s", value)
-	}
+
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(value.String()).To(Equal("bar"))
 }
 
 func TestClassDefineMethod(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
@@ -48,15 +47,14 @@ func TestClassDefineMethod(t *testing.T) {
 	class := mrb.DefineClass("Hello", mrb.ObjectClass())
 	class.DefineMethod("foo", testCallback, gruby.ArgsNone())
 	value, err := mrb.LoadString("Hello.new.foo")
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
-	testCallbackResult(t, value)
+	testCallbackResult(g, value)
 }
 
 func TestClassNew(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
@@ -65,20 +63,17 @@ func TestClassNew(t *testing.T) {
 	class.DefineMethod("foo", testCallback, gruby.ArgsNone())
 
 	instance, err := class.New()
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
 	value, err := instance.Call("foo")
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
-	testCallbackResult(t, value)
+	testCallbackResult(g, value)
 }
 
 func TestClassNewException(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 
@@ -88,29 +83,22 @@ func TestClassNewException(t *testing.T) {
 	class.DefineMethod("initialize", testCallbackException, gruby.ArgsNone())
 
 	_, err := class.New()
-	if err == nil {
-		t.Fatalf("expected exception")
-	}
+	g.Expect(err).To(HaveOccurred())
 
 	// Verify exception is cleared
 	val, err := mrb.LoadString(`"test"`)
-	if err != nil {
-		t.Fatalf("unexpected exception: %#v", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
-	if val.String() != "test" {
-		t.Fatalf("expected val 'test', got %#v", val)
-	}
+	g.Expect(val.String()).To(Equal("test"))
 }
 
 func TestClassValue(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	class := mrb.DefineClass("Hello", mrb.ObjectClass())
-	if class.Type() != gruby.TypeClass {
-		t.Fatalf("bad: %d", class.Type())
-	}
+	g.Expect(class.Type()).To(Equal(class.Type()))
 }

@@ -3,85 +3,56 @@ package gruby_test
 import (
 	"testing"
 
+	. "github.com/onsi/gomega"
 	"github.com/zhulik/gruby"
 )
 
 func TestHash(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	value, err := mrb.LoadString(`{"foo" => "bar", "baz" => false}`)
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
 	hash := gruby.ToGo[*gruby.Hash](value)
 
 	// Get
 	value, err = hash.Get(gruby.ToRuby(mrb, "foo"))
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-	if value.String() != "bar" {
-		t.Fatalf("bad: %s", value)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(value.String()).To(Equal("bar"))
 
 	// Get false type
 	value, err = hash.Get(gruby.ToRuby(mrb, "baz"))
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-	if valType := value.Type(); valType != gruby.TypeFalse {
-		t.Fatalf("bad type: %v", valType)
-	}
-	if value.String() != "false" {
-		t.Fatalf("bad: %s", value)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(value.Type()).To(Equal(gruby.TypeFalse))
+	g.Expect(value.String()).To(Equal("false"))
 
 	// Set
 	err = hash.Set(gruby.ToRuby(mrb, "foo"), gruby.ToRuby(mrb, "baz"))
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
+
 	value, err = hash.Get(gruby.ToRuby(mrb, "foo"))
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-	if value.String() != "baz" {
-		t.Fatalf("bad: %s", value)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(value.String()).To(Equal("baz"))
 
 	// Keys
 	value, err = hash.Keys()
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-	if value.Type() != gruby.TypeArray {
-		t.Fatalf("bad: %v", value.Type())
-	}
-	if value.String() != `["foo", "baz"]` {
-		t.Fatalf("bad: %s", value)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(value.Type()).To(Equal(gruby.TypeArray))
+	g.Expect(value.String()).To(Equal(`["foo", "baz"]`))
 
 	// Delete
 	value = hash.Delete(gruby.ToRuby(mrb, "foo"))
-	if value.String() != "baz" {
-		t.Fatalf("bad: %s", value)
-	}
+	g.Expect(value.String()).To(Equal("baz"))
 
 	value, err = hash.Keys()
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-	if value.String() != `["baz"]` {
-		t.Fatalf("bad: %s", value)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(value.String()).To(Equal(`["baz"]`))
 
 	// Delete non-existing
 	value = hash.Delete(gruby.ToRuby(mrb, "nope"))
-	if value != nil {
-		t.Fatalf("bad: %s", value)
-	}
+	g.Expect(value).To(BeNil())
 }

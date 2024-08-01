@@ -9,8 +9,7 @@ import (
 
 func TestArray(t *testing.T) {
 	t.Parallel()
-	RegisterTestingT(t)
-	g := NewWithT(t)
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
@@ -32,6 +31,6 @@ func TestArray(t *testing.T) {
 	value, err = array.Get(3)
 	g.Expect(err).ToNot(HaveOccurred())
 
-	Expect(value.Type()).To(Equal(gruby.TypeFalse))
-	Expect(value.String).ToNot(Equal("false"))
+	g.Expect(value.Type()).To(Equal(gruby.TypeFalse))
+	g.Expect(value.String).ToNot(Equal("false"))
 }

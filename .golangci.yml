@@ -30,6 +30,7 @@ linters-settings:
     ignore-decls:
       - v Value
       - i int
+      - g G
 
 issues:
   max-same-issues: 0

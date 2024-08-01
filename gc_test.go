@@ -3,11 +3,13 @@ package gruby_test
 import (
 	"testing"
 
+	. "github.com/onsi/gomega"
 	"github.com/zhulik/gruby"
 )
 
 func TestEnableDisableGC(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
@@ -16,42 +18,31 @@ func TestEnableDisableGC(t *testing.T) {
 	mrb.DisableGC()
 
 	_, err := mrb.LoadString("b = []; a = []; a = []")
-	if err != nil {
-		t.Fatal(err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
 	orig := mrb.LiveObjectCount()
 	mrb.FullGC()
 
-	if orig != mrb.LiveObjectCount() {
-		t.Fatalf("Object count was not what was expected after full GC: %d %d", orig, mrb.LiveObjectCount())
-	}
+	g.Expect(mrb.LiveObjectCount()).To(Equal(orig), "Object count was not what was expected after full GC")
 
 	mrb.EnableGC()
 	mrb.FullGC()
 
-	if orig-1 != mrb.LiveObjectCount() {
-		t.Fatalf("Object count was not what was expected after full GC: %d %d", orig-2, mrb.LiveObjectCount())
-	}
+	g.Expect(mrb.LiveObjectCount()).To(Equal(orig-1), "Object count was not what was expected after full GC")
 }
 
 func TestIsDead(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 
 	val, err := mrb.LoadString("$a = []")
-	if err != nil {
-		t.Fatal(err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
-	if val.IsDead() {
-		t.Fatal("Value is already dead and should not be")
-	}
+	g.Expect(val.IsDead()).To(BeFalse())
 
 	mrb.Close()
 
-	if !val.IsDead() {
-		t.Fatal("Value should be dead and is not")
-	}
+	g.Expect(val.IsDead()).To(BeTrue())
 }

@@ -2,27 +2,26 @@ package gruby_test
 
 import (
 	"errors"
-	"reflect"
 	"testing"
 
+	. "github.com/onsi/gomega"
 	"github.com/zhulik/gruby"
 )
 
 func TestExceptionString_afterClose(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	_, err := mrb.LoadString(`clearly a syntax error`)
 	mrb.Close()
 	// This panics before the bug fix that this test tests
-	str := err.Error()
-	if str != "undefined method 'error'" {
-		t.Fatalf("'%s'", str)
-	}
+	g.Expect(err.Error()).To(Equal("undefined method 'error'"))
 }
 
 func TestExceptionBacktrace(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
@@ -48,130 +47,86 @@ func TestExceptionBacktrace(t *testing.T) {
 
 				hop2
 			`, context)
-	if err != nil {
-		t.Fatal(err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
 	proc := parser.GenerateCode()
 	_, err = mrb.Run(proc, nil)
-	if err == nil {
-		t.Fatalf("expected exception")
-	}
+	g.Expect(err).To(HaveOccurred())
 
 	var exc *gruby.ExceptionError
 	errors.As(err, &exc)
 
-	if exc.Message != "Exception" {
-		t.Fatalf("bad exception message: %s", exc.Message)
-	}
-
-	if exc.File != "hello.rb" {
-		t.Fatalf("bad file: %s", exc.File)
-	}
-
-	if exc.Line != 3 {
-		t.Fatalf("bad line: %d", exc.Line)
-	}
-
-	if len(exc.Backtrace) != 4 {
-		t.Fatalf("bad backtrace: %#v", exc.Backtrace)
-	}
+	g.Expect(exc.Message).To(Equal("Exception"))
+	g.Expect(exc.File).To(Equal("hello.rb"))
+	g.Expect(exc.Line).To(Equal(3))
+	g.Expect(exc.Backtrace).To(HaveLen(4))
 }
 
 func TestMrbValueCall(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	value, err := mrb.LoadString(`"foo"`)
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
 	_, err = value.Call("some_function_that_doesnt_exist")
-	if err == nil {
-		t.Fatalf("expected exception")
-	}
+	g.Expect(err).To(HaveOccurred())
 
 	result, err := value.Call("==", gruby.ToRuby(mrb, "foo"))
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-	if result.Type() != gruby.TypeTrue {
-		t.Fatalf("bad type")
-	}
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(result.Type()).To(Equal(gruby.TypeTrue))
 }
 
 func TestMrbValueCallBlock(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	value, err := mrb.LoadString(`"foo"`)
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
 	block, err := mrb.LoadString(`Proc.new { |_| "bar" }`)
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
+	g.Expect(err).ToNot(HaveOccurred())
 
 	result, err := value.CallBlock("gsub", gruby.ToRuby(mrb, "foo"), block)
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-	if result.Type() != gruby.TypeString {
-		t.Fatalf("bad type")
-	}
-	if result.String() != "bar" {
-		t.Fatalf("bad: %s", result)
-	}
-}
+	g.Expect(err).ToNot(HaveOccurred())
 
-func TestMrbValueValue_impl(t *testing.T) {
-	t.Parallel()
-
-	mrb := gruby.NewMrb()
-	defer mrb.Close()
-
-	var _ gruby.Value = mrb.FalseValue()
+	g.Expect(result.Type()).To(Equal(gruby.TypeString))
+	g.Expect(result.String()).To(Equal("bar"))
 }
 
 func TestMrbValueFixnum(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	value, err := mrb.LoadString("42")
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-	if gruby.ToGo[int](value) != 42 {
-		t.Fatalf("bad fixnum")
-	}
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(gruby.ToGo[int](value)).To(Equal(42))
 }
 
 func TestMrbValueString(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	value, err := mrb.LoadString(`"foo"`)
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-	if value.String() != "foo" {
-		t.Fatalf("bad string")
-	}
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(value.String()).To(Equal("foo"))
 }
 
 func TestMrbValueType(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
@@ -255,57 +210,48 @@ func TestMrbValueType(t *testing.T) {
 
 	for _, tcase := range cases {
 		r, err := mrb.LoadString(tcase.Input)
-		if err != nil {
-			t.Fatalf("loadstring failed for case %#v: %s", tcase, err)
-		}
-		if cType := r.Type(); cType != tcase.Expected {
-			t.Fatalf("bad type: got %v, expected %v", cType, tcase.Expected)
-		}
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(r.Type()).To(Equal(tcase.Expected))
 	}
 }
 
 func TestIntMrbValue(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	value := gruby.ToRuby(mrb, 42)
-	if gruby.ToGo[int](value) != 42 {
-		t.Fatalf("bad value")
-	}
+	g.Expect(gruby.ToGo[int](value)).To(Equal(42))
 }
 
 func TestStringMrbValue(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	value := gruby.ToRuby(mrb, "foo")
-	if value.String() != "foo" {
-		t.Fatalf("bad value")
-	}
+	g.Expect(value.String()).To(Equal("foo"))
 }
 
 func TestValueClass(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
 
 	val, err := mrb.ObjectClass().New()
-	if err != nil {
-		t.Fatalf("Error constructing object of type Object: %v", err)
-	}
-
-	if !reflect.DeepEqual(val.Class(), mrb.ObjectClass()) {
-		t.Fatal("Class of value was not equivalent to constructed class")
-	}
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(val.Class()).To(Equal(mrb.ObjectClass()))
 }
 
 func TestValueSingletonClass(t *testing.T) {
 	t.Parallel()
+	g := NewG(t)
 
 	mrb := gruby.NewMrb()
 	defer mrb.Close()
@@ -318,11 +264,6 @@ func TestValueSingletonClass(t *testing.T) {
 	mrb.TopSelf().SingletonClass().DefineMethod("add", fn, gruby.ArgsReq(2))
 
 	result, err := mrb.LoadString(`add(46, 2)`)
-	if err != nil {
-		t.Fatalf("Error parsing ruby code: %v", err)
-	}
-
-	if result.String() != "48" {
-		t.Fatalf("Result %q was not equal to the target value of 48", result.String())
-	}
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(result.String()).To(Equal("48"))
 }
