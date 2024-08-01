@@ -206,6 +206,20 @@ func (m *GRuby) LoadString(code string) (Value, error) {
 	return m.value(value), nil
 }
 
+// LoadStringWith loads the given code, executes it within the given context, and returns its final
+// value that it might return.
+func (m *GRuby) LoadStringWithContext(code string, ctx *CompileContext) (Value, error) {
+	cstr := C.CString(code)
+	defer C.free(unsafe.Pointer(cstr))
+
+	value := C.mrb_load_string_cxt(m.state, cstr, ctx.ctx)
+	if exc := checkException(m.state); exc != nil {
+		return nil, exc
+	}
+
+	return m.value(value), nil
+}
+
 // Run executes the given value, which should be a proc type.
 //
 // If you're looking to execute code directly a string, look at LoadString.
