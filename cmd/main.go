@@ -9,7 +9,6 @@ import (
 
 	"github.com/chzyer/readline"
 	"github.com/k0kubun/pp"
-
 	"github.com/zhulik/gruby"
 )
 
@@ -17,13 +16,13 @@ func main() {
 	grb := gruby.NewMrb()
 	defer grb.Close()
 
-	wd, err := os.Getwd()
+	workDir, err := os.Getwd()
 	if err != nil {
 		panic(err)
 	}
 
 	ctx := gruby.NewCompileContext(grb)
-	ctx.SetFilename(path.Join(wd, "main.rb"))
+	ctx.SetFilename(path.Join(workDir, "main.rb"))
 	defer ctx.Close()
 
 	rln, err := readline.New(">> ")

@@ -39,21 +39,21 @@ type Value interface { //nolint:interfacebloat
 // etc.
 type MrbValue struct {
 	value C.mrb_value
-	state *C.mrb_state
+	gruby *GRuby
 }
 
 // SetInstanceVariable sets an instance variable on this value.
 func (v *MrbValue) SetInstanceVariable(variable string, value Value) {
 	cstr := C.CString(variable)
 	defer C.free(unsafe.Pointer(cstr))
-	C._go_mrb_iv_set(v.state, v.value, C.mrb_intern_cstr(v.state, cstr), value.CValue())
+	C._go_mrb_iv_set(v.gruby.state, v.value, C.mrb_intern_cstr(v.gruby.state, cstr), value.CValue())
 }
 
 // GetInstanceVariable gets an instance variable on this value.
 func (v *MrbValue) GetInstanceVariable(variable string) Value {
 	cstr := C.CString(variable)
 	defer C.free(unsafe.Pointer(cstr))
-	return v.Mrb().value(C._go_mrb_iv_get(v.state, v.value, C.mrb_intern_cstr(v.state, cstr)))
+	return v.Mrb().value(C._go_mrb_iv_get(v.gruby.state, v.value, C.mrb_intern_cstr(v.gruby.state, cstr)))
 }
 
 // Call calls a method with the given name and arguments on this
@@ -100,14 +100,14 @@ func (v *MrbValue) call(method string, args []Value, block Value) (Value, error)
 	// If we have a block, we have to call a separate function to
 	// pass a block in. Otherwise, we just call it directly.
 	result := C._go_mrb_call(
-		v.state,
+		v.gruby.state,
 		v.value,
-		C.mrb_intern_cstr(v.state, cstr),
+		C.mrb_intern_cstr(v.gruby.state, cstr),
 		C.mrb_int(len(argv)),
 		argvPtr,
 		blockV)
 
-	if exc := checkException(v.state); exc != nil {
+	if exc := checkException(v.gruby); exc != nil {
 		return nil, exc
 	}
 
@@ -116,17 +116,17 @@ func (v *MrbValue) call(method string, args []Value, block Value) (Value, error)
 
 // IsDead tells you if an object has been collected by the GC or not.
 func (v *MrbValue) IsDead() bool {
-	return C.ushort(C._go_isdead(v.state, v.value)) != 0
+	return C.ushort(C._go_isdead(v.gruby.state, v.value)) != 0
 }
 
 // Mrb returns the Mrb state for this value.
 func (v *MrbValue) Mrb() *GRuby {
-	return &GRuby{v.state}
+	return v.gruby
 }
 
 // GCProtect protects this value from being garbage collected.
 func (v *MrbValue) GCProtect() {
-	C.mrb_gc_protect(v.state, v.value)
+	C.mrb_gc_protect(v.gruby.state, v.value)
 }
 
 // SetProcTargetClass sets the target class where a proc will be executed
@@ -194,11 +194,9 @@ func ToGo[T any](value Value) T {
 }
 
 func ToRuby[T any](mrb *GRuby, value T) Value {
-	var empty T
-
 	val := any(value)
 
-	switch any(empty).(type) {
+	switch any(value).(type) {
 	case string:
 		cstr := C.CString(val.(string)) //nolint:forcetypeassert
 		defer C.free(unsafe.Pointer(cstr))
@@ -211,7 +209,7 @@ func ToRuby[T any](mrb *GRuby, value T) Value {
 	case *Hash:
 	}
 
-	panic(fmt.Sprintf("unknown type %+v", empty))
+	panic(fmt.Sprintf("unknown type '%+v'", value))
 }
 
 // String returns the "to_s" result of this value.
@@ -221,15 +219,15 @@ func (v *MrbValue) String() string {
 
 // Class returns the *Class of a value.
 func (v *MrbValue) Class() *Class {
-	mrb := &GRuby{v.state}
-	return newClass(mrb, C.mrb_class(v.state, v.value))
+	mrb := v.gruby
+	return newClass(mrb, C.mrb_class(v.gruby.state, v.value))
 }
 
 // SingletonClass returns the singleton class (a class isolated just for the
 // scope of the object) for the given value.
 func (v *MrbValue) SingletonClass() *Class {
-	mrb := &GRuby{v.state}
-	sclass := C._go_mrb_class_ptr(C.mrb_singleton_class(v.state, v.value))
+	mrb := v.gruby
+	sclass := C._go_mrb_class_ptr(C.mrb_singleton_class(v.gruby.state, v.value))
 	return newClass(mrb, sclass)
 }
 
@@ -237,9 +235,8 @@ func (v *MrbValue) SingletonClass() *Class {
 // Internal Functions
 //-------------------------------------------------------------------
 
-func newExceptionValue(state *C.mrb_state) *ExceptionError {
-	mrb := &GRuby{state}
-
+func newExceptionValue(mrb *GRuby) *ExceptionError {
+	state := mrb.state
 	if state.exc == nil {
 		return nil
 	}

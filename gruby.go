@@ -1,18 +1,34 @@
 package gruby
 
-import (
-	"unsafe"
-)
-
 // #cgo CFLAGS: -Imruby-build/mruby/include
 // #cgo LDFLAGS: ${SRCDIR}/libmruby.a -lm
 // #include <stdlib.h>
 // #include "gruby.h"
 import "C"
 
+import (
+	"strings"
+	"unsafe"
+)
+
+type (
+	classMethodMap map[*C.struct_RClass]methodMap
+	methodMap      map[C.mrb_sym]Func
+)
+
 // GRuby represents a single instance of gruby.
 type GRuby struct {
 	state *C.mrb_state
+
+	classes           classMethodMap
+	getArgAccumulator []C.mrb_value
+}
+
+//export goGetArgAppend
+func goGetArgAppend(state *C.mrb_state, v C.mrb_value) {
+	grb := states.Get(state)
+
+	grb.getArgAccumulator = append(grb.getArgAccumulator, v)
 }
 
 // GetGlobalVariable returns the value of the global variable by the given name.
@@ -43,9 +59,15 @@ type ArenaIndex int
 func NewMrb() *GRuby {
 	state := C.mrb_open()
 
-	return &GRuby{
-		state: state,
+	grb := &GRuby{
+		state:             state,
+		classes:           classMethodMap{},
+		getArgAccumulator: make([]C.mrb_value, 0, C._go_get_max_funcall_args()),
 	}
+
+	states.Add(state, grb)
+
+	return grb
 }
 
 // ArenaRestore restores the arena index so the objects between the save and this point
@@ -129,12 +151,7 @@ func (m *GRuby) Module(name string) *Class {
 // Close a Mrb, this must be called to properly free resources, and
 // should only be called once.
 func (m *GRuby) Close() {
-	// Delete all the methods from the state
-	stateMethodTable.Mutex.Lock()
-	delete(stateMethodTable.Map, m.state)
-	stateMethodTable.Mutex.Unlock()
-
-	// Close the state
+	states.Delete(m.state)
 	C.mrb_close(m.state)
 }
 
@@ -163,11 +180,8 @@ func (m *GRuby) FullGC() {
 // GetArgs returns all the arguments that were given to the currnetly
 // called function (currently on the stack).
 func (m *GRuby) GetArgs() []Value {
-	getArgLock.Lock()
-	defer getArgLock.Unlock()
-
 	// Clear reset the accumulator to zero length
-	getArgAccumulator = make([]C.mrb_value, 0, C._go_get_max_funcall_args())
+	m.getArgAccumulator = make([]C.mrb_value, 0, C._go_get_max_funcall_args())
 
 	// Get all the arguments and put it into our accumulator
 	count := C._go_mrb_get_args_all(m.state)
@@ -176,7 +190,7 @@ func (m *GRuby) GetArgs() []Value {
 	values := make([]Value, count)
 
 	for i := range int(count) {
-		values[i] = m.value(getArgAccumulator[i])
+		values[i] = m.value(m.getArgAccumulator[i])
 	}
 
 	return values
@@ -199,7 +213,7 @@ func (m *GRuby) LoadString(code string) (Value, error) {
 	defer C.free(unsafe.Pointer(cstr))
 
 	value := C._go_mrb_load_string(m.state, cstr)
-	if exc := checkException(m.state); exc != nil {
+	if exc := checkException(m); exc != nil {
 		return nil, exc
 	}
 
@@ -212,8 +226,19 @@ func (m *GRuby) LoadStringWithContext(code string, ctx *CompileContext) (Value, 
 	cstr := C.CString(code)
 	defer C.free(unsafe.Pointer(cstr))
 
+	// TODO:
+	/** program load functions
+	* Please note! Currently due to interactions with the GC calling these functions will
+	* leak one RProc object per function call.
+	* To prevent this save the current memory arena before calling and restore the arena
+	* right after, like so
+	* int ai = mrb_gc_arena_save(mrb);
+	* mrb_value status = mrb_load_string(mrb, buffer);
+	* mrb_gc_arena_restore(mrb, ai);
+	 */
+
 	value := C.mrb_load_string_cxt(m.state, cstr, ctx.ctx)
-	if exc := checkException(m.state); exc != nil {
+	if exc := checkException(m); exc != nil {
 		return nil, exc
 	}
 
@@ -236,7 +261,7 @@ func (m *GRuby) Run(v Value, self Value) (Value, error) {
 	proc := C._go_mrb_proc_ptr(mrbV)
 	value := C.mrb_vm_run(m.state, proc, mrbSelf, 0)
 
-	if exc := checkException(m.state); exc != nil {
+	if exc := checkException(m); exc != nil {
 		return nil, exc
 	}
 
@@ -262,7 +287,7 @@ func (m *GRuby) RunWithContext(v Value, self Value, stackKeep int) (int, Value, 
 
 	value := C._go_mrb_vm_run(m.state, proc, mrbSelf, &keep)
 
-	if exc := checkException(m.state); exc != nil {
+	if exc := checkException(m); exc != nil {
 		return stackKeep, nil, exc
 	}
 
@@ -294,7 +319,7 @@ func (m *GRuby) Yield(block Value, args ...Value) (Value, error) {
 		C.mrb_int(len(argv)),
 		argvPtr)
 
-	if exc := checkException(m.state); exc != nil {
+	if exc := checkException(m); exc != nil {
 		return nil, exc
 	}
 
@@ -392,20 +417,45 @@ func (m *GRuby) TrueValue() Value {
 	return m.value(C.mrb_true_value())
 }
 
+// When called from a methods defined in Go, returns current ruby backtrace.
+func (m *GRuby) Backtrace() []string {
+	backtrace := m.value(C.mrb_get_backtrace(m.state))
+	array := ToGo[*Array](backtrace)
+
+	result := make([]string, array.Len())
+
+	for i := range array.Len() {
+		item, err := array.Get(i)
+		if err != nil {
+			panic(err)
+		}
+		result[i] = ToGo[string](item)
+	}
+
+	return result
+}
+
+// When called from a method defined in Go, returns a full name of a file the method was called from.
+// Currently implemented using the backtrace.
+// TODO: a better way?
+func (m *GRuby) CalledFromFile() string {
+	return strings.Split(m.Backtrace()[0], ":")[0]
+}
+
 func (m *GRuby) value(v C.mrb_value) Value {
 	return &MrbValue{
-		state: m.state,
+		gruby: m,
 		value: v,
 	}
 }
 
-func checkException(state *C.mrb_state) error {
-	if state.exc == nil {
+func checkException(grb *GRuby) error {
+	if grb.state.exc == nil {
 		return nil
 	}
 
-	err := newExceptionValue(state)
-	state.exc = nil
+	err := newExceptionValue(grb)
+	grb.state.exc = nil
 
 	return err
 }

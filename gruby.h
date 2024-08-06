@@ -103,8 +103,9 @@ static mrb_value _go_mrb_call(mrb_state *mrb, mrb_value b, mrb_sym method, mrb_i
 //-------------------------------------------------------------------
 // Helpers to deal with getting arguments
 //-------------------------------------------------------------------
-// This is declard in args.go
-extern void goGetArgAppend(mrb_value);
+// This is declard in args.go.
+// TODO: every time goGetArgAppend the states lock is acquired. Need to lock it once.
+extern void goGetArgAppend(mrb_state *, mrb_value);
 
 // This gets all arguments given to a function call and adds them to
 // the accumulator in Go.
@@ -119,7 +120,7 @@ static inline int _go_mrb_get_args_all(mrb_state *s)
 
   for (i = 0; i < argc; i++)
   {
-    goGetArgAppend(argv[i]);
+    goGetArgAppend(s, argv[i]);
   }
 
   if (mrb_nil_p(block))
@@ -128,7 +129,7 @@ static inline int _go_mrb_get_args_all(mrb_state *s)
   }
 
   argc++;
-  goGetArgAppend(block);
+  goGetArgAppend(s, block);
 
   return argc;
 }

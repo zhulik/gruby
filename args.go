@@ -1,7 +1,5 @@
 package gruby
 
-import "sync"
-
 // #include "gruby.h"
 import "C"
 
@@ -39,16 +37,4 @@ func ArgsReq(n int) ArgSpec {
 // ArgsOpt says that the given number of arguments are optional.
 func ArgsOpt(n int) ArgSpec {
 	return ArgSpec(C._go_MRB_ARGS_OPT(C.int(n)))
-}
-
-// The global accumulator when Mrb.GetArgs is called. There is a
-// global lock around this so that the access to it is safe.
-var (
-	getArgAccumulator []C.mrb_value     //nolint:gochecknoglobals
-	getArgLock        = new(sync.Mutex) //nolint:gochecknoglobals
-)
-
-//export goGetArgAppend
-func goGetArgAppend(v C.mrb_value) {
-	getArgAccumulator = append(getArgAccumulator, v)
 }

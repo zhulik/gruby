@@ -533,7 +533,6 @@ func TestMrbRun(t *testing.T) {
 
 func TestMrbDefineMethodConcurrent(t *testing.T) {
 	t.Parallel()
-	// g := NewG(t)
 
 	concurrency := 100
 	numFuncs := 100
