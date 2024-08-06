@@ -200,7 +200,7 @@ func (m *GRuby) LoadString(code string) (Value, error) {
 	defer C.free(unsafe.Pointer(cstr))
 
 	value := C._go_mrb_load_string(m.state, cstr)
-	if exc := checkException(m.state); exc != nil {
+	if exc := checkException(m); exc != nil {
 		return nil, exc
 	}
 
@@ -225,7 +225,7 @@ func (m *GRuby) LoadStringWithContext(code string, ctx *CompileContext) (Value, 
 	 */
 
 	value := C.mrb_load_string_cxt(m.state, cstr, ctx.ctx)
-	if exc := checkException(m.state); exc != nil {
+	if exc := checkException(m); exc != nil {
 		return nil, exc
 	}
 
@@ -248,7 +248,7 @@ func (m *GRuby) Run(v Value, self Value) (Value, error) {
 	proc := C._go_mrb_proc_ptr(mrbV)
 	value := C.mrb_vm_run(m.state, proc, mrbSelf, 0)
 
-	if exc := checkException(m.state); exc != nil {
+	if exc := checkException(m); exc != nil {
 		return nil, exc
 	}
 
@@ -274,7 +274,7 @@ func (m *GRuby) RunWithContext(v Value, self Value, stackKeep int) (int, Value, 
 
 	value := C._go_mrb_vm_run(m.state, proc, mrbSelf, &keep)
 
-	if exc := checkException(m.state); exc != nil {
+	if exc := checkException(m); exc != nil {
 		return stackKeep, nil, exc
 	}
 
@@ -306,7 +306,7 @@ func (m *GRuby) Yield(block Value, args ...Value) (Value, error) {
 		C.mrb_int(len(argv)),
 		argvPtr)
 
-	if exc := checkException(m.state); exc != nil {
+	if exc := checkException(m); exc != nil {
 		return nil, exc
 	}
 
@@ -431,18 +431,18 @@ func (m *GRuby) CalledFromFile() string {
 
 func (m *GRuby) value(v C.mrb_value) Value {
 	return &MrbValue{
-		state: m.state,
+		gruby: m,
 		value: v,
 	}
 }
 
-func checkException(state *C.mrb_state) error {
-	if state.exc == nil {
+func checkException(grb *GRuby) error {
+	if grb.state.exc == nil {
 		return nil
 	}
 
-	err := newExceptionValue(state)
-	state.exc = nil
+	err := newExceptionValue(grb)
+	grb.state.exc = nil
 
 	return err
 }
