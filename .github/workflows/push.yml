@@ -29,7 +29,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        golang: ["1.22"]
+        golang:
+          - "1.21"
+          - "1.22"
 
     steps:
       - uses: actions/checkout@v4
