@@ -18,8 +18,17 @@ type (
 
 // GRuby represents a single instance of gruby.
 type GRuby struct {
-	state   *C.mrb_state
-	classes classMethodMap
+	state *C.mrb_state
+
+	classes           classMethodMap
+	getArgAccumulator []C.mrb_value
+}
+
+//export goGetArgAppend
+func goGetArgAppend(state *C.mrb_state, v C.mrb_value) {
+	grb := states.Get(state)
+
+	grb.getArgAccumulator = append(grb.getArgAccumulator, v)
 }
 
 // GetGlobalVariable returns the value of the global variable by the given name.
@@ -51,8 +60,9 @@ func NewMrb() *GRuby {
 	state := C.mrb_open()
 
 	grb := &GRuby{
-		state:   state,
-		classes: classMethodMap{},
+		state:             state,
+		classes:           classMethodMap{},
+		getArgAccumulator: make([]C.mrb_value, 0, C._go_get_max_funcall_args()),
 	}
 
 	states.Add(state, grb)
@@ -170,11 +180,8 @@ func (m *GRuby) FullGC() {
 // GetArgs returns all the arguments that were given to the currnetly
 // called function (currently on the stack).
 func (m *GRuby) GetArgs() []Value {
-	getArgLock.Lock()
-	defer getArgLock.Unlock()
-
 	// Clear reset the accumulator to zero length
-	getArgAccumulator = make([]C.mrb_value, 0, C._go_get_max_funcall_args())
+	m.getArgAccumulator = make([]C.mrb_value, 0, C._go_get_max_funcall_args())
 
 	// Get all the arguments and put it into our accumulator
 	count := C._go_mrb_get_args_all(m.state)
@@ -183,7 +190,7 @@ func (m *GRuby) GetArgs() []Value {
 	values := make([]Value, count)
 
 	for i := range int(count) {
-		values[i] = m.value(getArgAccumulator[i])
+		values[i] = m.value(m.getArgAccumulator[i])
 	}
 
 	return values
