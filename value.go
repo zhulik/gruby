@@ -199,7 +199,7 @@ func ToRuby[T any](mrb *GRuby, value T) Value {
 	switch any(value).(type) {
 	case string:
 		cstr := C.CString(val.(string)) //nolint:forcetypeassert
-		// defer C.free(unsafe.Pointer(cstr))
+		defer C.free(unsafe.Pointer(cstr))
 		return mrb.value(C.mrb_str_new_cstr(mrb.state, cstr))
 	case int, int16, int32, int64:
 		return mrb.value(C.mrb_fixnum_value(C.mrb_int(val.(int)))) //nolint:forcetypeassert
