@@ -1,6 +1,7 @@
 package gruby
 
 import (
+	"strings"
 	"unsafe"
 )
 
@@ -212,6 +213,17 @@ func (m *GRuby) LoadStringWithContext(code string, ctx *CompileContext) (Value, 
 	cstr := C.CString(code)
 	defer C.free(unsafe.Pointer(cstr))
 
+	// TODO:
+	/** program load functions
+	* Please note! Currently due to interactions with the GC calling these functions will
+	* leak one RProc object per function call.
+	* To prevent this save the current memory arena before calling and restore the arena
+	* right after, like so
+	* int ai = mrb_gc_arena_save(mrb);
+	* mrb_value status = mrb_load_string(mrb, buffer);
+	* mrb_gc_arena_restore(mrb, ai);
+	 */
+
 	value := C.mrb_load_string_cxt(m.state, cstr, ctx.ctx)
 	if exc := checkException(m.state); exc != nil {
 		return nil, exc
@@ -390,6 +402,31 @@ func (m *GRuby) NilValue() Value {
 // TrueValue returns a Value for "true"
 func (m *GRuby) TrueValue() Value {
 	return m.value(C.mrb_true_value())
+}
+
+// When called from a methods defined in Go, returns current ruby backtrace.
+func (m *GRuby) Backtrace() []string {
+	backtrace := m.value(C.mrb_get_backtrace(m.state))
+	array := ToGo[*Array](backtrace)
+
+	result := make([]string, array.Len())
+
+	for i := range array.Len() {
+		item, err := array.Get(i)
+		if err != nil {
+			panic(err)
+		}
+		result[i] = ToGo[string](item)
+	}
+
+	return result
+}
+
+// When called from a method defined in Go, returns a full name of a file the method was called from.
+// Currently implemented using the backtrace.
+// TODO: a better way?
+func (m *GRuby) CalledFromFile() string {
+	return strings.Split(m.Backtrace()[0], ":")[0]
 }
 
 func (m *GRuby) value(v C.mrb_value) Value {
