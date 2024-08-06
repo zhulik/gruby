@@ -194,14 +194,12 @@ func ToGo[T any](value Value) T {
 }
 
 func ToRuby[T any](mrb *GRuby, value T) Value {
-	var empty T
-
 	val := any(value)
 
-	switch any(empty).(type) {
+	switch any(value).(type) {
 	case string:
 		cstr := C.CString(val.(string)) //nolint:forcetypeassert
-		defer C.free(unsafe.Pointer(cstr))
+		// defer C.free(unsafe.Pointer(cstr))
 		return mrb.value(C.mrb_str_new_cstr(mrb.state, cstr))
 	case int, int16, int32, int64:
 		return mrb.value(C.mrb_fixnum_value(C.mrb_int(val.(int)))) //nolint:forcetypeassert
@@ -211,7 +209,7 @@ func ToRuby[T any](mrb *GRuby, value T) Value {
 	case *Hash:
 	}
 
-	panic(fmt.Sprintf("unknown type %+v", empty))
+	panic(fmt.Sprintf("unknown type '%+v'", value))
 }
 
 // String returns the "to_s" result of this value.
