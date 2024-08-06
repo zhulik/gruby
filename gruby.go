@@ -2,7 +2,6 @@ package gruby
 
 import (
 	"strings"
-	"sync"
 	"unsafe"
 )
 
@@ -12,14 +11,15 @@ import (
 // #include "gruby.h"
 import "C"
 
-var (
-	states     = map[*C.mrb_state]*GRuby{}
-	statesLock = sync.RWMutex{}
+type (
+	classMethodMap map[*C.struct_RClass]methodMap
+	methodMap      map[C.mrb_sym]Func
 )
 
 // GRuby represents a single instance of gruby.
 type GRuby struct {
-	state *C.mrb_state
+	state   *C.mrb_state
+	classes classMethodMap
 }
 
 // GetGlobalVariable returns the value of the global variable by the given name.
@@ -49,14 +49,13 @@ type ArenaIndex int
 // by calling the Close method.
 func NewMrb() *GRuby {
 	state := C.mrb_open()
-	statesLock.Lock()
-	defer statesLock.Unlock()
 
 	grb := &GRuby{
-		state: state,
+		state:   state,
+		classes: classMethodMap{},
 	}
 
-	states[state] = grb
+	states.Add(state, grb)
 
 	return grb
 }
@@ -142,17 +141,7 @@ func (m *GRuby) Module(name string) *Class {
 // Close a Mrb, this must be called to properly free resources, and
 // should only be called once.
 func (m *GRuby) Close() {
-	// Delete all the methods from the state
-	stateMethodTable.Mutex.Lock()
-	defer stateMethodTable.Mutex.Unlock()
-
-	statesLock.Lock()
-	defer statesLock.Unlock()
-
-	delete(states, m.state)
-	delete(stateMethodTable.Map, m.state)
-
-	// Close the state
+	states.Delete(m.state)
 	C.mrb_close(m.state)
 }
 
