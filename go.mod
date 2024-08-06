@@ -6,6 +6,7 @@ require (
 	github.com/chzyer/readline v1.5.1
 	github.com/k0kubun/pp v3.0.1+incompatible
 	github.com/onsi/gomega v1.34.1
+	github.com/yargevad/filepathx v1.0.0
 )
 
 require (

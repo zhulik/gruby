@@ -20,6 +20,7 @@ type (
 type GRuby struct {
 	state *C.mrb_state
 
+	loadedFiles       map[string]bool
 	classes           classMethodMap
 	getArgAccumulator []C.mrb_value
 }
@@ -61,6 +62,7 @@ func NewMrb() *GRuby {
 
 	grb := &GRuby{
 		state:             state,
+		loadedFiles:       map[string]bool{},
 		classes:           classMethodMap{},
 		getArgAccumulator: make([]C.mrb_value, 0, C._go_get_max_funcall_args()),
 	}
@@ -440,6 +442,24 @@ func (m *GRuby) Backtrace() []string {
 // TODO: a better way?
 func (m *GRuby) CalledFromFile() string {
 	return strings.Split(m.Backtrace()[0], ":")[0]
+}
+
+func (m *GRuby) LoadFile(path string, content string) (bool, *CompileContext, error) {
+	if m.loadedFiles[path] {
+		return false, nil, nil
+	}
+
+	ctx := NewCompileContext(m)
+	ctx.SetFilename(path)
+
+	_, err := m.LoadStringWithContext(string(content), ctx)
+	if err != nil {
+		return false, ctx, err
+	}
+
+	m.loadedFiles[path] = true
+
+	return true, ctx, nil
 }
 
 func (m *GRuby) value(v C.mrb_value) Value {

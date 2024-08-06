@@ -196,7 +196,12 @@ func ToGo[T any](value Value) T {
 func ToRuby[T any](mrb *GRuby, value T) Value {
 	val := any(value)
 
-	switch any(value).(type) {
+	switch val.(type) {
+	case bool:
+		if val.(bool) {
+			return mrb.TrueValue()
+		}
+		return mrb.FalseValue()
 	case string:
 		cstr := C.CString(val.(string)) //nolint:forcetypeassert
 		defer C.free(unsafe.Pointer(cstr))
@@ -205,8 +210,14 @@ func ToRuby[T any](mrb *GRuby, value T) Value {
 		return mrb.value(C.mrb_fixnum_value(C.mrb_int(val.(int)))) //nolint:forcetypeassert
 	case float64, float32:
 		return mrb.value(C.mrb_float_value(mrb.state, C.mrb_float(C.long(val.(float32))))) //nolint:forcetypeassert
-	case *Array:
-	case *Hash:
+	// TODO: generic array and hash support
+	case []string:
+		ary := Array{mrb.value(C.mrb_ary_new(mrb.state))}
+
+		for _, item := range val.([]string) {
+			ary.Push(ToRuby(mrb, item))
+		}
+		return ary
 	}
 
 	panic(fmt.Sprintf("unknown type '%+v'", value))

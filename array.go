@@ -10,6 +10,11 @@ type Array struct {
 	Value
 }
 
+// Push adds an item to the arrayss
+func (v *Array) Push(item Value) {
+	C.mrb_ary_push(v.Mrb().state, v.CValue(), item.CValue())
+}
+
 // Len returns the length of the array.
 func (v *Array) Len() int {
 	return int(C._go_RARRAY_LEN(v.CValue()))
