@@ -1,15 +1,15 @@
 package gruby
 
-import (
-	"strings"
-	"unsafe"
-)
-
 // #cgo CFLAGS: -Imruby-build/mruby/include
 // #cgo LDFLAGS: ${SRCDIR}/libmruby.a -lm
 // #include <stdlib.h>
 // #include "gruby.h"
 import "C"
+
+import (
+	"strings"
+	"unsafe"
+)
 
 type (
 	classMethodMap map[*C.struct_RClass]methodMap
