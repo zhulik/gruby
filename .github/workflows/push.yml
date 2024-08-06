@@ -42,7 +42,7 @@ jobs:
           path: |
             mruby-build
             libmruby.a
-          key: ${{ runner.os }}-${{ hashFiles('Makefile') }}
+          key: ${{ runner.os }}-${{ hashFiles('Makefile') }}-${{ matrix.golang }}
 
       - uses: actions/setup-go@v5
         with:
