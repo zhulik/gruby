@@ -78,8 +78,10 @@ func goMRBFuncCall(state *C.mrb_state, value C.mrb_value) C.mrb_value {
 	}
 
 	// Call the method to get our *Value
-	// TODO(mitchellh): reuse the Mrb instead of allocating every time
-	mrb := &GRuby{state}
+	statesLock.RLock()
+	mrb := states[state]
+	statesLock.RUnlock()
+
 	result, exc := method(mrb, mrb.value(value))
 
 	if result == nil {

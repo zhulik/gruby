@@ -2,6 +2,7 @@ package gruby
 
 import (
 	"strings"
+	"sync"
 	"unsafe"
 )
 
@@ -10,6 +11,11 @@ import (
 // #include <stdlib.h>
 // #include "gruby.h"
 import "C"
+
+var (
+	states     = map[*C.mrb_state]*GRuby{}
+	statesLock = sync.RWMutex{}
+)
 
 // GRuby represents a single instance of gruby.
 type GRuby struct {
@@ -43,10 +49,16 @@ type ArenaIndex int
 // by calling the Close method.
 func NewMrb() *GRuby {
 	state := C.mrb_open()
+	statesLock.Lock()
+	defer statesLock.Unlock()
 
-	return &GRuby{
+	grb := &GRuby{
 		state: state,
 	}
+
+	states[state] = grb
+
+	return grb
 }
 
 // ArenaRestore restores the arena index so the objects between the save and this point
@@ -132,8 +144,13 @@ func (m *GRuby) Module(name string) *Class {
 func (m *GRuby) Close() {
 	// Delete all the methods from the state
 	stateMethodTable.Mutex.Lock()
+	defer stateMethodTable.Mutex.Unlock()
+
+	statesLock.Lock()
+	defer statesLock.Unlock()
+
+	delete(states, m.state)
 	delete(stateMethodTable.Map, m.state)
-	stateMethodTable.Mutex.Unlock()
 
 	// Close the state
 	C.mrb_close(m.state)
