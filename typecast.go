@@ -7,7 +7,7 @@ import "fmt"
 
 // TODO: make sure all supported types covered in functions.
 type SupportedTypes interface {
-	bool | string | int | int16 | int32 | int64 | float32 | float64 | *Array | *Hash
+	bool | string | int | float32 | float64 | *Array | *Hash
 }
 
 func ToGo[T SupportedTypes](value Value) T {
@@ -19,9 +19,11 @@ func ToGo[T SupportedTypes](value Value) T {
 	case string:
 		str := C.mrb_obj_as_string(value.GRuby().state, value.CValue())
 		result = C.GoString(C._go_RSTRING_PTR(str))
-	case int, int16, int32, int64:
+	case int:
 		result = int(C._go_mrb_fixnum(value.CValue()))
-	case float64, float32:
+	case float32:
+		result = float32(C._go_mrb_float(value.CValue()))
+	case float64:
 		result = float64(C._go_mrb_float(value.CValue()))
 	case *Array:
 		result = &Array{value}
@@ -45,10 +47,12 @@ func ToRuby[T SupportedTypes](grb *GRuby, value T) Value {
 		cstr := C.CString(tVal)
 		defer freeStr(cstr)
 		return grb.value(C.mrb_str_new_cstr(grb.state, cstr))
-	case int, int16, int32, int64:
-		return grb.value(C.mrb_fixnum_value(C.mrb_int(tVal.(int)))) //nolint:forcetypeassert
-	case float64, float32:
-		return grb.value(C.mrb_float_value(grb.state, C.mrb_float(C.long(tVal.(float32))))) //nolint:forcetypeassert
+	case int:
+		return grb.value(C.mrb_fixnum_value(C.mrb_int(tVal)))
+	case float32:
+		return grb.value(C.mrb_float_value(grb.state, C.mrb_float(C.long(tVal))))
+	case float64:
+		return grb.value(C.mrb_float_value(grb.state, C.mrb_float(C.long(tVal))))
 	// TODO: generic array and hash support
 	case []string:
 		ary := NewArray(grb)
