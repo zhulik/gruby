@@ -261,7 +261,10 @@ func newExceptionValue(grb *GRuby) *ExceptionError {
 	if grbBacktraceValue.Type() == TypeArray {
 		grbBacktrace := ToGo[*Array](grbBacktraceValue)
 		for i := range grbBacktrace.Len() {
-			ln, _ := grbBacktrace.Get(i) //nolint:errcheck
+			ln, err := grbBacktrace.Get(i)
+			if err != nil {
+				panic(err)
+			}
 			backtrace = append(backtrace, ln.String())
 		}
 	}
@@ -273,7 +276,11 @@ func newExceptionValue(grb *GRuby) *ExceptionError {
 		fileAndLine := strings.Split(backtrace[0], ":")
 		if len(fileAndLine) >= 2 { //nolint:mnd
 			file = fileAndLine[0]
-			line, _ = strconv.Atoi(fileAndLine[1]) //nolint:errcheck
+			var err error
+			line, err = strconv.Atoi(fileAndLine[1])
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 

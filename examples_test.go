@@ -60,7 +60,7 @@ func ExampleDecode() {
 	// Result: map[foo:bar]
 }
 
-func ExampleSimulateFiles() { //nolint:govet
+func ExampleCompileContext() {
 	grb := gruby.New()
 	defer grb.Close()
 
