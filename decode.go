@@ -236,7 +236,7 @@ func (d *decoder) decodeMap(name string, v Value, result reflect.Value) error { 
 
 	// We're going to be allocating some garbage, so set the arena
 	// so it is cleared properly.
-	mrb := v.Mrb()
+	mrb := v.GRuby()
 	defer mrb.ArenaRestore(mrb.ArenaSave())
 
 	// Get the hash of the value
@@ -360,7 +360,7 @@ func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error
 
 	// We're going to be allocating some garbage, so set the arena
 	// so it is cleared properly.
-	mrb := v.Mrb()
+	mrb := v.GRuby()
 	defer mrb.ArenaRestore(mrb.ArenaSave())
 
 	// Depending on the type, we need to generate a getter

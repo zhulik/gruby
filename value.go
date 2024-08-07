@@ -19,7 +19,7 @@ var ErrEmptyArgs = errors.New("args must be non-empty and have a proc at the end
 type Value interface { //nolint:interfacebloat
 	String() string
 
-	Mrb() *GRuby
+	GRuby() *GRuby
 	CValue() C.mrb_value
 
 	Type() ValueType
@@ -53,7 +53,7 @@ func (v *MrbValue) SetInstanceVariable(variable string, value Value) {
 func (v *MrbValue) GetInstanceVariable(variable string) Value {
 	cstr := C.CString(variable)
 	defer C.free(unsafe.Pointer(cstr))
-	return v.Mrb().value(C._go_mrb_iv_get(v.grb.state, v.value, C.mrb_intern_cstr(v.grb.state, cstr)))
+	return v.GRuby().value(C._go_mrb_iv_get(v.grb.state, v.value, C.mrb_intern_cstr(v.grb.state, cstr)))
 }
 
 // Call calls a method with the given name and arguments on this
@@ -111,7 +111,7 @@ func (v *MrbValue) call(method string, args []Value, block Value) (Value, error)
 		return nil, exc
 	}
 
-	return v.Mrb().value(result), nil
+	return v.GRuby().value(result), nil
 }
 
 // IsDead tells you if an object has been collected by the GC or not.
@@ -119,8 +119,8 @@ func (v *MrbValue) IsDead() bool {
 	return C.ushort(C._go_isdead(v.grb.state, v.value)) != 0
 }
 
-// Mrb returns the Mrb state for this value.
-func (v *MrbValue) Mrb() *GRuby {
+// GRuby returns the GRuby state for this value.
+func (v *MrbValue) GRuby() *GRuby {
 	return v.grb
 }
 
@@ -176,7 +176,7 @@ func ToGo[T any](value Value) T {
 
 	switch any(empty).(type) {
 	case string:
-		str := C.mrb_obj_as_string(value.Mrb().state, value.CValue())
+		str := C.mrb_obj_as_string(value.GRuby().state, value.CValue())
 		result = C.GoString(C._go_RSTRING_PTR(str))
 	case int, int16, int32, int64:
 		result = int(C._go_mrb_fixnum(value.CValue()))

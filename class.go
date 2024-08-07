@@ -20,13 +20,13 @@ func (c *Class) String() string {
 
 // DefineClassMethod defines a class-level method on the given class.
 func (c *Class) DefineClassMethod(name string, cb Func, spec ArgSpec) {
-	c.Mrb().insertMethod(c.class.c, name, cb)
+	c.GRuby().insertMethod(c.class.c, name, cb)
 
 	cstr := C.CString(name)
 	defer C.free(unsafe.Pointer(cstr))
 
 	C.mrb_define_class_method(
-		c.Mrb().state,
+		c.GRuby().state,
 		c.class,
 		cstr,
 		C._go_mrb_func_t(),
@@ -38,12 +38,12 @@ func (c *Class) DefineConst(name string, value Value) {
 	cstr := C.CString(name)
 	defer C.free(unsafe.Pointer(cstr))
 
-	C.mrb_define_const(c.Mrb().state, c.class, cstr, value.CValue())
+	C.mrb_define_const(c.GRuby().state, c.class, cstr, value.CValue())
 }
 
 // DefineMethod defines an instance method on the class.
 func (c *Class) DefineMethod(name string, cb Func, spec ArgSpec) {
-	mrb := c.Mrb()
+	mrb := c.GRuby()
 	mrb.insertMethod(c.class, name, cb)
 
 	cstr := C.CString(name)
@@ -71,12 +71,12 @@ func (c *Class) New(args ...Value) (Value, error) {
 		argvPtr = &argv[0]
 	}
 
-	result := C.mrb_obj_new(c.Mrb().state, c.class, C.mrb_int(len(argv)), argvPtr)
-	if exc := checkException(c.Mrb()); exc != nil {
+	result := C.mrb_obj_new(c.GRuby().state, c.class, C.mrb_int(len(argv)), argvPtr)
+	if exc := checkException(c.GRuby()); exc != nil {
 		return nil, exc
 	}
 
-	return c.Mrb().value(result), nil
+	return c.GRuby().value(result), nil
 }
 
 func newClass(grb *GRuby, c *C.struct_RClass) *Class {

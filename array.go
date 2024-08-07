@@ -16,7 +16,7 @@ func NewArray(grb *GRuby) *Array {
 
 // Push adds an item to the arrayss
 func (v *Array) Push(item Value) {
-	C.mrb_ary_push(v.Mrb().state, v.CValue(), item.CValue())
+	C.mrb_ary_push(v.GRuby().state, v.CValue(), item.CValue())
 }
 
 // Len returns the length of the array.
@@ -31,7 +31,7 @@ func (v *Array) Len() int {
 func (v *Array) Get(idx int) (Value, error) {
 	result := C.mrb_ary_entry(v.CValue(), C.mrb_int(idx))
 
-	val := v.Mrb().value(result)
+	val := v.GRuby().value(result)
 	if val.Type() == TypeNil {
 		val = nil
 	}
