@@ -4,6 +4,9 @@ This is a fork of amazing [gruby](https://github.com/mitchellh/gruby).
 I'm not sure if I want and I can maintain it for a long time, but I updated it 
 to support mruby 3.3 and go 1.22.
 
+*The project in being heavily refactored and partially rewritten.*
+*Backwards compatibility with go-mruby is broken.*
+
 gruby provides [mruby](https://github.com/mruby/mruby) bindings for
 [Go](http://golang.org). This allows Go applications to run a lightweight
 embedded Ruby VM. Using the mruby library, Go applications can call Ruby
