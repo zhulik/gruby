@@ -88,27 +88,28 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/zhulik/gruby"
 )
 
 func main() {
-	mrb := gruby.NewMrb()
-	defer mrb.Close()
+	grb := gruby.New()
+	defer grb.Close()
 
 	// Our custom function we'll expose to Ruby. The first return
 	// value is what to return from the func and the second is an
 	// exception to raise (if any).
-	addFunc := func(m *mruby.Mrb, self *mruby.MrbValue) (mruby.Value, gruby.Value) {
-		args := m.GetArgs()
-		return gruby.Int(ToGo[int](args[0]) + ToGo[int](args[1])), nil
+	addFunc := func(grb *gruby.GRuby, self gruby.Value) (gruby.Value, gruby.Value) {
+		args := grb.GetArgs()
+		return gruby.ToRuby(grb, gruby.ToGo[int](args[0])+gruby.ToGo[int](args[1])), nil
 	}
 
 	// Lets define a custom class and a class method we can call.
-	class := mrb.DefineClass("Example", nil)
+	class := grb.DefineClass("Example", nil)
 	class.DefineClassMethod("add", addFunc, gruby.ArgsReq(2))
 
 	// Let's call it and inspect the result
-	result, err := mrb.LoadString(`Example.add(12, 30)`)
+	result, err := grb.LoadString(`Example.add(12, 30)`)
 	if err != nil {
 		panic(err.Error())
 	}
