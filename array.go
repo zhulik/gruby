@@ -3,9 +3,9 @@ package gruby
 // #include "gruby.h"
 import "C"
 
-// Array represents an MrbValue that is a Array in Ruby.
+// Array represents an GValue that is a Array in Ruby.
 //
-// A Array can be obtained by calling the Array function on MrbValue.
+// A Array can be obtained by calling the Array function on GValue.
 type Array struct {
 	Value
 }

@@ -150,7 +150,7 @@ func (g *GRuby) Module(name string) *Class {
 	return newClass(g, class)
 }
 
-// Close a Mrb, this must be called to properly free resources, and
+// Close a Gruby, this must be called to properly free resources, and
 // should only be called once.
 func (g *GRuby) Close() {
 	states.Delete(g.state)
@@ -234,7 +234,7 @@ func (g *GRuby) LoadStringWithContext(code string, ctx *CompileContext) (Value, 
 	* leak one RProc object per function call.
 	* To prevent this save the current memory arena before calling and restore the arena
 	* right after, like so
-	* int ai = mrb_gc_arena_save(mrb);
+	* int ai = mrb_gc_arena_save(grb);
 	* mrb_value status = mrb_load_string(mrb, buffer);
 	* mrb_gc_arena_restore(mrb, ai);
 	 */
@@ -258,10 +258,10 @@ func (g *GRuby) Run(v Value, self Value) (Value, error) {
 	}
 
 	mrbV := v.CValue()
-	mrbSelf := self.CValue()
+	val := self.CValue()
 
 	proc := C._go_mrb_proc_ptr(mrbV)
-	value := C.mrb_vm_run(g.state, proc, mrbSelf, 0)
+	value := C.mrb_vm_run(g.state, proc, val, 0)
 
 	if exc := checkException(g); exc != nil {
 		return nil, exc
@@ -282,12 +282,12 @@ func (g *GRuby) RunWithContext(v Value, self Value, stackKeep int) (int, Value, 
 	}
 
 	mrbV := v.CValue()
-	mrbSelf := self.CValue()
+	val := self.CValue()
 	proc := C._go_mrb_proc_ptr(mrbV)
 
 	keep := C.int(stackKeep)
 
-	value := C._go_mrb_vm_run(g.state, proc, mrbSelf, &keep)
+	value := C._go_mrb_vm_run(g.state, proc, val, &keep)
 
 	if exc := checkException(g); exc != nil {
 		return stackKeep, nil, exc
@@ -463,7 +463,7 @@ func (g *GRuby) LoadFile(path string, content string) (bool, *CompileContext, er
 }
 
 func (g *GRuby) value(v C.mrb_value) Value {
-	return &MrbValue{
+	return &GValue{
 		grb:   g,
 		value: v,
 	}

@@ -215,7 +215,7 @@ func TestValueType(t *testing.T) {
 	}
 }
 
-func TestIntMrbValue(t *testing.T) {
+func TestIntGValue(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
@@ -226,7 +226,7 @@ func TestIntMrbValue(t *testing.T) {
 	g.Expect(gruby.ToGo[int](value)).To(Equal(42))
 }
 
-func TestStringMrbValue(t *testing.T) {
+func TestStringGValue(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 

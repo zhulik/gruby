@@ -34,23 +34,23 @@ type Value interface { //nolint:interfacebloat
 	CallBlock(method string, args ...Value) (Value, error)
 }
 
-// MrbValue is a "value" internally in gruby. A "value" is what mruby calls
+// GValue is a "value" internally in gruby. A "value" is what mruby calls
 // basically anything in Ruby: a class, an object (instance), a variable,
 // etc.
-type MrbValue struct {
+type GValue struct {
 	value C.mrb_value
 	grb   *GRuby
 }
 
 // SetInstanceVariable sets an instance variable on this value.
-func (v *MrbValue) SetInstanceVariable(variable string, value Value) {
+func (v *GValue) SetInstanceVariable(variable string, value Value) {
 	cstr := C.CString(variable)
 	defer C.free(unsafe.Pointer(cstr))
 	C._go_mrb_iv_set(v.grb.state, v.value, C.mrb_intern_cstr(v.grb.state, cstr), value.CValue())
 }
 
 // GetInstanceVariable gets an instance variable on this value.
-func (v *MrbValue) GetInstanceVariable(variable string) Value {
+func (v *GValue) GetInstanceVariable(variable string) Value {
 	cstr := C.CString(variable)
 	defer C.free(unsafe.Pointer(cstr))
 	return v.GRuby().value(C._go_mrb_iv_get(v.grb.state, v.value, C.mrb_intern_cstr(v.grb.state, cstr)))
@@ -58,14 +58,14 @@ func (v *MrbValue) GetInstanceVariable(variable string) Value {
 
 // Call calls a method with the given name and arguments on this
 // value.
-func (v *MrbValue) Call(method string, args ...Value) (Value, error) {
+func (v *GValue) Call(method string, args ...Value) (Value, error) {
 	return v.call(method, args, nil)
 }
 
 // CallBlock is the same as call except that it expects the last
 // argument to be a Proc that will be passed into the function call.
 // It is an error if args is empty or if there is no block on the end.
-func (v *MrbValue) CallBlock(method string, args ...Value) (Value, error) {
+func (v *GValue) CallBlock(method string, args ...Value) (Value, error) {
 	if len(args) == 0 {
 		return nil, ErrEmptyArgs
 	}
@@ -74,7 +74,7 @@ func (v *MrbValue) CallBlock(method string, args ...Value) (Value, error) {
 	return v.call(method, args[:n-1], args[n-1])
 }
 
-func (v *MrbValue) call(method string, args []Value, block Value) (Value, error) {
+func (v *GValue) call(method string, args []Value, block Value) (Value, error) {
 	var argv []C.mrb_value
 	var argvPtr *C.mrb_value
 
@@ -115,30 +115,30 @@ func (v *MrbValue) call(method string, args []Value, block Value) (Value, error)
 }
 
 // IsDead tells you if an object has been collected by the GC or not.
-func (v *MrbValue) IsDead() bool {
+func (v *GValue) IsDead() bool {
 	return C.ushort(C._go_isdead(v.grb.state, v.value)) != 0
 }
 
 // GRuby returns the GRuby state for this value.
-func (v *MrbValue) GRuby() *GRuby {
+func (v *GValue) GRuby() *GRuby {
 	return v.grb
 }
 
 // GCProtect protects this value from being garbage collected.
-func (v *MrbValue) GCProtect() {
+func (v *GValue) GCProtect() {
 	C.mrb_gc_protect(v.grb.state, v.value)
 }
 
 // SetProcTargetClass sets the target class where a proc will be executed
 // when this value is a proc.
-func (v *MrbValue) SetProcTargetClass(c *Class) {
+func (v *GValue) SetProcTargetClass(c *Class) {
 	proc := C._go_mrb_proc_ptr(v.value)
 
 	*(**C.struct_RClass)(unsafe.Pointer(&proc.e[0])) = c.class
 }
 
-// Type returns the ValueType of the MrbValue. See the constants table.
-func (v *MrbValue) Type() ValueType {
+// Type returns the ValueType of the GValue. See the constants table.
+func (v *GValue) Type() ValueType {
 	if C._go_mrb_bool2int(C._go_mrb_nil_p(v.value)) == 1 {
 		return TypeNil
 	}
@@ -147,7 +147,7 @@ func (v *MrbValue) Type() ValueType {
 }
 
 // CValue returns underlying mrb_value.
-func (v *MrbValue) CValue() C.mrb_value {
+func (v *GValue) CValue() C.mrb_value {
 	return v.value
 }
 
@@ -224,18 +224,18 @@ func ToRuby[T any](grb *GRuby, value T) Value {
 }
 
 // String returns the "to_s" result of this value.
-func (v *MrbValue) String() string {
+func (v *GValue) String() string {
 	return ToGo[string](v)
 }
 
 // Class returns the *Class of a value.
-func (v *MrbValue) Class() *Class {
+func (v *GValue) Class() *Class {
 	return newClass(v.grb, C.mrb_class(v.grb.state, v.value))
 }
 
 // SingletonClass returns the singleton class (a class isolated just for the
 // scope of the object) for the given value.
-func (v *MrbValue) SingletonClass() *Class {
+func (v *GValue) SingletonClass() *Class {
 	sclass := C._go_mrb_class_ptr(C.mrb_singleton_class(v.grb.state, v.value))
 	return newClass(v.grb, sclass)
 }

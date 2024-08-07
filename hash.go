@@ -3,9 +3,9 @@ package gruby
 // #include "gruby.h"
 import "C"
 
-// Hash represents an MrbValue that is a Hash in Ruby.
+// Hash represents an GValue that is a Hash in Ruby.
 //
-// A Hash can be obtained by calling the Hash function on MrbValue.
+// A Hash can be obtained by calling the Hash function on GValue.
 type Hash struct {
 	Value
 }
