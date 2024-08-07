@@ -618,7 +618,6 @@ func TestStackedException(t *testing.T) {
 
 	grb.TopSelf().SingletonClass().DefineMethod("myeval", evalFunc, gruby.ArgsBlock())
 
-	// TODO: fix me and enable back
 	result, err := grb.LoadString("myeval { raise 'foo' }")
 	g.Expect(err).To(HaveOccurred())
 	g.Expect(result).To(BeNil())

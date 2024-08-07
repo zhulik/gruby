@@ -78,7 +78,7 @@ func (v *GValue) call(method string, args []Value, block Value) (Value, error) {
 	var argvPtr *C.mrb_value
 
 	if len(args) > 0 {
-		// Make the raw byte slice to hold our arguments we'll pass to C
+		// Make the raw byte slice to hold our arguments we'll pass to C*C.mrb
 		argv = make([]C.mrb_value, len(args))
 		for i, arg := range args {
 			argv[i] = arg.CValue()

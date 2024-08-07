@@ -15,7 +15,7 @@ type GRuby struct {
 	state *C.mrb_state
 
 	loadedFiles       map[string]bool
-	getArgAccumulator []C.mrb_value
+	getArgAccumulator []Value
 
 	methods methodsStore
 
@@ -28,7 +28,7 @@ type GRuby struct {
 func goGetArgAppend(state *C.mrb_state, v C.mrb_value) {
 	grb := states.Get(state)
 
-	grb.getArgAccumulator = append(grb.getArgAccumulator, v)
+	grb.getArgAccumulator = append(grb.getArgAccumulator, grb.value(v))
 }
 
 // GetGlobalVariable returns the value of the global variable by the given name.
@@ -64,7 +64,7 @@ func New() *GRuby {
 			grb:     nil,
 			classes: classMethodMap{},
 		},
-		getArgAccumulator: make([]C.mrb_value, 0, C._go_get_max_funcall_args()),
+		getArgAccumulator: make([]Value, 0, C._go_get_max_funcall_args()),
 		trueV:             nil,
 		falseV:            nil,
 		nilV:              nil,
@@ -190,7 +190,7 @@ func (g *GRuby) FullGC() {
 // called function (currently on the stack).
 func (g *GRuby) GetArgs() []Value {
 	// Clear reset the accumulator to zero length
-	g.getArgAccumulator = make([]C.mrb_value, 0, C._go_get_max_funcall_args())
+	g.getArgAccumulator = make([]Value, 0, C._go_get_max_funcall_args())
 
 	// Get all the arguments and put it into our accumulator
 	count := C._go_mrb_get_args_all(g.state)
@@ -199,7 +199,7 @@ func (g *GRuby) GetArgs() []Value {
 	values := make([]Value, count)
 
 	for i := range int(count) {
-		values[i] = g.value(g.getArgAccumulator[i])
+		values[i] = g.getArgAccumulator[i]
 	}
 
 	return values
@@ -413,7 +413,7 @@ func (g *GRuby) TopSelf() Value {
 
 // FalseValue returns a Value for "false"
 func (g *GRuby) FalseValue() Value {
-	return g.falseV // TODO: const?
+	return g.falseV
 }
 
 // NilValue returns "nil"

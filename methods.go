@@ -9,9 +9,8 @@ type (
 )
 
 type methodsStore struct {
-	grb               *GRuby
-	classes           classMethodMap
-	getArgAccumulator []C.mrb_value
+	grb     *GRuby
+	classes classMethodMap
 }
 
 func (s *methodsStore) add(class *C.struct_RClass, name string, callback Func) {
