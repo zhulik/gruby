@@ -8,6 +8,7 @@
 #ifndef _GOMRUBY_H_INCLUDED
 #define _GOMRUBY_H_INCLUDED
 
+#include <stdlib.h>
 #include <errno.h>
 #include <mruby.h>
 #include <mruby/array.h>

@@ -2,7 +2,6 @@ package gruby
 
 // #cgo CFLAGS: -Imruby-build/mruby/include
 // #cgo LDFLAGS: ${SRCDIR}/libmruby.a -lm
-// #include <stdlib.h>
 // #include "gruby.h"
 import "C"
 
@@ -35,14 +34,14 @@ func goGetArgAppend(state *C.mrb_state, v C.mrb_value) {
 // GetGlobalVariable returns the value of the global variable by the given name.
 func (g *GRuby) GetGlobalVariable(name string) Value {
 	cstr := C.CString(name)
-	defer C.free(unsafe.Pointer(cstr))
+	defer freeStr(cstr)
 	return g.value(C._go_mrb_gv_get(g.state, C.mrb_intern_cstr(g.state, cstr)))
 }
 
 // SetGlobalVariable sets the value of the global variable by the given name.
 func (g *GRuby) SetGlobalVariable(name string, value Value) {
 	cstr := C.CString(name)
-	defer C.free(unsafe.Pointer(cstr))
+	defer freeStr(cstr)
 
 	C._go_mrb_gv_set(g.state, C.mrb_intern_cstr(g.state, cstr), value.CValue())
 }
@@ -126,7 +125,7 @@ func (g *GRuby) LiveObjectCount() int {
 // super can be nil, in which case the Object class will be used.
 func (g *GRuby) Class(name string, super *Class) *Class {
 	cstr := C.CString(name)
-	defer C.free(unsafe.Pointer(cstr))
+	defer freeStr(cstr)
 
 	var class *C.struct_RClass
 	if super == nil {
@@ -143,7 +142,7 @@ func (g *GRuby) Class(name string, super *Class) *Class {
 // application.
 func (g *GRuby) Module(name string) *Class {
 	cstr := C.CString(name)
-	defer C.free(unsafe.Pointer(cstr))
+	defer freeStr(cstr)
 
 	class := C.mrb_module_get(g.state, cstr)
 
@@ -164,7 +163,7 @@ func (g *GRuby) Close() {
 // the Value of a Class by calling Value().
 func (g *GRuby) ConstDefined(name string, scope Value) bool {
 	cstr := C.CString(name)
-	defer C.free(unsafe.Pointer(cstr))
+	defer freeStr(cstr)
 
 	scopeV := scope.CValue()
 	b := C.mrb_const_defined(
@@ -212,7 +211,7 @@ func (g *GRuby) IncrementalGC() {
 // value that it might return.
 func (g *GRuby) LoadString(code string) (Value, error) {
 	cstr := C.CString(code)
-	defer C.free(unsafe.Pointer(cstr))
+	defer freeStr(cstr)
 
 	value := C._go_mrb_load_string(g.state, cstr)
 	if exc := checkException(g); exc != nil {
@@ -226,7 +225,7 @@ func (g *GRuby) LoadString(code string) (Value, error) {
 // value that it might return.
 func (g *GRuby) LoadStringWithContext(code string, ctx *CompileContext) (Value, error) {
 	cstr := C.CString(code)
-	defer C.free(unsafe.Pointer(cstr))
+	defer freeStr(cstr)
 
 	// TODO:
 	/** program load functions
@@ -341,7 +340,7 @@ func (g *GRuby) DefineClass(name string, super *Class) *Class {
 	}
 
 	cstr := C.CString(name)
-	defer C.free(unsafe.Pointer(cstr))
+	defer freeStr(cstr)
 
 	return newClass(g, C.mrb_define_class(g.state, cstr, super.class))
 }
@@ -359,7 +358,7 @@ func (g *GRuby) DefineClassUnder(name string, super *Class, outer *Class) *Class
 	}
 
 	cstr := C.CString(name)
-	defer C.free(unsafe.Pointer(cstr))
+	defer freeStr(cstr)
 
 	return newClass(g, C.mrb_define_class_under(
 		g.state, outer.class, cstr, super.class))
@@ -368,7 +367,7 @@ func (g *GRuby) DefineClassUnder(name string, super *Class, outer *Class) *Class
 // DefineModule defines a top-level module.
 func (g *GRuby) DefineModule(name string) *Class {
 	cstr := C.CString(name)
-	defer C.free(unsafe.Pointer(cstr))
+	defer freeStr(cstr)
 	return newClass(g, C.mrb_define_module(g.state, cstr))
 }
 
@@ -379,7 +378,7 @@ func (g *GRuby) DefineModuleUnder(name string, outer *Class) *Class {
 	}
 
 	cstr := C.CString(name)
-	defer C.free(unsafe.Pointer(cstr))
+	defer freeStr(cstr)
 
 	return newClass(g,
 		C.mrb_define_module_under(g.state, outer.class, cstr))
@@ -477,7 +476,7 @@ func (g *GRuby) insertMethod(class *C.struct_RClass, name string, callback Func)
 	}
 
 	cstr := C.CString(name)
-	defer C.free(unsafe.Pointer(cstr))
+	defer freeStr(cstr)
 
 	sym := C.mrb_intern_cstr(g.state, cstr)
 	methodLookup[sym] = callback

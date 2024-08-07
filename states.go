@@ -2,7 +2,6 @@ package gruby
 
 import "sync"
 
-// #include <stdlib.h>
 // #include "gruby.h"
 import "C"
 

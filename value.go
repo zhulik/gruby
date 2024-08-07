@@ -1,6 +1,5 @@
 package gruby
 
-// #include <stdlib.h>
 // #include "gruby.h"
 import "C"
 
@@ -45,14 +44,14 @@ type GValue struct {
 // SetInstanceVariable sets an instance variable on this value.
 func (v *GValue) SetInstanceVariable(variable string, value Value) {
 	cstr := C.CString(variable)
-	defer C.free(unsafe.Pointer(cstr))
+	defer freeStr(cstr)
 	C._go_mrb_iv_set(v.grb.state, v.value, C.mrb_intern_cstr(v.grb.state, cstr), value.CValue())
 }
 
 // GetInstanceVariable gets an instance variable on this value.
 func (v *GValue) GetInstanceVariable(variable string) Value {
 	cstr := C.CString(variable)
-	defer C.free(unsafe.Pointer(cstr))
+	defer freeStr(cstr)
 	return v.GRuby().value(C._go_mrb_iv_get(v.grb.state, v.value, C.mrb_intern_cstr(v.grb.state, cstr)))
 }
 
@@ -95,7 +94,7 @@ func (v *GValue) call(method string, args []Value, block Value) (Value, error) {
 	}
 
 	cstr := C.CString(method)
-	defer C.free(unsafe.Pointer(cstr))
+	defer freeStr(cstr)
 
 	// If we have a block, we have to call a separate function to
 	// pass a block in. Otherwise, we just call it directly.
@@ -204,7 +203,7 @@ func ToRuby[T any](grb *GRuby, value T) Value {
 		return grb.FalseValue()
 	case string:
 		cstr := C.CString(val.(string)) //nolint:forcetypeassert
-		defer C.free(unsafe.Pointer(cstr))
+		defer freeStr(cstr)
 		return grb.value(C.mrb_str_new_cstr(grb.state, cstr))
 	case int, int16, int32, int64:
 		return grb.value(C.mrb_fixnum_value(C.mrb_int(val.(int)))) //nolint:forcetypeassert

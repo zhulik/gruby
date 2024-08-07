@@ -1,6 +1,5 @@
 package gruby
 
-// #include <stdlib.h>
 // #include "gruby.h"
 import "C"
 

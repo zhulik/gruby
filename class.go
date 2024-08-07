@@ -2,7 +2,6 @@ package gruby
 
 import "unsafe"
 
-// #include <stdlib.h>
 // #include "gruby.h"
 import "C"
 
@@ -23,7 +22,7 @@ func (c *Class) DefineClassMethod(name string, cb Func, spec ArgSpec) {
 	c.GRuby().insertMethod(c.class.c, name, cb)
 
 	cstr := C.CString(name)
-	defer C.free(unsafe.Pointer(cstr))
+	defer freeStr(cstr)
 
 	C.mrb_define_class_method(
 		c.GRuby().state,
@@ -36,7 +35,7 @@ func (c *Class) DefineClassMethod(name string, cb Func, spec ArgSpec) {
 // DefineConst defines a constant within this class.
 func (c *Class) DefineConst(name string, value Value) {
 	cstr := C.CString(name)
-	defer C.free(unsafe.Pointer(cstr))
+	defer freeStr(cstr)
 
 	C.mrb_define_const(c.GRuby().state, c.class, cstr, value.CValue())
 }
@@ -47,7 +46,7 @@ func (c *Class) DefineMethod(name string, cb Func, spec ArgSpec) {
 	grb.insertMethod(c.class, name, cb)
 
 	cstr := C.CString(name)
-	defer C.free(unsafe.Pointer(cstr))
+	defer freeStr(cstr)
 
 	C.mrb_define_method(
 		grb.state,
