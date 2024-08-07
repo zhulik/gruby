@@ -57,16 +57,14 @@ type ArenaIndex int
 // When you're finished with the VM, clean up all resources it is using
 // by calling the Close method.
 func New() *GRuby {
-	state := C.mrb_open()
-
 	grb := &GRuby{
-		state:             state,
+		state:             C.mrb_open(),
 		loadedFiles:       map[string]bool{},
 		classes:           classMethodMap{},
 		getArgAccumulator: make([]C.mrb_value, 0, C._go_get_max_funcall_args()),
 	}
 
-	states.Add(state, grb)
+	states.Add(grb)
 
 	return grb
 }
@@ -152,7 +150,7 @@ func (g *GRuby) Module(name string) *Class {
 // Close a Gruby, this must be called to properly free resources, and
 // should only be called once.
 func (g *GRuby) Close() {
-	states.Delete(g.state)
+	states.Delete(g)
 	C.mrb_close(g.state)
 }
 

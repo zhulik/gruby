@@ -15,17 +15,17 @@ type stateStore struct {
 	lock   sync.RWMutex
 }
 
-func (s *stateStore) Add(state *C.mrb_state, grb *GRuby) {
+func (s *stateStore) Add(grb *GRuby) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	s.states[state] = grb
+	s.states[grb.state] = grb
 }
 
-func (s *stateStore) Delete(state *C.mrb_state) {
+func (s *stateStore) Delete(grb *GRuby) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	delete(s.states, state)
+	delete(s.states, grb.state)
 }
 
 func (s *stateStore) Get(state *C.mrb_state) *GRuby {
