@@ -10,6 +10,10 @@ type Array struct {
 	Value
 }
 
+func NewArray(grb *GRuby) *Array {
+	return &Array{grb.value(C.mrb_ary_new(grb.state))}
+}
+
 // Push adds an item to the arrayss
 func (v *Array) Push(item Value) {
 	C.mrb_ary_push(v.Mrb().state, v.CValue(), item.CValue())
