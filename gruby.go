@@ -66,6 +66,9 @@ func New() *GRuby {
 		loadedFiles:       map[string]bool{},
 		classes:           classMethodMap{},
 		getArgAccumulator: make([]C.mrb_value, 0, C._go_get_max_funcall_args()),
+		trueV:             nil,
+		falseV:            nil,
+		nilV:              nil,
 	}
 	grb.trueV = grb.value(C.mrb_true_value())
 	grb.falseV = grb.value(C.mrb_false_value())
@@ -456,7 +459,7 @@ func (g *GRuby) LoadFile(path string, content string) (bool, *CompileContext, er
 	ctx := NewCompileContext(g)
 	ctx.SetFilename(path)
 
-	_, err := g.LoadStringWithContext(string(content), ctx)
+	_, err := g.LoadStringWithContext(content, ctx)
 	if err != nil {
 		return false, ctx, err
 	}

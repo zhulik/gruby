@@ -195,25 +195,25 @@ func ToGo[T any](value Value) T {
 func ToRuby[T any](grb *GRuby, value T) Value {
 	val := any(value)
 
-	switch v := val.(type) {
+	switch tVal := val.(type) {
 	case bool:
-		if val.(bool) {
+		if tVal {
 			return grb.TrueValue()
 		}
 		return grb.FalseValue()
 	case string:
-		cstr := C.CString(v) //nolint:forcetypeassert
+		cstr := C.CString(tVal)
 		defer freeStr(cstr)
 		return grb.value(C.mrb_str_new_cstr(grb.state, cstr))
 	case int, int16, int32, int64:
-		return grb.value(C.mrb_fixnum_value(C.mrb_int(v.(int)))) //nolint:forcetypeassert
+		return grb.value(C.mrb_fixnum_value(C.mrb_int(tVal.(int)))) //nolint:forcetypeassert
 	case float64, float32:
-		return grb.value(C.mrb_float_value(grb.state, C.mrb_float(C.long(v.(float32))))) //nolint:forcetypeassert
+		return grb.value(C.mrb_float_value(grb.state, C.mrb_float(C.long(tVal.(float32))))) //nolint:forcetypeassert
 	// TODO: generic array and hash support
 	case []string:
 		ary := NewArray(grb)
 
-		for _, item := range v {
+		for _, item := range tVal {
 			ary.Push(ToRuby(grb, item))
 		}
 		return ary
