@@ -258,11 +258,11 @@ func newExceptionValue(grb *GRuby) *ExceptionError {
 
 	// Retrieve and convert backtrace to []string (avoiding reflection in Decode)
 	var backtrace []string
-	mrbBacktraceValue := grb.value(C.mrb_exc_backtrace(state, value))
-	if mrbBacktraceValue.Type() == TypeArray {
-		mrbBacktrace := ToGo[*Array](mrbBacktraceValue)
-		for i := range mrbBacktrace.Len() {
-			ln, _ := mrbBacktrace.Get(i) //nolint:errcheck
+	grbBacktraceValue := grb.value(C.mrb_exc_backtrace(state, value))
+	if grbBacktraceValue.Type() == TypeArray {
+		grbBacktrace := ToGo[*Array](grbBacktraceValue)
+		for i := range grbBacktrace.Len() {
+			ln, _ := grbBacktrace.Get(i) //nolint:errcheck
 			backtrace = append(backtrace, ln.String())
 		}
 	}

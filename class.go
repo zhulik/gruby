@@ -7,7 +7,7 @@ import "unsafe"
 import "C"
 
 // Class is a class in gruby. To obtain a Class, use DefineClass or
-// one of the variants on the Mrb structure.
+// one of the variants on the GRuby structure.
 type Class struct {
 	Value
 	class *C.struct_RClass

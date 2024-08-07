@@ -52,7 +52,7 @@ func (g *GRuby) SetGlobalVariable(name string, value Value) {
 // See ArenaSave for more information.
 type ArenaIndex int
 
-// New creates a new instance of Mrb, representing the state of a single
+// New creates a new instance of GRuby, representing the state of a single
 // Ruby VM.
 //
 // When you're finished with the VM, clean up all resources it is using
@@ -257,11 +257,11 @@ func (g *GRuby) Run(v Value, self Value) (Value, error) {
 		self = g.TopSelf()
 	}
 
-	mrbV := v.CValue()
-	val := self.CValue()
+	val := v.CValue()
+	selfVal := self.CValue()
 
-	proc := C._go_mrb_proc_ptr(mrbV)
-	value := C.mrb_vm_run(g.state, proc, val, 0)
+	proc := C._go_mrb_proc_ptr(val)
+	value := C.mrb_vm_run(g.state, proc, selfVal, 0)
 
 	if exc := checkException(g); exc != nil {
 		return nil, exc
@@ -281,13 +281,13 @@ func (g *GRuby) RunWithContext(v Value, self Value, stackKeep int) (int, Value, 
 		self = g.TopSelf()
 	}
 
-	mrbV := v.CValue()
-	val := self.CValue()
-	proc := C._go_mrb_proc_ptr(mrbV)
+	val := v.CValue()
+	selfVal := self.CValue()
+	proc := C._go_mrb_proc_ptr(val)
 
 	keep := C.int(stackKeep)
 
-	value := C._go_mrb_vm_run(g.state, proc, val, &keep)
+	value := C._go_mrb_vm_run(g.state, proc, selfVal, &keep)
 
 	if exc := checkException(g); exc != nil {
 		return stackKeep, nil, exc
@@ -300,7 +300,7 @@ func (g *GRuby) RunWithContext(v Value, self Value, stackKeep int) (int, Value, 
 //
 // This should be called within the context of a Func.
 func (g *GRuby) Yield(block Value, args ...Value) (Value, error) {
-	mrbBlock := block.CValue()
+	blk := block.CValue()
 
 	var argv []C.mrb_value
 	var argvPtr *C.mrb_value
@@ -317,7 +317,7 @@ func (g *GRuby) Yield(block Value, args ...Value) (Value, error) {
 
 	result := C._go_mrb_yield_argv(
 		g.state,
-		mrbBlock,
+		blk,
 		C.mrb_int(len(argv)),
 		argvPtr)
 
@@ -406,17 +406,17 @@ func (g *GRuby) TopSelf() Value {
 
 // FalseValue returns a Value for "false"
 func (g *GRuby) FalseValue() Value {
-	return g.value(C.mrb_false_value())
+	return g.value(C.mrb_false_value()) // TODO: const?
 }
 
 // NilValue returns "nil"
 func (g *GRuby) NilValue() Value {
-	return g.value(C.mrb_nil_value())
+	return g.value(C.mrb_nil_value()) // TODO: const?
 }
 
 // TrueValue returns a Value for "true"
 func (g *GRuby) TrueValue() Value {
-	return g.value(C.mrb_true_value())
+	return g.value(C.mrb_true_value()) // TODO: const?
 }
 
 // When called from a methods defined in Go, returns current ruby backtrace.
