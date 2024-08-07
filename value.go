@@ -52,7 +52,7 @@ func (v *GValue) SetInstanceVariable(variable string, value Value) {
 func (v *GValue) GetInstanceVariable(variable string) Value {
 	cstr := C.CString(variable)
 	defer freeStr(cstr)
-	return v.GRuby().value(C._go_mrb_iv_get(v.grb.state, v.value, C.mrb_intern_cstr(v.grb.state, cstr)))
+	return v.grb.value(C._go_mrb_iv_get(v.grb.state, v.value, C.mrb_intern_cstr(v.grb.state, cstr)))
 }
 
 // Call calls a method with the given name and arguments on this
@@ -110,7 +110,7 @@ func (v *GValue) call(method string, args []Value, block Value) (Value, error) {
 		return nil, exc
 	}
 
-	return v.GRuby().value(result), nil
+	return v.grb.value(result), nil
 }
 
 // IsDead tells you if an object has been collected by the GC or not.
