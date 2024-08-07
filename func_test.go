@@ -11,8 +11,8 @@ import (
 	"github.com/zhulik/gruby"
 )
 
-func testCallback(mrb *gruby.GRuby, self gruby.Value) (gruby.Value, gruby.Value) {
-	return gruby.ToRuby(mrb, 42), nil
+func testCallback(grb *gruby.GRuby, self gruby.Value) (gruby.Value, gruby.Value) {
+	return gruby.ToRuby(grb, 42), nil
 }
 
 func testCallbackResult(g G, value gruby.Value) {
@@ -20,8 +20,8 @@ func testCallbackResult(g G, value gruby.Value) {
 	g.Expect(gruby.ToGo[int](value)).To(gomega.Equal(42))
 }
 
-func testCallbackException(m *gruby.GRuby, self gruby.Value) (gruby.Value, gruby.Value) {
-	_, e := m.LoadString(`raise 'Exception'`)
+func testCallbackException(grb *gruby.GRuby, self gruby.Value) (gruby.Value, gruby.Value) {
+	_, e := grb.LoadString(`raise 'Exception'`)
 	var err *gruby.ExceptionError
 	errors.As(e, &err)
 	return nil, err.Value

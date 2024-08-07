@@ -43,14 +43,14 @@ func (c *Class) DefineConst(name string, value Value) {
 
 // DefineMethod defines an instance method on the class.
 func (c *Class) DefineMethod(name string, cb Func, spec ArgSpec) {
-	mrb := c.GRuby()
-	mrb.insertMethod(c.class, name, cb)
+	grb := c.GRuby()
+	grb.insertMethod(c.class, name, cb)
 
 	cstr := C.CString(name)
 	defer C.free(unsafe.Pointer(cstr))
 
 	C.mrb_define_method(
-		mrb.state,
+		grb.state,
 		c.class,
 		cstr,
 		C._go_mrb_func_t(),

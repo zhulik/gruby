@@ -230,16 +230,14 @@ func (v *MrbValue) String() string {
 
 // Class returns the *Class of a value.
 func (v *MrbValue) Class() *Class {
-	mrb := v.grb
-	return newClass(mrb, C.mrb_class(v.grb.state, v.value))
+	return newClass(v.grb, C.mrb_class(v.grb.state, v.value))
 }
 
 // SingletonClass returns the singleton class (a class isolated just for the
 // scope of the object) for the given value.
 func (v *MrbValue) SingletonClass() *Class {
-	mrb := v.grb
 	sclass := C._go_mrb_class_ptr(C.mrb_singleton_class(v.grb.state, v.value))
-	return newClass(mrb, sclass)
+	return newClass(v.grb, sclass)
 }
 
 //-------------------------------------------------------------------

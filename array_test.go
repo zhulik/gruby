@@ -11,10 +11,10 @@ func TestArray(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.New()
-	defer mrb.Close()
+	grb := gruby.New()
+	defer grb.Close()
 
-	value, err := mrb.LoadString(`["foo", "bar", "baz", false]`)
+	value, err := grb.LoadString(`["foo", "bar", "baz", false]`)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	array := gruby.ToGo[*gruby.Array](value)

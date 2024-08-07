@@ -10,15 +10,15 @@ import "C"
 type CompileContext struct {
 	ctx      *C.mrbc_context
 	filename string
-	mrb      *GRuby
+	grb      *GRuby
 }
 
-// NewCompileContext constructs a *CompileContext from a *Mrb.
+// NewCompileContext constructs a *CompileContext from a *GRuby
 func NewCompileContext(grb *GRuby) *CompileContext {
 	return &CompileContext{
 		ctx:      C.mrb_ccontext_new(grb.state),
 		filename: "",
-		mrb:      grb,
+		grb:      grb,
 	}
 }
 
@@ -27,7 +27,7 @@ func NewCompileContext(grb *GRuby) *CompileContext {
 // This is safe to call once the context has been used for parsing/loading
 // any Ruby code.
 func (c *CompileContext) Close() {
-	C.mrbc_context_free(c.mrb.state, c.ctx)
+	C.mrbc_context_free(c.grb.state, c.ctx)
 }
 
 // Filename returns the filename associated with this context.

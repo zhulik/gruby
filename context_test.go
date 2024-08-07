@@ -11,10 +11,10 @@ func TestCompileContextFilename(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.New()
-	defer mrb.Close()
+	grb := gruby.New()
+	defer grb.Close()
 
-	ctx := gruby.NewCompileContext(mrb)
+	ctx := gruby.NewCompileContext(grb)
 	defer ctx.Close()
 
 	g.Expect(ctx.Filename()).To(BeEmpty())

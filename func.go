@@ -16,8 +16,8 @@ import (
 // The second return value is an exception, if any. This will be raised.
 type Func func(grb *GRuby, self Value) (Value, Value)
 
-//export goMRBFuncCall
-func goMRBFuncCall(state *C.mrb_state, value C.mrb_value) C.mrb_value {
+//export goGRBFuncCall
+func goGRBFuncCall(state *C.mrb_state, value C.mrb_value) C.mrb_value {
 	grb := states.Get(state)
 	// Get the call info, which we use to lookup the proc
 	callInfo := state.c.ci

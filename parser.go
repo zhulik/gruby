@@ -13,7 +13,7 @@ import (
 // Parser is a parser for Ruby code.
 type Parser struct {
 	code   string
-	mrb    *GRuby
+	grb    *GRuby
 	parser *C.struct_mrb_parser_state
 }
 
@@ -29,7 +29,7 @@ func NewParser(grb *GRuby) *Parser {
 
 	return &Parser{
 		code:   "",
-		mrb:    grb,
+		grb:    grb,
 		parser: parser,
 	}
 }
@@ -45,8 +45,8 @@ func (p *Parser) Close() {
 // GenerateCode takes all the internal parser state and generates
 // executable Ruby code, returning the callable proc.
 func (p *Parser) GenerateCode() Value {
-	proc := C.mrb_generate_code(p.mrb.state, p.parser)
-	return p.mrb.value(C.mrb_obj_value(unsafe.Pointer(proc)))
+	proc := C.mrb_generate_code(p.grb.state, p.parser)
+	return p.grb.value(C.mrb_obj_value(unsafe.Pointer(proc)))
 }
 
 // Parse parses the code in the given context, and returns any warnings

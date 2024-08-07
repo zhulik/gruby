@@ -11,12 +11,12 @@ func TestClassDefineClassMethod(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.New()
-	defer mrb.Close()
+	grb := gruby.New()
+	defer grb.Close()
 
-	class := mrb.DefineClass("Hello", mrb.ObjectClass())
+	class := grb.DefineClass("Hello", grb.ObjectClass())
 	class.DefineClassMethod("foo", testCallback, gruby.ArgsNone())
-	value, err := mrb.LoadString("Hello.foo")
+	value, err := grb.LoadString("Hello.foo")
 	g.Expect(err).ToNot(HaveOccurred())
 
 	testCallbackResult(g, value)
@@ -26,12 +26,12 @@ func TestClassDefineConst(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.New()
-	defer mrb.Close()
+	grb := gruby.New()
+	defer grb.Close()
 
-	class := mrb.DefineClass("Hello", mrb.ObjectClass())
-	class.DefineConst("FOO", gruby.ToRuby(mrb, "bar"))
-	value, err := mrb.LoadString("Hello::FOO")
+	class := grb.DefineClass("Hello", grb.ObjectClass())
+	class.DefineConst("FOO", gruby.ToRuby(grb, "bar"))
+	value, err := grb.LoadString("Hello::FOO")
 
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(value.String()).To(Equal("bar"))
@@ -41,12 +41,12 @@ func TestClassDefineMethod(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.New()
-	defer mrb.Close()
+	grb := gruby.New()
+	defer grb.Close()
 
-	class := mrb.DefineClass("Hello", mrb.ObjectClass())
+	class := grb.DefineClass("Hello", grb.ObjectClass())
 	class.DefineMethod("foo", testCallback, gruby.ArgsNone())
-	value, err := mrb.LoadString("Hello.new.foo")
+	value, err := grb.LoadString("Hello.new.foo")
 	g.Expect(err).ToNot(HaveOccurred())
 
 	testCallbackResult(g, value)
@@ -56,10 +56,10 @@ func TestClassNew(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.New()
-	defer mrb.Close()
+	grb := gruby.New()
+	defer grb.Close()
 
-	class := mrb.DefineClass("Hello", mrb.ObjectClass())
+	class := grb.DefineClass("Hello", grb.ObjectClass())
 	class.DefineMethod("foo", testCallback, gruby.ArgsNone())
 
 	instance, err := class.New()
@@ -75,18 +75,18 @@ func TestClassNewException(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.New()
+	grb := gruby.New()
 
-	defer mrb.Close()
+	defer grb.Close()
 
-	class := mrb.DefineClass("Hello", mrb.ObjectClass())
+	class := grb.DefineClass("Hello", grb.ObjectClass())
 	class.DefineMethod("initialize", testCallbackException, gruby.ArgsNone())
 
 	_, err := class.New()
 	g.Expect(err).To(HaveOccurred())
 
 	// Verify exception is cleared
-	val, err := mrb.LoadString(`"test"`)
+	val, err := grb.LoadString(`"test"`)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	g.Expect(val.String()).To(Equal("test"))
@@ -96,9 +96,9 @@ func TestClassValue(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.New()
-	defer mrb.Close()
+	grb := gruby.New()
+	defer grb.Close()
 
-	class := mrb.DefineClass("Hello", mrb.ObjectClass())
+	class := grb.DefineClass("Hello", grb.ObjectClass())
 	g.Expect(class.Type()).To(Equal(class.Type()))
 }

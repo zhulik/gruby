@@ -11,38 +11,38 @@ func TestEnableDisableGC(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.New()
-	defer mrb.Close()
+	grb := gruby.New()
+	defer grb.Close()
 
-	mrb.FullGC()
-	mrb.DisableGC()
+	grb.FullGC()
+	grb.DisableGC()
 
-	_, err := mrb.LoadString("b = []; a = []; a = []")
+	_, err := grb.LoadString("b = []; a = []; a = []")
 	g.Expect(err).ToNot(HaveOccurred())
 
-	orig := mrb.LiveObjectCount()
-	mrb.FullGC()
+	orig := grb.LiveObjectCount()
+	grb.FullGC()
 
-	g.Expect(mrb.LiveObjectCount()).To(Equal(orig), "Object count was not what was expected after full GC")
+	g.Expect(grb.LiveObjectCount()).To(Equal(orig), "Object count was not what was expected after full GC")
 
-	mrb.EnableGC()
-	mrb.FullGC()
+	grb.EnableGC()
+	grb.FullGC()
 
-	g.Expect(mrb.LiveObjectCount()).To(Equal(orig-1), "Object count was not what was expected after full GC")
+	g.Expect(grb.LiveObjectCount()).To(Equal(orig-1), "Object count was not what was expected after full GC")
 }
 
 func TestIsDead(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.New()
+	grb := gruby.New()
 
-	val, err := mrb.LoadString("$a = []")
+	val, err := grb.LoadString("$a = []")
 	g.Expect(err).ToNot(HaveOccurred())
 
 	g.Expect(val.IsDead()).To(BeFalse())
 
-	mrb.Close()
+	grb.Close()
 
 	g.Expect(val.IsDead()).To(BeTrue())
 }
