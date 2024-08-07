@@ -79,9 +79,9 @@ func (c *Class) New(args ...Value) (Value, error) {
 	return c.Mrb().value(result), nil
 }
 
-func newClass(mrb *GRuby, c *C.struct_RClass) *Class {
+func newClass(grb *GRuby, c *C.struct_RClass) *Class {
 	return &Class{
-		Value: mrb.value(C.mrb_obj_value(unsafe.Pointer(c))),
+		Value: grb.value(C.mrb_obj_value(unsafe.Pointer(c))),
 		class: c,
 	}
 }

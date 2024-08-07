@@ -20,8 +20,8 @@ type Parser struct {
 // NewParser initializes the resources for a parser.
 //
 // Make sure to Close the parser when you're done with it.
-func NewParser(mrb *GRuby) *Parser {
-	parser := C.mrb_parser_new(mrb.state)
+func NewParser(grb *GRuby) *Parser {
+	parser := C.mrb_parser_new(grb.state)
 
 	// Set capture_errors to true so we don't go just printing things
 	// out to stdout.
@@ -29,7 +29,7 @@ func NewParser(mrb *GRuby) *Parser {
 
 	return &Parser{
 		code:   "",
-		mrb:    mrb,
+		mrb:    grb,
 		parser: parser,
 	}
 }

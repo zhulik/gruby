@@ -14,7 +14,7 @@ import (
 // The first return value is the actual return value for the code.
 //
 // The second return value is an exception, if any. This will be raised.
-type Func func(m *GRuby, self Value) (Value, Value)
+type Func func(grb *GRuby, self Value) (Value, Value)
 
 //export goMRBFuncCall
 func goMRBFuncCall(state *C.mrb_state, value C.mrb_value) C.mrb_value {
