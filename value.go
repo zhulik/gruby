@@ -1,6 +1,5 @@
 package gruby
 
-// #include <stdlib.h>
 // #include "gruby.h"
 import "C"
 
@@ -19,7 +18,7 @@ var ErrEmptyArgs = errors.New("args must be non-empty and have a proc at the end
 type Value interface { //nolint:interfacebloat
 	String() string
 
-	Mrb() *GRuby
+	GRuby() *GRuby
 	CValue() C.mrb_value
 
 	Type() ValueType
@@ -34,38 +33,38 @@ type Value interface { //nolint:interfacebloat
 	CallBlock(method string, args ...Value) (Value, error)
 }
 
-// MrbValue is a "value" internally in gruby. A "value" is what mruby calls
+// GValue is a "value" internally in gruby. A "value" is what mruby calls
 // basically anything in Ruby: a class, an object (instance), a variable,
 // etc.
-type MrbValue struct {
+type GValue struct {
 	value C.mrb_value
-	gruby *GRuby
+	grb   *GRuby
 }
 
 // SetInstanceVariable sets an instance variable on this value.
-func (v *MrbValue) SetInstanceVariable(variable string, value Value) {
+func (v *GValue) SetInstanceVariable(variable string, value Value) {
 	cstr := C.CString(variable)
-	defer C.free(unsafe.Pointer(cstr))
-	C._go_mrb_iv_set(v.gruby.state, v.value, C.mrb_intern_cstr(v.gruby.state, cstr), value.CValue())
+	defer freeStr(cstr)
+	C._go_mrb_iv_set(v.grb.state, v.value, C.mrb_intern_cstr(v.grb.state, cstr), value.CValue())
 }
 
 // GetInstanceVariable gets an instance variable on this value.
-func (v *MrbValue) GetInstanceVariable(variable string) Value {
+func (v *GValue) GetInstanceVariable(variable string) Value {
 	cstr := C.CString(variable)
-	defer C.free(unsafe.Pointer(cstr))
-	return v.Mrb().value(C._go_mrb_iv_get(v.gruby.state, v.value, C.mrb_intern_cstr(v.gruby.state, cstr)))
+	defer freeStr(cstr)
+	return v.grb.value(C._go_mrb_iv_get(v.grb.state, v.value, C.mrb_intern_cstr(v.grb.state, cstr)))
 }
 
 // Call calls a method with the given name and arguments on this
 // value.
-func (v *MrbValue) Call(method string, args ...Value) (Value, error) {
+func (v *GValue) Call(method string, args ...Value) (Value, error) {
 	return v.call(method, args, nil)
 }
 
 // CallBlock is the same as call except that it expects the last
 // argument to be a Proc that will be passed into the function call.
 // It is an error if args is empty or if there is no block on the end.
-func (v *MrbValue) CallBlock(method string, args ...Value) (Value, error) {
+func (v *GValue) CallBlock(method string, args ...Value) (Value, error) {
 	if len(args) == 0 {
 		return nil, ErrEmptyArgs
 	}
@@ -74,7 +73,7 @@ func (v *MrbValue) CallBlock(method string, args ...Value) (Value, error) {
 	return v.call(method, args[:n-1], args[n-1])
 }
 
-func (v *MrbValue) call(method string, args []Value, block Value) (Value, error) {
+func (v *GValue) call(method string, args []Value, block Value) (Value, error) {
 	var argv []C.mrb_value
 	var argvPtr *C.mrb_value
 
@@ -95,50 +94,50 @@ func (v *MrbValue) call(method string, args []Value, block Value) (Value, error)
 	}
 
 	cstr := C.CString(method)
-	defer C.free(unsafe.Pointer(cstr))
+	defer freeStr(cstr)
 
 	// If we have a block, we have to call a separate function to
 	// pass a block in. Otherwise, we just call it directly.
 	result := C._go_mrb_call(
-		v.gruby.state,
+		v.grb.state,
 		v.value,
-		C.mrb_intern_cstr(v.gruby.state, cstr),
+		C.mrb_intern_cstr(v.grb.state, cstr),
 		C.mrb_int(len(argv)),
 		argvPtr,
 		blockV)
 
-	if exc := checkException(v.gruby); exc != nil {
+	if exc := checkException(v.grb); exc != nil {
 		return nil, exc
 	}
 
-	return v.Mrb().value(result), nil
+	return v.grb.value(result), nil
 }
 
 // IsDead tells you if an object has been collected by the GC or not.
-func (v *MrbValue) IsDead() bool {
-	return C.ushort(C._go_isdead(v.gruby.state, v.value)) != 0
+func (v *GValue) IsDead() bool {
+	return C.ushort(C._go_isdead(v.grb.state, v.value)) != 0
 }
 
-// Mrb returns the Mrb state for this value.
-func (v *MrbValue) Mrb() *GRuby {
-	return v.gruby
+// GRuby returns the GRuby state for this value.
+func (v *GValue) GRuby() *GRuby {
+	return v.grb
 }
 
 // GCProtect protects this value from being garbage collected.
-func (v *MrbValue) GCProtect() {
-	C.mrb_gc_protect(v.gruby.state, v.value)
+func (v *GValue) GCProtect() {
+	C.mrb_gc_protect(v.grb.state, v.value)
 }
 
 // SetProcTargetClass sets the target class where a proc will be executed
 // when this value is a proc.
-func (v *MrbValue) SetProcTargetClass(c *Class) {
+func (v *GValue) SetProcTargetClass(c *Class) {
 	proc := C._go_mrb_proc_ptr(v.value)
 
 	*(**C.struct_RClass)(unsafe.Pointer(&proc.e[0])) = c.class
 }
 
-// Type returns the ValueType of the MrbValue. See the constants table.
-func (v *MrbValue) Type() ValueType {
+// Type returns the ValueType of the GValue. See the constants table.
+func (v *GValue) Type() ValueType {
 	if C._go_mrb_bool2int(C._go_mrb_nil_p(v.value)) == 1 {
 		return TypeNil
 	}
@@ -147,7 +146,7 @@ func (v *MrbValue) Type() ValueType {
 }
 
 // CValue returns underlying mrb_value.
-func (v *MrbValue) CValue() C.mrb_value {
+func (v *GValue) CValue() C.mrb_value {
 	return v.value
 }
 
@@ -176,7 +175,7 @@ func ToGo[T any](value Value) T {
 
 	switch any(empty).(type) {
 	case string:
-		str := C.mrb_obj_as_string(value.Mrb().state, value.CValue())
+		str := C.mrb_obj_as_string(value.GRuby().state, value.CValue())
 		result = C.GoString(C._go_RSTRING_PTR(str))
 	case int, int16, int32, int64:
 		result = int(C._go_mrb_fixnum(value.CValue()))
@@ -193,50 +192,59 @@ func ToGo[T any](value Value) T {
 	return result.(T) //nolint:forcetypeassert
 }
 
-func ToRuby[T any](mrb *GRuby, value T) Value {
+func ToRuby[T any](grb *GRuby, value T) Value {
 	val := any(value)
 
-	switch any(value).(type) {
+	switch tVal := val.(type) {
+	case bool:
+		if tVal {
+			return grb.TrueValue()
+		}
+		return grb.FalseValue()
 	case string:
-		cstr := C.CString(val.(string)) //nolint:forcetypeassert
-		defer C.free(unsafe.Pointer(cstr))
-		return mrb.value(C.mrb_str_new_cstr(mrb.state, cstr))
+		cstr := C.CString(tVal)
+		defer freeStr(cstr)
+		return grb.value(C.mrb_str_new_cstr(grb.state, cstr))
 	case int, int16, int32, int64:
-		return mrb.value(C.mrb_fixnum_value(C.mrb_int(val.(int)))) //nolint:forcetypeassert
+		return grb.value(C.mrb_fixnum_value(C.mrb_int(tVal.(int)))) //nolint:forcetypeassert
 	case float64, float32:
-		return mrb.value(C.mrb_float_value(mrb.state, C.mrb_float(C.long(val.(float32))))) //nolint:forcetypeassert
-	case *Array:
-	case *Hash:
+		return grb.value(C.mrb_float_value(grb.state, C.mrb_float(C.long(tVal.(float32))))) //nolint:forcetypeassert
+	// TODO: generic array and hash support
+	case []string:
+		ary := NewArray(grb)
+
+		for _, item := range tVal {
+			ary.Push(ToRuby(grb, item))
+		}
+		return ary
 	}
 
 	panic(fmt.Sprintf("unknown type '%+v'", value))
 }
 
 // String returns the "to_s" result of this value.
-func (v *MrbValue) String() string {
+func (v *GValue) String() string {
 	return ToGo[string](v)
 }
 
 // Class returns the *Class of a value.
-func (v *MrbValue) Class() *Class {
-	mrb := v.gruby
-	return newClass(mrb, C.mrb_class(v.gruby.state, v.value))
+func (v *GValue) Class() *Class {
+	return newClass(v.grb, C.mrb_class(v.grb.state, v.value))
 }
 
 // SingletonClass returns the singleton class (a class isolated just for the
 // scope of the object) for the given value.
-func (v *MrbValue) SingletonClass() *Class {
-	mrb := v.gruby
-	sclass := C._go_mrb_class_ptr(C.mrb_singleton_class(v.gruby.state, v.value))
-	return newClass(mrb, sclass)
+func (v *GValue) SingletonClass() *Class {
+	sclass := C._go_mrb_class_ptr(C.mrb_singleton_class(v.grb.state, v.value))
+	return newClass(v.grb, sclass)
 }
 
 //-------------------------------------------------------------------
 // Internal Functions
 //-------------------------------------------------------------------
 
-func newExceptionValue(mrb *GRuby) *ExceptionError {
-	state := mrb.state
+func newExceptionValue(grb *GRuby) *ExceptionError {
+	state := grb.state
 	if state.exc == nil {
 		return nil
 	}
@@ -249,11 +257,11 @@ func newExceptionValue(mrb *GRuby) *ExceptionError {
 
 	// Retrieve and convert backtrace to []string (avoiding reflection in Decode)
 	var backtrace []string
-	mrbBacktraceValue := mrb.value(C.mrb_exc_backtrace(state, value))
-	if mrbBacktraceValue.Type() == TypeArray {
-		mrbBacktrace := ToGo[*Array](mrbBacktraceValue)
-		for i := range mrbBacktrace.Len() {
-			ln, _ := mrbBacktrace.Get(i) //nolint:errcheck
+	grbBacktraceValue := grb.value(C.mrb_exc_backtrace(state, value))
+	if grbBacktraceValue.Type() == TypeArray {
+		grbBacktrace := ToGo[*Array](grbBacktraceValue)
+		for i := range grbBacktrace.Len() {
+			ln, _ := grbBacktrace.Get(i) //nolint:errcheck
 			backtrace = append(backtrace, ln.String())
 		}
 	}
@@ -269,7 +277,7 @@ func newExceptionValue(mrb *GRuby) *ExceptionError {
 		}
 	}
 
-	result := mrb.value(value)
+	result := grb.value(value)
 	return &ExceptionError{
 		Value:     result,
 		Message:   result.String(),

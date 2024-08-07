@@ -3,9 +3,9 @@ package gruby
 // #include "gruby.h"
 import "C"
 
-// Hash represents an MrbValue that is a Hash in Ruby.
+// Hash represents an GValue that is a Hash in Ruby.
 //
-// A Hash can be obtained by calling the Hash function on MrbValue.
+// A Hash can be obtained by calling the Hash function on GValue.
 type Hash struct {
 	Value
 }
@@ -14,9 +14,9 @@ type Hash struct {
 // or nil if there wasn't a value.
 func (h *Hash) Delete(key Value) Value {
 	keyVal := key.CValue()
-	result := C.mrb_hash_delete_key(h.Mrb().state, h.CValue(), keyVal)
+	result := C.mrb_hash_delete_key(h.GRuby().state, h.CValue(), keyVal)
 
-	val := h.Mrb().value(result)
+	val := h.GRuby().value(result)
 	if val.Type() == TypeNil {
 		return nil
 	}
@@ -27,15 +27,15 @@ func (h *Hash) Delete(key Value) Value {
 // Get reads a value from the hash.
 func (h *Hash) Get(key Value) (Value, error) {
 	keyVal := key.CValue()
-	result := C.mrb_hash_get(h.Mrb().state, h.CValue(), keyVal)
-	return h.Mrb().value(result), nil
+	result := C.mrb_hash_get(h.GRuby().state, h.CValue(), keyVal)
+	return h.GRuby().value(result), nil
 }
 
 // Set sets a value on the hash
 func (h *Hash) Set(key, val Value) error {
 	keyVal := key.CValue()
 	valVal := val.CValue()
-	C.mrb_hash_set(h.Mrb().state, h.CValue(), keyVal, valVal)
+	C.mrb_hash_set(h.GRuby().state, h.CValue(), keyVal, valVal)
 	return nil
 }
 
@@ -43,6 +43,6 @@ func (h *Hash) Set(key, val Value) error {
 // as an c since this is a Ruby array. You can iterate over it as
 // you see fit.
 func (h *Hash) Keys() (Value, error) {
-	result := C.mrb_hash_keys(h.Mrb().state, h.CValue())
-	return h.Mrb().value(result), nil
+	result := C.mrb_hash_keys(h.GRuby().state, h.CValue())
+	return h.GRuby().value(result), nil
 }

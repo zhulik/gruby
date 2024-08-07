@@ -236,8 +236,8 @@ func (d *decoder) decodeMap(name string, v Value, result reflect.Value) error { 
 
 	// We're going to be allocating some garbage, so set the arena
 	// so it is cleared properly.
-	mrb := v.Mrb()
-	defer mrb.ArenaRestore(mrb.ArenaSave())
+	grb := v.GRuby()
+	defer grb.ArenaRestore(grb.ArenaSave())
 
 	// Get the hash of the value
 	hash := ToGo[*Hash](v)
@@ -360,15 +360,15 @@ func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error
 
 	// We're going to be allocating some garbage, so set the arena
 	// so it is cleared properly.
-	mrb := v.Mrb()
-	defer mrb.ArenaRestore(mrb.ArenaSave())
+	grb := v.GRuby()
+	defer grb.ArenaRestore(grb.ArenaSave())
 
 	// Depending on the type, we need to generate a getter
 	switch typ := v.Type(); typ {
 	case TypeHash:
-		get = decodeStructHashGetter(mrb, ToGo[*Hash](v))
+		get = decodeStructHashGetter(grb, ToGo[*Hash](v))
 	case TypeObject:
-		get = decodeStructObjectMethods(mrb, v)
+		get = decodeStructObjectMethods(grb, v)
 	default:
 		return fmt.Errorf("%w: name=%s type=%+v", ErrUnknownType, name, typ)
 	}
@@ -452,12 +452,12 @@ func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error
 
 		// We move the arena for every value here so we don't
 		// generate too much intermediate garbage.
-		idx := mrb.ArenaSave()
+		idx := grb.ArenaSave()
 
 		// Get the Ruby string value
 		value, err := get(fieldName)
 		if err != nil {
-			mrb.ArenaRestore(idx)
+			grb.ArenaRestore(idx)
 			return err
 		}
 
@@ -468,7 +468,7 @@ func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error
 		// because we actually want the value.
 		fieldName = fmt.Sprintf("%s.%s", name, fieldName)
 		err = d.decode(fieldName, value, field)
-		mrb.ArenaRestore(idx)
+		grb.ArenaRestore(idx)
 		if err != nil {
 			return err
 		}
@@ -490,9 +490,9 @@ func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error
 
 // decodeStructHashGetter is a decodeStructGetter that reads values from
 // a hash.
-func decodeStructHashGetter(mrb *GRuby, h *Hash) decodeStructGetter {
+func decodeStructHashGetter(grb *GRuby, h *Hash) decodeStructGetter {
 	return func(key string) (Value, error) {
-		rbKey := ToRuby(mrb, key)
+		rbKey := ToRuby(grb, key)
 		return h.Get(rbKey)
 	}
 }

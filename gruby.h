@@ -8,6 +8,7 @@
 #ifndef _GOMRUBY_H_INCLUDED
 #define _GOMRUBY_H_INCLUDED
 
+#include <stdlib.h>
 #include <errno.h>
 #include <mruby.h>
 #include <mruby/array.h>
@@ -36,13 +37,13 @@
 //-------------------------------------------------------------------
 // This is declard in func.go and is a way for us to call back into
 // Go to execute a method.
-extern mrb_value goMRBFuncCall(mrb_state *, mrb_value);
+extern mrb_value goGRBFuncCall(mrb_state *, mrb_value);
 
 // This method is used as a way to get a valid mrb_func_t that actually
 // just calls back into Go.
 static inline mrb_func_t _go_mrb_func_t()
 {
-  return &goMRBFuncCall;
+  return &goGRBFuncCall;
 }
 
 //-------------------------------------------------------------------

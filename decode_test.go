@@ -118,12 +118,12 @@ func TestDecode(t *testing.T) {
 		},
 	}
 	for _, tcase := range cases {
-		mrb := gruby.NewMrb()
-		value, err := mrb.LoadString(tcase.Input)
+		grb := gruby.New()
+		value, err := grb.LoadString(tcase.Input)
 		g.Expect(err).ToNot(HaveOccurred())
 
 		err = gruby.Decode(tcase.Output, value)
-		mrb.Close()
+		grb.Close()
 		g.Expect(err).ToNot(HaveOccurred())
 
 		val := reflect.ValueOf(tcase.Output)
@@ -190,13 +190,13 @@ func TestDecodeInterface(t *testing.T) {
 	}
 
 	for _, tcase := range cases {
-		mrb := gruby.NewMrb()
-		value, err := mrb.LoadString(tcase.Input)
+		grb := gruby.New()
+		value, err := grb.LoadString(tcase.Input)
 		g.Expect(err).ToNot(HaveOccurred())
 
 		var result interface{}
 		err = gruby.Decode(&result, value)
-		mrb.Close()
+		grb.Close()
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(result).To(Equal(tcase.Expected))

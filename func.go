@@ -1,6 +1,5 @@
 package gruby
 
-// #include <stdlib.h>
 // #include "gruby.h"
 import "C"
 
@@ -14,10 +13,10 @@ import (
 // The first return value is the actual return value for the code.
 //
 // The second return value is an exception, if any. This will be raised.
-type Func func(m *GRuby, self Value) (Value, Value)
+type Func func(grb *GRuby, self Value) (Value, Value)
 
-//export goMRBFuncCall
-func goMRBFuncCall(state *C.mrb_state, value C.mrb_value) C.mrb_value {
+//export goGRBFuncCall
+func goGRBFuncCall(state *C.mrb_state, value C.mrb_value) C.mrb_value {
 	grb := states.Get(state)
 	// Get the call info, which we use to lookup the proc
 	callInfo := state.c.ci
@@ -47,19 +46,4 @@ func goMRBFuncCall(state *C.mrb_state, value C.mrb_value) C.mrb_value {
 	}
 
 	return result.CValue()
-}
-
-func insertMethod(state *C.mrb_state, class *C.struct_RClass, name string, callback Func) {
-	grb := states.Get(state)
-	methodLookup := grb.classes[class]
-	if methodLookup == nil {
-		methodLookup = make(methodMap)
-		grb.classes[class] = methodLookup
-	}
-
-	cstr := C.CString(name)
-	defer C.free(unsafe.Pointer(cstr))
-
-	sym := C.mrb_intern_cstr(state, cstr)
-	methodLookup[sym] = callback
 }

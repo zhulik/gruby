@@ -2,12 +2,11 @@ package gruby
 
 import "unsafe"
 
-// #include <stdlib.h>
 // #include "gruby.h"
 import "C"
 
 // Class is a class in gruby. To obtain a Class, use DefineClass or
-// one of the variants on the Mrb structure.
+// one of the variants on the GRuby structure.
 type Class struct {
 	Value
 	class *C.struct_RClass
@@ -20,13 +19,13 @@ func (c *Class) String() string {
 
 // DefineClassMethod defines a class-level method on the given class.
 func (c *Class) DefineClassMethod(name string, cb Func, spec ArgSpec) {
-	insertMethod(c.Mrb().state, c.class.c, name, cb)
+	c.GRuby().insertMethod(c.class.c, name, cb)
 
 	cstr := C.CString(name)
-	defer C.free(unsafe.Pointer(cstr))
+	defer freeStr(cstr)
 
 	C.mrb_define_class_method(
-		c.Mrb().state,
+		c.GRuby().state,
 		c.class,
 		cstr,
 		C._go_mrb_func_t(),
@@ -36,20 +35,21 @@ func (c *Class) DefineClassMethod(name string, cb Func, spec ArgSpec) {
 // DefineConst defines a constant within this class.
 func (c *Class) DefineConst(name string, value Value) {
 	cstr := C.CString(name)
-	defer C.free(unsafe.Pointer(cstr))
+	defer freeStr(cstr)
 
-	C.mrb_define_const(c.Mrb().state, c.class, cstr, value.CValue())
+	C.mrb_define_const(c.GRuby().state, c.class, cstr, value.CValue())
 }
 
 // DefineMethod defines an instance method on the class.
 func (c *Class) DefineMethod(name string, cb Func, spec ArgSpec) {
-	insertMethod(c.Mrb().state, c.class, name, cb)
+	grb := c.GRuby()
+	grb.insertMethod(c.class, name, cb)
 
 	cstr := C.CString(name)
-	defer C.free(unsafe.Pointer(cstr))
+	defer freeStr(cstr)
 
 	C.mrb_define_method(
-		c.Mrb().state,
+		grb.state,
 		c.class,
 		cstr,
 		C._go_mrb_func_t(),
@@ -70,17 +70,17 @@ func (c *Class) New(args ...Value) (Value, error) {
 		argvPtr = &argv[0]
 	}
 
-	result := C.mrb_obj_new(c.Mrb().state, c.class, C.mrb_int(len(argv)), argvPtr)
-	if exc := checkException(c.Mrb()); exc != nil {
+	result := C.mrb_obj_new(c.GRuby().state, c.class, C.mrb_int(len(argv)), argvPtr)
+	if exc := checkException(c.GRuby()); exc != nil {
 		return nil, exc
 	}
 
-	return c.Mrb().value(result), nil
+	return c.GRuby().value(result), nil
 }
 
-func newClass(mrb *GRuby, c *C.struct_RClass) *Class {
+func newClass(grb *GRuby, c *C.struct_RClass) *Class {
 	return &Class{
-		Value: mrb.value(C.mrb_obj_value(unsafe.Pointer(c))),
+		Value: grb.value(C.mrb_obj_value(unsafe.Pointer(c))),
 		class: c,
 	}
 }
