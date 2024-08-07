@@ -11,6 +11,7 @@ type Array struct {
 }
 
 func NewArray(grb *GRuby) *Array {
+	// TODO: who deletes it?
 	return &Array{grb.value(C.mrb_ary_new(grb.state))}
 }
 

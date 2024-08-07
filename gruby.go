@@ -10,18 +10,14 @@ import (
 	"unsafe"
 )
 
-type (
-	classMethodMap map[*C.struct_RClass]methodMap
-	methodMap      map[C.mrb_sym]Func
-)
-
 // GRuby represents a single instance of gruby.
 type GRuby struct {
 	state *C.mrb_state
 
 	loadedFiles       map[string]bool
-	classes           classMethodMap
 	getArgAccumulator []C.mrb_value
+
+	methods methodsStore
 
 	trueV  Value
 	falseV Value
@@ -62,14 +58,18 @@ type ArenaIndex int
 // by calling the Close method.
 func New() *GRuby {
 	grb := &GRuby{
-		state:             C.mrb_open(),
-		loadedFiles:       map[string]bool{},
-		classes:           classMethodMap{},
+		state:       C.mrb_open(),
+		loadedFiles: map[string]bool{},
+		methods: methodsStore{
+			grb:     nil,
+			classes: classMethodMap{},
+		},
 		getArgAccumulator: make([]C.mrb_value, 0, C._go_get_max_funcall_args()),
 		trueV:             nil,
 		falseV:            nil,
 		nilV:              nil,
 	}
+	grb.methods.grb = grb
 	grb.trueV = grb.value(C.mrb_true_value())
 	grb.falseV = grb.value(C.mrb_false_value())
 	grb.nilV = grb.value(C.mrb_nil_value())
@@ -477,17 +477,7 @@ func (g *GRuby) value(v C.mrb_value) Value {
 }
 
 func (g *GRuby) insertMethod(class *C.struct_RClass, name string, callback Func) {
-	methodLookup := g.classes[class]
-	if methodLookup == nil {
-		methodLookup = make(methodMap)
-		g.classes[class] = methodLookup
-	}
-
-	cstr := C.CString(name)
-	defer freeStr(cstr)
-
-	sym := C.mrb_intern_cstr(g.state, cstr)
-	methodLookup[sym] = callback
+	g.methods.add(class, name, callback)
 }
 
 func checkException(grb *GRuby) error {

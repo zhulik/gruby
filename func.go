@@ -23,16 +23,8 @@ func goGRBFuncCall(state *C.mrb_state, value C.mrb_value) C.mrb_value {
 
 	// Lookup the class itself
 	class := *(**C.struct_RClass)(unsafe.Pointer(&callInfo.u[0]))
-	methodTable := grb.classes[class]
-	if methodTable == nil {
-		panic("func call on unknown class")
-	}
 
-	// Lookup the method
-	method := methodTable[callInfo.mid]
-	if method == nil {
-		panic("func call on unknown method")
-	}
+	method := grb.methods.get(class, callInfo.mid)
 
 	result, exc := method(grb, grb.value(value))
 
