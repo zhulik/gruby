@@ -22,6 +22,10 @@ type GRuby struct {
 	loadedFiles       map[string]bool
 	classes           classMethodMap
 	getArgAccumulator []C.mrb_value
+
+	trueV  Value
+	falseV Value
+	nilV   Value
 }
 
 //export goGetArgAppend
@@ -63,6 +67,9 @@ func New() *GRuby {
 		classes:           classMethodMap{},
 		getArgAccumulator: make([]C.mrb_value, 0, C._go_get_max_funcall_args()),
 	}
+	grb.trueV = grb.value(C.mrb_true_value())
+	grb.falseV = grb.value(C.mrb_false_value())
+	grb.nilV = grb.value(C.mrb_nil_value())
 
 	states.Add(grb)
 
@@ -403,17 +410,17 @@ func (g *GRuby) TopSelf() Value {
 
 // FalseValue returns a Value for "false"
 func (g *GRuby) FalseValue() Value {
-	return g.value(C.mrb_false_value()) // TODO: const?
+	return g.falseV // TODO: const?
 }
 
 // NilValue returns "nil"
 func (g *GRuby) NilValue() Value {
-	return g.value(C.mrb_nil_value()) // TODO: const?
+	return g.nilV
 }
 
 // TrueValue returns a Value for "true"
 func (g *GRuby) TrueValue() Value {
-	return g.value(C.mrb_true_value()) // TODO: const?
+	return g.trueV
 }
 
 // When called from a methods defined in Go, returns current ruby backtrace.
