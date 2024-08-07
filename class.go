@@ -20,7 +20,7 @@ func (c *Class) String() string {
 
 // DefineClassMethod defines a class-level method on the given class.
 func (c *Class) DefineClassMethod(name string, cb Func, spec ArgSpec) {
-	insertMethod(c.Mrb().state, c.class.c, name, cb)
+	c.Mrb().insertMethod(c.class.c, name, cb)
 
 	cstr := C.CString(name)
 	defer C.free(unsafe.Pointer(cstr))
@@ -43,13 +43,14 @@ func (c *Class) DefineConst(name string, value Value) {
 
 // DefineMethod defines an instance method on the class.
 func (c *Class) DefineMethod(name string, cb Func, spec ArgSpec) {
-	insertMethod(c.Mrb().state, c.class, name, cb)
+	mrb := c.Mrb()
+	mrb.insertMethod(c.class, name, cb)
 
 	cstr := C.CString(name)
 	defer C.free(unsafe.Pointer(cstr))
 
 	C.mrb_define_method(
-		c.Mrb().state,
+		mrb.state,
 		c.class,
 		cstr,
 		C._go_mrb_func_t(),

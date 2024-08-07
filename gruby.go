@@ -469,6 +469,20 @@ func (m *GRuby) value(v C.mrb_value) Value {
 	}
 }
 
+func (g *GRuby) insertMethod(class *C.struct_RClass, name string, callback Func) {
+	methodLookup := g.classes[class]
+	if methodLookup == nil {
+		methodLookup = make(methodMap)
+		g.classes[class] = methodLookup
+	}
+
+	cstr := C.CString(name)
+	defer C.free(unsafe.Pointer(cstr))
+
+	sym := C.mrb_intern_cstr(g.state, cstr)
+	methodLookup[sym] = callback
+}
+
 func checkException(grb *GRuby) error {
 	if grb.state.exc == nil {
 		return nil

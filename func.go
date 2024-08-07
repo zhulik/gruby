@@ -48,18 +48,3 @@ func goMRBFuncCall(state *C.mrb_state, value C.mrb_value) C.mrb_value {
 
 	return result.CValue()
 }
-
-func insertMethod(state *C.mrb_state, class *C.struct_RClass, name string, callback Func) {
-	grb := states.Get(state)
-	methodLookup := grb.classes[class]
-	if methodLookup == nil {
-		methodLookup = make(methodMap)
-		grb.classes[class] = methodLookup
-	}
-
-	cstr := C.CString(name)
-	defer C.free(unsafe.Pointer(cstr))
-
-	sym := C.mrb_intern_cstr(state, cstr)
-	methodLookup[sym] = callback
-}
