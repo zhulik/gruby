@@ -11,7 +11,7 @@ func TestParserGenerateCode(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.NewMrb()
+	mrb := gruby.New()
 	defer mrb.Close()
 
 	parser := gruby.NewParser(mrb)
@@ -31,7 +31,7 @@ func TestParserParse(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.NewMrb()
+	mrb := gruby.New()
 	defer mrb.Close()
 
 	p := gruby.NewParser(mrb)
@@ -46,7 +46,7 @@ func TestParserParse_error(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.NewMrb()
+	mrb := gruby.New()
 	defer mrb.Close()
 
 	p := gruby.NewParser(mrb)

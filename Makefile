@@ -11,7 +11,6 @@ clean:
 
 libmruby.a: ${MRUBY_VENDOR_DIR}/mruby
 	cd ${MRUBY_VENDOR_DIR}/mruby && ${MAKE}
-	cp ${MRUBY_VENDOR_DIR}/mruby/build/host/lib/libmruby.a .
 
 ${MRUBY_VENDOR_DIR}/mruby:
 	mkdir -p ${MRUBY_VENDOR_DIR}

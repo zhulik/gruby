@@ -52,12 +52,12 @@ func (g *GRuby) SetGlobalVariable(name string, value Value) {
 // See ArenaSave for more information.
 type ArenaIndex int
 
-// NewMrb creates a new instance of Mrb, representing the state of a single
+// New creates a new instance of Mrb, representing the state of a single
 // Ruby VM.
 //
 // When you're finished with the VM, clean up all resources it is using
 // by calling the Close method.
-func NewMrb() *GRuby {
+func New() *GRuby {
 	state := C.mrb_open()
 
 	grb := &GRuby{

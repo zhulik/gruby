@@ -11,7 +11,7 @@ func TestClassDefineClassMethod(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.NewMrb()
+	mrb := gruby.New()
 	defer mrb.Close()
 
 	class := mrb.DefineClass("Hello", mrb.ObjectClass())
@@ -26,7 +26,7 @@ func TestClassDefineConst(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.NewMrb()
+	mrb := gruby.New()
 	defer mrb.Close()
 
 	class := mrb.DefineClass("Hello", mrb.ObjectClass())
@@ -41,7 +41,7 @@ func TestClassDefineMethod(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.NewMrb()
+	mrb := gruby.New()
 	defer mrb.Close()
 
 	class := mrb.DefineClass("Hello", mrb.ObjectClass())
@@ -56,7 +56,7 @@ func TestClassNew(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.NewMrb()
+	mrb := gruby.New()
 	defer mrb.Close()
 
 	class := mrb.DefineClass("Hello", mrb.ObjectClass())
@@ -75,7 +75,7 @@ func TestClassNewException(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.NewMrb()
+	mrb := gruby.New()
 
 	defer mrb.Close()
 
@@ -96,7 +96,7 @@ func TestClassValue(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.NewMrb()
+	mrb := gruby.New()
 	defer mrb.Close()
 
 	class := mrb.DefineClass("Hello", mrb.ObjectClass())

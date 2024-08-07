@@ -12,7 +12,7 @@ func TestExceptionString_afterClose(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.NewMrb()
+	mrb := gruby.New()
 	_, err := mrb.LoadString(`clearly a syntax error`)
 	mrb.Close()
 	// This panics before the bug fix that this test tests
@@ -23,7 +23,7 @@ func TestExceptionBacktrace(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.NewMrb()
+	mrb := gruby.New()
 	defer mrb.Close()
 
 	parser := gruby.NewParser(mrb)
@@ -66,7 +66,7 @@ func TestMrbValueCall(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.NewMrb()
+	mrb := gruby.New()
 	defer mrb.Close()
 
 	value, err := mrb.LoadString(`"foo"`)
@@ -84,7 +84,7 @@ func TestMrbValueCallBlock(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.NewMrb()
+	mrb := gruby.New()
 	defer mrb.Close()
 
 	value, err := mrb.LoadString(`"foo"`)
@@ -104,7 +104,7 @@ func TestMrbValueFixnum(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.NewMrb()
+	mrb := gruby.New()
 	defer mrb.Close()
 
 	value, err := mrb.LoadString("42")
@@ -116,7 +116,7 @@ func TestMrbValueString(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.NewMrb()
+	mrb := gruby.New()
 	defer mrb.Close()
 
 	value, err := mrb.LoadString(`"foo"`)
@@ -128,7 +128,7 @@ func TestMrbValueType(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.NewMrb()
+	mrb := gruby.New()
 	defer mrb.Close()
 
 	cases := []struct {
@@ -219,7 +219,7 @@ func TestIntMrbValue(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.NewMrb()
+	mrb := gruby.New()
 	defer mrb.Close()
 
 	value := gruby.ToRuby(mrb, 42)
@@ -230,7 +230,7 @@ func TestStringMrbValue(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.NewMrb()
+	mrb := gruby.New()
 	defer mrb.Close()
 
 	value := gruby.ToRuby(mrb, "foo")
@@ -241,7 +241,7 @@ func TestValueClass(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.NewMrb()
+	mrb := gruby.New()
 	defer mrb.Close()
 
 	val, err := mrb.ObjectClass().New()
@@ -253,7 +253,7 @@ func TestValueSingletonClass(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.NewMrb()
+	mrb := gruby.New()
 	defer mrb.Close()
 
 	fn := func(m *gruby.GRuby, self gruby.Value) (gruby.Value, gruby.Value) {

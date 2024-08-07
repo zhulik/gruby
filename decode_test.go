@@ -118,7 +118,7 @@ func TestDecode(t *testing.T) {
 		},
 	}
 	for _, tcase := range cases {
-		mrb := gruby.NewMrb()
+		mrb := gruby.New()
 		value, err := mrb.LoadString(tcase.Input)
 		g.Expect(err).ToNot(HaveOccurred())
 
@@ -190,7 +190,7 @@ func TestDecodeInterface(t *testing.T) {
 	}
 
 	for _, tcase := range cases {
-		mrb := gruby.NewMrb()
+		mrb := gruby.New()
 		value, err := mrb.LoadString(tcase.Input)
 		g.Expect(err).ToNot(HaveOccurred())
 

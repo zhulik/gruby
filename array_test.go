@@ -11,7 +11,7 @@ func TestArray(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	mrb := gruby.NewMrb()
+	mrb := gruby.New()
 	defer mrb.Close()
 
 	value, err := mrb.LoadString(`["foo", "bar", "baz", false]`)
