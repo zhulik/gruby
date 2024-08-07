@@ -1,6 +1,6 @@
 # Gruby - Go bindings to mruby
 
-This is a fork of amazing [gruby](https://github.com/mitchellh/gruby). 
+This is a fork of amazing [go-mruby](https://github.com/mitchellh/go-mruby). 
 I'm not sure if I want and I can maintain it for a long time, but I updated it 
 to support mruby 3.3 and go 1.22.
 
