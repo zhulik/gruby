@@ -11,7 +11,7 @@ func TestCompileContextFilename(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := gruby.New()
+	grb := must(gruby.New())
 	defer grb.Close()
 
 	ctx := gruby.NewCompileContext(grb)

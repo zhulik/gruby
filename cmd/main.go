@@ -13,7 +13,10 @@ import (
 )
 
 func main() {
-	grb := gruby.New()
+	grb, err := gruby.New()
+	if err != nil {
+		panic(err)
+	}
 	defer grb.Close()
 
 	workDir, err := os.Getwd()

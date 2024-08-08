@@ -62,7 +62,7 @@ type ArenaIndex int
 //
 // When you're finished with the VM, clean up all resources it is using
 // by calling the Close method.
-func New(mutators ...Mutator) *GRuby {
+func New(mutators ...Mutator) (*GRuby, error) {
 	grb := &GRuby{
 		state:       C.mrb_open(),
 		loadedFiles: map[string]bool{},
@@ -84,14 +84,13 @@ func New(mutators ...Mutator) *GRuby {
 		err := mutator(grb)
 		if err != nil {
 			grb.Close()
-			// TODO: return error
-			panic("mutator failed")
+			return nil, err
 		}
 	}
 
 	states.Add(grb)
 
-	return grb
+	return grb, nil
 }
 
 // ArenaRestore restores the arena index so the objects between the save and this point
