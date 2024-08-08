@@ -19,7 +19,8 @@ ${MRUBY_VENDOR_DIR}/mruby:
 	cd ${MRUBY_VENDOR_DIR}/mruby && git checkout ${MRUBY_COMMIT}
 
 test: libmruby.a
-	go test -race
+	go test -race -coverprofile=cover.out
+	go tool cover -html cover.out -o cover.html
 
 .PHONY: all clean libmruby.a test
 

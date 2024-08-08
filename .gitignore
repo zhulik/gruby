@@ -4,3 +4,5 @@ build_config.rb
 libmruby.a
 mruby-build
 bin/*
+cover.out
+cover.html

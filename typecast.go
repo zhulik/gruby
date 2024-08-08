@@ -3,11 +3,13 @@ package gruby
 // #include "gruby.h"
 import "C"
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // TODO: make sure all supported types covered in functions.
 type SupportedTypes interface {
-	bool | string | int | float32 | float64 | *Array | *Hash
+	bool | string | int | float32 | float64 | *Hash | []Value
 }
 
 func ToGo[T SupportedTypes](value Value) T {
@@ -25,10 +27,15 @@ func ToGo[T SupportedTypes](value Value) T {
 		result = float32(C._go_mrb_float(value.CValue()))
 	case float64:
 		result = float64(C._go_mrb_float(value.CValue()))
-	case *Array:
-		result = &Array{value}
 	case *Hash:
 		result = &Hash{value}
+	case []Value:
+		count := int(C._go_RARRAY_LEN(value.CValue()))
+		goAry := make([]Value, count)
+		for i := range count {
+			goAry[i] = value.GRuby().value(C.mrb_ary_entry(value.CValue(), C.mrb_int(i)))
+		}
+		result = goAry
 	}
 
 	return result.(T) //nolint:forcetypeassert
@@ -53,14 +60,6 @@ func ToRuby[T SupportedTypes](grb *GRuby, value T) Value {
 		return grb.value(C.mrb_float_value(grb.state, C.mrb_float(C.long(tVal))))
 	case float64:
 		return grb.value(C.mrb_float_value(grb.state, C.mrb_float(C.long(tVal))))
-	// TODO: generic array and hash support
-	case []string:
-		ary := NewArray(grb)
-
-		for _, item := range tVal {
-			ary.Push(ToRuby(grb, item))
-		}
-		return ary
 	}
 
 	panic(fmt.Sprintf("unknown type '%+v'", value))

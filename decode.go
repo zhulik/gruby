@@ -208,7 +208,7 @@ func (d *decoder) decodeInterface(name string, v Value, result reflect.Value) er
 	return nil
 }
 
-func (d *decoder) decodeMap(name string, v Value, result reflect.Value) error { //nolint:funlen,cyclop
+func (d *decoder) decodeMap(name string, v Value, result reflect.Value) error { //nolint:funlen
 	if v.Type() != TypeHash {
 		return fmt.Errorf("%w: name=%s type=%+v", ErrUnknownType, name, v.Type())
 	}
@@ -245,15 +245,9 @@ func (d *decoder) decodeMap(name string, v Value, result reflect.Value) error { 
 	if err != nil {
 		return err
 	}
-	keys := ToGo[*Array](keysRaw)
+	keys := ToGo[[]Value](keysRaw)
 
-	for i := range keys.Len() {
-		// Get the key and value in Ruby. This should do no allocations.
-		rbKey, err := keys.Get(i)
-		if err != nil {
-			return err
-		}
-
+	for i, rbKey := range keys {
 		rbVal, err := hash.Get(rbKey)
 		if err != nil {
 			return err
@@ -315,15 +309,9 @@ func (d *decoder) decodeSlice(name string, v Value, result reflect.Value) error 
 	}
 
 	// Get the hash of the value
-	array := ToGo[*Array](v)
+	array := ToGo[[]Value](v)
 
-	for i := range array.Len() {
-		// Get the key and value in Ruby. This should do no allocations.
-		rbVal, err := array.Get(i)
-		if err != nil {
-			return err
-		}
-
+	for i, rbVal := range array {
 		// Make the field name
 		fieldName := fmt.Sprintf("%s[%d]", name, i)
 

@@ -443,15 +443,11 @@ func (g *GRuby) TrueValue() Value {
 // When called from a methods defined in Go, returns current ruby backtrace.
 func (g *GRuby) Backtrace() []string {
 	backtrace := g.value(C.mrb_get_backtrace(g.state))
-	array := ToGo[*Array](backtrace)
+	values := ToGo[[]Value](backtrace)
 
-	result := make([]string, array.Len())
+	result := make([]string, len(values))
 
-	for i := range array.Len() {
-		item, err := array.Get(i)
-		if err != nil {
-			panic(err)
-		}
+	for i, item := range values {
 		result[i] = ToGo[string](item)
 	}
 

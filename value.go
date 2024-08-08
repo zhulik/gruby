@@ -200,12 +200,8 @@ func newExceptionValue(grb *GRuby) *ExceptionError {
 	var backtrace []string
 	grbBacktraceValue := grb.value(C.mrb_exc_backtrace(state, value))
 	if grbBacktraceValue.Type() == TypeArray {
-		grbBacktrace := ToGo[*Array](grbBacktraceValue)
-		for i := range grbBacktrace.Len() {
-			ln, err := grbBacktrace.Get(i)
-			if err != nil {
-				panic(err)
-			}
+		grbBacktrace := ToGo[[]Value](grbBacktraceValue)
+		for _, ln := range grbBacktrace {
 			backtrace = append(backtrace, ln.String())
 		}
 	}
