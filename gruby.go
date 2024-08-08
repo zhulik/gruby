@@ -10,6 +10,11 @@ import (
 	"unsafe"
 )
 
+// Mutator is function that is supposed to be passed to New.
+// New will call mutators one after another. They can be used
+// to register classes and functions provided by external packages.
+type Mutator func(*GRuby) error
+
 // GRuby represents a single instance of gruby.
 type GRuby struct {
 	state *C.mrb_state
@@ -52,11 +57,12 @@ func (g *GRuby) SetGlobalVariable(name string, value Value) {
 type ArenaIndex int
 
 // New creates a new instance of GRuby, representing the state of a single
-// Ruby VM.
+// Ruby VM. Calls mutators one after another against newly created instance.
+// If a mutator fails, closes the mruby instance and returns an error.
 //
 // When you're finished with the VM, clean up all resources it is using
 // by calling the Close method.
-func New() *GRuby {
+func New(mutators ...Mutator) *GRuby {
 	grb := &GRuby{
 		state:       C.mrb_open(),
 		loadedFiles: map[string]bool{},
@@ -73,6 +79,15 @@ func New() *GRuby {
 	grb.trueV = grb.value(C.mrb_true_value())
 	grb.falseV = grb.value(C.mrb_false_value())
 	grb.nilV = grb.value(C.mrb_nil_value())
+
+	for _, mutator := range mutators {
+		err := mutator(grb)
+		if err != nil {
+			grb.Close()
+			// TODO: return error
+			panic("mutator failed")
+		}
+	}
 
 	states.Add(grb)
 
