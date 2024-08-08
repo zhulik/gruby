@@ -11,6 +11,8 @@ import (
 func TestDecode(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
+	grb := must(gruby.New())
+	defer grb.Close()
 
 	type structString struct {
 		Foo string
@@ -118,12 +120,10 @@ func TestDecode(t *testing.T) {
 		},
 	}
 	for _, tcase := range cases {
-		grb := must(gruby.New())
 		value, err := grb.LoadString(tcase.Input)
 		g.Expect(err).ToNot(HaveOccurred())
 
 		err = gruby.Decode(tcase.Output, value)
-		grb.Close()
 		g.Expect(err).ToNot(HaveOccurred())
 
 		val := reflect.ValueOf(tcase.Output)

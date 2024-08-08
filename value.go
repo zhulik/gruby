@@ -72,7 +72,7 @@ func (v *GValue) CallBlock(method string, args ...Value) (Value, error) {
 	return v.call(method, args[:n-1], args[n-1])
 }
 
-func (v *GValue) call(method string, args []Value, block Value) (Value, error) {
+func (v *GValue) call(method string, args Values, block Value) (Value, error) {
 	var argv []C.mrb_value
 	var argvPtr *C.mrb_value
 
@@ -200,7 +200,7 @@ func newExceptionValue(grb *GRuby) *ExceptionError {
 	var backtrace []string
 	grbBacktraceValue := grb.value(C.mrb_exc_backtrace(state, value))
 	if grbBacktraceValue.Type() == TypeArray {
-		grbBacktrace := ToGo[[]Value](grbBacktraceValue)
+		grbBacktrace := ToGo[Values](grbBacktraceValue)
 		for _, ln := range grbBacktrace {
 			backtrace = append(backtrace, ln.String())
 		}

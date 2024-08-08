@@ -7,9 +7,14 @@ import (
 	"fmt"
 )
 
+type (
+	Values   []Value
+	ValueMap map[Value]Value
+)
+
 // TODO: make sure all supported types covered in functions.
 type SupportedTypes interface {
-	bool | string | int | float32 | float64 | *Hash | []Value
+	bool | string | int | float32 | float64 | *Hash | Values
 }
 
 func ToGo[T SupportedTypes](value Value) T {
@@ -29,9 +34,9 @@ func ToGo[T SupportedTypes](value Value) T {
 		result = float64(C._go_mrb_float(value.CValue()))
 	case *Hash:
 		result = &Hash{value}
-	case []Value:
+	case Values:
 		count := int(C._go_RARRAY_LEN(value.CValue()))
-		goAry := make([]Value, count)
+		goAry := make(Values, count)
 		for i := range count {
 			goAry[i] = value.GRuby().value(C.mrb_ary_entry(value.CValue(), C.mrb_int(i)))
 		}

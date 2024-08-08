@@ -20,7 +20,7 @@ type GRuby struct {
 	state *C.mrb_state
 
 	loadedFiles       map[string]bool
-	getArgAccumulator []Value
+	getArgAccumulator Values
 
 	methods methodsStore
 
@@ -70,7 +70,7 @@ func New(mutators ...Mutator) (*GRuby, error) {
 			grb:     nil,
 			classes: classMethodMap{},
 		},
-		getArgAccumulator: make([]Value, 0, C._go_get_max_funcall_args()),
+		getArgAccumulator: make(Values, 0, C._go_get_max_funcall_args()),
 		trueV:             nil,
 		falseV:            nil,
 		nilV:              nil,
@@ -202,15 +202,15 @@ func (g *GRuby) FullGC() {
 
 // GetArgs returns all the arguments that were given to the currnetly
 // called function (currently on the stack).
-func (g *GRuby) GetArgs() []Value {
+func (g *GRuby) GetArgs() Values {
 	// Clear reset the accumulator to zero length
-	g.getArgAccumulator = make([]Value, 0, C._go_get_max_funcall_args())
+	g.getArgAccumulator = make(Values, 0, C._go_get_max_funcall_args())
 
 	// Get all the arguments and put it into our accumulator
 	count := C._go_mrb_get_args_all(g.state)
 
 	// Convert those all to values
-	values := make([]Value, count)
+	values := make(Values, count)
 
 	for i := range int(count) {
 		values[i] = g.getArgAccumulator[i]
@@ -443,7 +443,7 @@ func (g *GRuby) TrueValue() Value {
 // When called from a methods defined in Go, returns current ruby backtrace.
 func (g *GRuby) Backtrace() []string {
 	backtrace := g.value(C.mrb_get_backtrace(g.state))
-	values := ToGo[[]Value](backtrace)
+	values := ToGo[Values](backtrace)
 
 	result := make([]string, len(values))
 

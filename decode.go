@@ -245,7 +245,7 @@ func (d *decoder) decodeMap(name string, v Value, result reflect.Value) error { 
 	if err != nil {
 		return err
 	}
-	keys := ToGo[[]Value](keysRaw)
+	keys := ToGo[Values](keysRaw)
 
 	for i, rbKey := range keys {
 		rbVal, err := hash.Get(rbKey)
@@ -309,7 +309,7 @@ func (d *decoder) decodeSlice(name string, v Value, result reflect.Value) error 
 	}
 
 	// Get the hash of the value
-	array := ToGo[[]Value](v)
+	array := ToGo[Values](v)
 
 	for i, rbVal := range array {
 		// Make the field name
