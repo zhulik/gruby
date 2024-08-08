@@ -4,9 +4,9 @@ go 1.22
 
 require (
 	github.com/chzyer/readline v1.5.1
+	github.com/cornelk/hashmap v1.0.8
 	github.com/k0kubun/pp v3.0.1+incompatible
 	github.com/onsi/gomega v1.34.1
-	github.com/yargevad/filepathx v1.0.0
 )
 
 require (

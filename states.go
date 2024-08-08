@@ -1,36 +1,34 @@
 package gruby
 
-import "sync"
-
 // #include "gruby.h"
 import "C"
 
+import (
+	"unsafe"
+
+	"github.com/cornelk/hashmap"
+)
+
 var states = stateStore{ //nolint:gochecknoglobals
-	states: map[*C.mrb_state]*GRuby{},
-	lock:   sync.RWMutex{},
+	states: hashmap.New[uintptr, *GRuby](),
 }
 
 type stateStore struct {
-	states map[*C.mrb_state]*GRuby
-	lock   sync.RWMutex
+	states *hashmap.Map[uintptr, *GRuby]
 }
 
 func (s *stateStore) Add(grb *GRuby) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-
-	s.states[grb.state] = grb
+	s.states.Set(uintptr(unsafe.Pointer(grb.state)), grb)
 }
 
 func (s *stateStore) Delete(grb *GRuby) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	delete(s.states, grb.state)
+	s.states.Del(uintptr(unsafe.Pointer(grb.state)))
 }
 
 func (s *stateStore) Get(state *C.mrb_state) *GRuby {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
-
-	return s.states[state]
+	grb, ok := s.states.Get(uintptr(unsafe.Pointer(state)))
+	if !ok {
+		panic("state not found, this must never happen")
+	}
+	return grb
 }
