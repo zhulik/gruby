@@ -240,7 +240,7 @@ func (d *decoder) decodeMap(name string, v Value, result reflect.Value) error { 
 	defer grb.ArenaRestore(grb.ArenaSave())
 
 	// Get the hash of the value
-	hash := ToGo[*Hash](v)
+	hash := ToGo[Hash](v)
 	keysRaw, err := hash.Keys()
 	if err != nil {
 		return err
@@ -354,7 +354,7 @@ func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error
 	// Depending on the type, we need to generate a getter
 	switch typ := v.Type(); typ {
 	case TypeHash:
-		get = decodeStructHashGetter(grb, ToGo[*Hash](v))
+		get = decodeStructHashGetter(grb, ToGo[Hash](v))
 	case TypeObject:
 		get = decodeStructObjectMethods(grb, v)
 	default:
@@ -478,7 +478,7 @@ func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error
 
 // decodeStructHashGetter is a decodeStructGetter that reads values from
 // a hash.
-func decodeStructHashGetter(grb *GRuby, h *Hash) decodeStructGetter {
+func decodeStructHashGetter(grb *GRuby, h Hash) decodeStructGetter {
 	return func(key string) (Value, error) {
 		rbKey := ToRuby(grb, key)
 		return h.Get(rbKey)

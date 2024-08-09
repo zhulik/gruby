@@ -17,7 +17,7 @@ func TestHash(t *testing.T) {
 	value, err := grb.LoadString(`{"foo" => "bar", "baz" => false}`)
 	g.Expect(err).ToNot(HaveOccurred())
 
-	hash := gruby.ToGo[*gruby.Hash](value)
+	hash := gruby.ToGo[gruby.Hash](value)
 
 	// Get
 	value, err = hash.Get(gruby.ToRuby(grb, "foo"))

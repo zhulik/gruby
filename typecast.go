@@ -14,7 +14,7 @@ type (
 
 // TODO: make sure all supported types covered in functions.
 type SupportedTypes interface {
-	bool | string | int | float32 | float64 | *Hash | Values
+	bool | string | int | float32 | float64 | Hash | Values
 }
 
 func ToGo[T SupportedTypes](value Value) T {
@@ -32,8 +32,8 @@ func ToGo[T SupportedTypes](value Value) T {
 		result = float32(C._go_mrb_float(value.CValue()))
 	case float64:
 		result = float64(C._go_mrb_float(value.CValue()))
-	case *Hash:
-		result = &Hash{value}
+	case Hash:
+		result = Hash{value}
 	case Values:
 		count := int(C._go_RARRAY_LEN(value.CValue()))
 		goAry := make(Values, count)
