@@ -12,9 +12,46 @@ type (
 	ValueMap map[Value]Value
 )
 
+type supportedComparables interface {
+	comparable
+	bool | string | int | float32 | float64
+}
+
 // TODO: make sure all supported types covered in functions.
 type SupportedTypes interface {
-	bool | string | int | float32 | float64 | Hash | Values
+	supportedComparables | Hash | Values
+}
+
+func ToGoArray[T SupportedTypes](array Values) []T {
+	result := make([]T, len(array))
+
+	for i, val := range array {
+		result[i] = ToGo[T](val)
+	}
+
+	return result
+}
+
+func ToGoMap[K supportedComparables, V SupportedTypes](hash Hash) map[K]V {
+	result := map[K]V{}
+
+	keysRaw, err := hash.Keys()
+	if err != nil {
+		panic(err)
+	}
+
+	keys := ToGo[Values](keysRaw)
+
+	for _, rbKey := range keys {
+		key := ToGo[K](rbKey)
+		val, err := hash.Get(rbKey)
+		if err != nil {
+			panic(err)
+		}
+		result[key] = ToGo[V](val)
+	}
+
+	return result
 }
 
 func ToGo[T SupportedTypes](value Value) T {

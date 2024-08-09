@@ -42,6 +42,7 @@ func (h *Hash) Set(key, val Value) error {
 // Keys returns the array of keys that the Hash has. This is returned
 // as an c since this is a Ruby array. You can iterate over it as
 // you see fit.
+// TODO: return Values instead
 func (h *Hash) Keys() (Value, error) {
 	result := C.mrb_hash_keys(h.GRuby().state, h.CValue())
 	return h.GRuby().value(result), nil
