@@ -12,7 +12,7 @@ func TestExceptionString_afterClose(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	_, err := grb.LoadString(`clearly a syntax error`)
 	grb.Close()
 	// This panics before the bug fix that this test tests
@@ -23,7 +23,7 @@ func TestExceptionBacktrace(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	parser := gruby.NewParser(grb)
@@ -66,7 +66,7 @@ func TestValueCall(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	value, err := grb.LoadString(`"foo"`)
@@ -84,7 +84,7 @@ func TestValueCallBlock(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	value, err := grb.LoadString(`"foo"`)
@@ -104,7 +104,7 @@ func TestValueFixnum(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	value, err := grb.LoadString("42")
@@ -116,7 +116,7 @@ func TestValueString(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	value, err := grb.LoadString(`"foo"`)
@@ -128,7 +128,7 @@ func TestValueType(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	cases := []struct {
@@ -219,7 +219,7 @@ func TestIntGValue(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	value := gruby.MustToRuby(grb, 42)
@@ -230,7 +230,7 @@ func TestStringGValue(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	value := gruby.MustToRuby(grb, "foo")
@@ -241,7 +241,7 @@ func TestValueClass(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	val, err := grb.ObjectClass().New()
@@ -253,7 +253,7 @@ func TestValueSingletonClass(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	fn := func(grb *gruby.GRuby, self gruby.Value) (gruby.Value, gruby.Value) {

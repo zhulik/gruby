@@ -38,11 +38,7 @@ func ToGoArray[T SupportedTypes](array Values) ([]T, error) {
 }
 
 func MustToGoArray[T SupportedTypes](array Values) []T {
-	result, err := ToGoArray[T](array)
-	if err != nil {
-		panic(err)
-	}
-	return result
+	return Must(ToGoArray[T](array))
 }
 
 // TODO: Must version
@@ -98,11 +94,7 @@ func ToGo[T SupportedTypes](value Value) (T, error) {
 }
 
 func MustToGo[T SupportedTypes](value Value) T {
-	result, err := ToGo[T](value)
-	if err != nil {
-		panic(err)
-	}
-	return result
+	return Must(ToGo[T](value))
 }
 
 func ToRuby[T SupportedTypes](grb *GRuby, value T) (Value, error) {
@@ -130,9 +122,5 @@ func ToRuby[T SupportedTypes](grb *GRuby, value T) (Value, error) {
 }
 
 func MustToRuby[T SupportedTypes](grb *GRuby, value T) Value {
-	result, err := ToRuby[T](grb, value)
-	if err != nil {
-		panic(err)
-	}
-	return result
+	return Must(ToRuby[T](grb, value))
 }

@@ -11,7 +11,7 @@ func TestHash(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	value, err := grb.LoadString(`{"foo" => "bar", "baz" => false}`)

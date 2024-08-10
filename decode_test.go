@@ -11,7 +11,7 @@ import (
 func TestDecode(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	type structString struct {
@@ -190,7 +190,7 @@ func TestDecodeInterface(t *testing.T) {
 	}
 
 	for _, tcase := range cases {
-		grb := must(gruby.New())
+		grb := gruby.Must(gruby.New())
 		value, err := grb.LoadString(tcase.Input)
 		g.Expect(err).ToNot(HaveOccurred())
 

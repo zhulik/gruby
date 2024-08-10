@@ -10,17 +10,10 @@ import (
 	"github.com/zhulik/gruby"
 )
 
-func must[T any](val T, err error) T {
-	if err != nil {
-		panic(err)
-	}
-	return val
-}
-
 func TestArena(t *testing.T) {
 	t.Parallel()
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	idx := grb.ArenaSave()
@@ -31,7 +24,7 @@ func TestModule(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	module := grb.Module("Kernel")
@@ -42,7 +35,7 @@ func TestClass(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	class := grb.Class("Object", nil)
@@ -57,7 +50,7 @@ func TestConstDefined(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	g.Expect(grb.ConstDefined("Object", grb.ObjectClass())).To(BeTrue())
@@ -70,7 +63,7 @@ func TestDefineClass(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	grb.DefineClass("Hello", grb.ObjectClass())
@@ -86,7 +79,7 @@ func TestDefineClass_methodException(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	callback := func(grb *gruby.GRuby, self gruby.Value) (gruby.Value, gruby.Value) {
@@ -110,7 +103,7 @@ func TestDefineClassUnder(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	// Define an outer
@@ -133,7 +126,7 @@ func TestDefineModule(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	grb.DefineModule("Hello")
@@ -145,7 +138,7 @@ func TestDefineModuleUnder(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	// Define an outer
@@ -168,7 +161,7 @@ func TestFixnumValue(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	value := gruby.MustToRuby(grb, 42)
@@ -179,7 +172,7 @@ func TestFullGC(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	aidx := grb.ArenaSave()
@@ -252,7 +245,7 @@ func TestGetArgs(t *testing.T) {
 					return self, nil
 				}
 
-				grb := must(gruby.New())
+				grb := gruby.Must(gruby.New())
 				defer grb.Close()
 				class := grb.DefineClass("Hello", grb.ObjectClass())
 				class.DefineClassMethod("test", testFunc, gruby.ArgsAny())
@@ -313,7 +306,7 @@ func TestGlobalVariable(t *testing.T) {
 	const (
 		TestValue = "HELLO"
 	)
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 	_, err := grb.LoadString(fmt.Sprintf(`$a = "%s"`, TestValue))
 	g.Expect(err).ToNot(HaveOccurred())
@@ -335,7 +328,7 @@ func TestInstanceVariable(t *testing.T) {
 		GoldenRetriever = "golden retriever"
 		Husky           = "Husky"
 	)
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 	_, err := grb.LoadString(`
 		class Dog
@@ -369,7 +362,7 @@ func TestLoadString(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	value, err := grb.LoadString(`"HELLO"`)
@@ -381,7 +374,7 @@ func TestLoadString_twice(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	value, err := grb.LoadString(`"HELLO"`)
@@ -398,7 +391,7 @@ func TestLoadStringException(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	_, err := grb.LoadString(`raise "An exception"`)
@@ -415,7 +408,7 @@ func TestRaise(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	callback := func(grb *gruby.GRuby, self gruby.Value) (gruby.Value, gruby.Value) {
@@ -433,7 +426,7 @@ func TestYield(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	callback := func(grb *gruby.GRuby, self gruby.Value) (gruby.Value, gruby.Value) {
@@ -454,7 +447,7 @@ func TestYieldException(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	callback := func(grb *gruby.GRuby, self gruby.Value) (gruby.Value, gruby.Value) {
@@ -481,7 +474,7 @@ func TestRun(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	parser := gruby.NewParser(grb)
@@ -552,7 +545,7 @@ func TestDefineMethodConcurrent(t *testing.T) {
 
 	for range concurrency {
 		go func() {
-			grb := must(gruby.New())
+			grb := gruby.Must(gruby.New())
 			defer grb.Close()
 			for i := range numFuncs {
 				grb.TopSelf().SingletonClass().DefineMethod(fmt.Sprintf("test%d", i), callback, gruby.ArgsAny())
@@ -600,7 +593,7 @@ func TestStackedException(t *testing.T) {
 		return nil, err
 	}
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 
 	testClass = grb.DefineClass("TestClass", nil)
 	testClass.DefineMethod("dotest!", doTestFunc, gruby.ArgsReq(0)|gruby.ArgsOpt(3))
@@ -611,7 +604,7 @@ func TestStackedException(t *testing.T) {
 	g.Expect(err).To(HaveOccurred())
 
 	grb.Close()
-	grb = must(gruby.New())
+	grb = gruby.Must(gruby.New())
 
 	evalFunc := func(grb *gruby.GRuby, self gruby.Value) (gruby.Value, gruby.Value) {
 		arg := grb.GetArgs()[0]

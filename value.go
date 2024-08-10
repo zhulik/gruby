@@ -213,11 +213,7 @@ func newExceptionValue(grb *GRuby) *ExceptionError {
 		fileAndLine := strings.Split(backtrace[0], ":")
 		if len(fileAndLine) >= 2 { //nolint:mnd
 			file = fileAndLine[0]
-			var err error
-			line, err = strconv.Atoi(fileAndLine[1])
-			if err != nil {
-				panic(err)
-			}
+			line = Must(strconv.Atoi(fileAndLine[1]))
 		}
 	}
 

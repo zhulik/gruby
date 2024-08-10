@@ -7,7 +7,7 @@ import (
 )
 
 func ExampleGRuby_DefineClass() {
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	// Our custom function we'll expose to Ruby
@@ -32,7 +32,7 @@ func ExampleGRuby_DefineClass() {
 }
 
 func ExampleDecode() {
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	// Our custom function we'll expose to Ruby
@@ -61,7 +61,7 @@ func ExampleDecode() {
 }
 
 func ExampleCompileContext() {
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	ctx1 := gruby.NewCompileContext(grb)

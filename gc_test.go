@@ -11,7 +11,7 @@ func TestEnableDisableGC(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 	defer grb.Close()
 
 	grb.FullGC()
@@ -35,7 +35,7 @@ func TestIsDead(t *testing.T) {
 	t.Parallel()
 	g := NewG(t)
 
-	grb := must(gruby.New())
+	grb := gruby.Must(gruby.New())
 
 	val, err := grb.LoadString("$a = []")
 	g.Expect(err).ToNot(HaveOccurred())

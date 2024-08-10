@@ -13,16 +13,11 @@ import (
 )
 
 func main() {
-	grb, err := gruby.New()
-	if err != nil {
-		panic(err)
-	}
+	grb := gruby.Must(gruby.New())
+
 	defer grb.Close()
 
-	workDir, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
+	workDir := gruby.Must(os.Getwd())
 
 	ctx := gruby.NewCompileContext(grb)
 	ctx.SetFilename(path.Join(workDir, "main.rb"))
