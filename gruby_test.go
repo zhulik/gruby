@@ -171,7 +171,7 @@ func TestFixnumValue(t *testing.T) {
 	grb := must(gruby.New())
 	defer grb.Close()
 
-	value := gruby.ToRuby(grb, 42)
+	value := gruby.MustToRuby(grb, 42)
 	g.Expect(value.Type()).To(Equal(gruby.TypeFixnum))
 }
 
@@ -183,7 +183,7 @@ func TestFullGC(t *testing.T) {
 	defer grb.Close()
 
 	aidx := grb.ArenaSave()
-	value := gruby.ToRuby(grb, "foo")
+	value := gruby.MustToRuby(grb, "foo")
 	g.Expect(value.IsDead()).To(BeFalse())
 
 	grb.ArenaRestore(aidx)
@@ -321,7 +321,7 @@ func TestGlobalVariable(t *testing.T) {
 	value := grb.GetGlobalVariable("$a")
 	g.Expect(value.String()).To(Equal(TestValue))
 
-	grb.SetGlobalVariable("$b", gruby.ToRuby(grb, TestValue))
+	grb.SetGlobalVariable("$b", gruby.MustToRuby(grb, TestValue))
 	value, err = grb.LoadString(`$b`)
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(value.String()).To(Equal(TestValue))
@@ -354,13 +354,13 @@ func TestInstanceVariable(t *testing.T) {
 	dogClass := grb.Class("Dog", nil)
 	g.Expect(dogClass).ToNot(BeNil())
 
-	inst, err := dogClass.New(gruby.ToRuby(grb, GoldenRetriever))
+	inst, err := dogClass.New(gruby.MustToRuby(grb, GoldenRetriever))
 	g.Expect(err).ToNot(HaveOccurred())
 
 	value := inst.GetInstanceVariable("@breed")
 	g.Expect(value.String()).To(Equal(GoldenRetriever))
 
-	inst.SetInstanceVariable("@breed", gruby.ToRuby(grb, Husky))
+	inst.SetInstanceVariable("@breed", gruby.MustToRuby(grb, Husky))
 	value = inst.GetInstanceVariable("@breed")
 	g.Expect(value.String()).To(Equal(Husky))
 }
@@ -437,7 +437,7 @@ func TestYield(t *testing.T) {
 	defer grb.Close()
 
 	callback := func(grb *gruby.GRuby, self gruby.Value) (gruby.Value, gruby.Value) {
-		result, err := grb.Yield(grb.GetArgs()[0], gruby.ToRuby(grb, 12), gruby.ToRuby(grb, 30))
+		result, err := grb.Yield(grb.GetArgs()[0], gruby.MustToRuby(grb, 12), gruby.MustToRuby(grb, 30))
 		g.Expect(err).ToNot(HaveOccurred())
 
 		return result, nil
@@ -574,7 +574,7 @@ func TestStackedException(t *testing.T) {
 	var testClass *gruby.Class
 
 	createException := func(grb *gruby.GRuby, msg string) gruby.Value {
-		val, err := grb.Class("Exception", nil).New(gruby.ToRuby(grb, msg))
+		val, err := grb.Class("Exception", nil).New(gruby.MustToRuby(grb, msg))
 		g.Expect(err).ToNot(HaveOccurred())
 		return val
 	}

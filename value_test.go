@@ -75,7 +75,7 @@ func TestValueCall(t *testing.T) {
 	_, err = value.Call("some_function_that_doesnt_exist")
 	g.Expect(err).To(HaveOccurred())
 
-	result, err := value.Call("==", gruby.ToRuby(grb, "foo"))
+	result, err := value.Call("==", gruby.MustToRuby(grb, "foo"))
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(result.Type()).To(Equal(gruby.TypeTrue))
 }
@@ -93,7 +93,7 @@ func TestValueCallBlock(t *testing.T) {
 	block, err := grb.LoadString(`Proc.new { |_| "bar" }`)
 	g.Expect(err).ToNot(HaveOccurred())
 
-	result, err := value.CallBlock("gsub", gruby.ToRuby(grb, "foo"), block)
+	result, err := value.CallBlock("gsub", gruby.MustToRuby(grb, "foo"), block)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	g.Expect(result.Type()).To(Equal(gruby.TypeString))
@@ -222,7 +222,7 @@ func TestIntGValue(t *testing.T) {
 	grb := must(gruby.New())
 	defer grb.Close()
 
-	value := gruby.ToRuby(grb, 42)
+	value := gruby.MustToRuby(grb, 42)
 	g.Expect(gruby.ToGo[int](value)).To(Equal(42))
 }
 
@@ -233,7 +233,7 @@ func TestStringGValue(t *testing.T) {
 	grb := must(gruby.New())
 	defer grb.Close()
 
-	value := gruby.ToRuby(grb, "foo")
+	value := gruby.MustToRuby(grb, "foo")
 	g.Expect(value.String()).To(Equal("foo"))
 }
 
@@ -258,7 +258,7 @@ func TestValueSingletonClass(t *testing.T) {
 
 	fn := func(grb *gruby.GRuby, self gruby.Value) (gruby.Value, gruby.Value) {
 		args := grb.GetArgs()
-		return gruby.ToRuby(grb, gruby.ToGo[int](args[0])+gruby.ToGo[int](args[1])), nil
+		return gruby.MustToRuby(grb, gruby.ToGo[int](args[0])+gruby.ToGo[int](args[1])), nil
 	}
 
 	grb.TopSelf().SingletonClass().DefineMethod("add", fn, gruby.ArgsReq(2))

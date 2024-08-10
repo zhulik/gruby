@@ -470,10 +470,13 @@ func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error
 
 // decodeStructHashGetter is a decodeStructGetter that reads values from
 // a hash.
-func decodeStructHashGetter(grb *GRuby, h Hash) decodeStructGetter {
+func decodeStructHashGetter(grb *GRuby, hash Hash) decodeStructGetter {
 	return func(key string) (Value, error) {
-		rbKey := ToRuby(grb, key)
-		return h.Get(rbKey), nil
+		rbKey, err := ToRuby(grb, key)
+		if err != nil {
+			return nil, err
+		}
+		return hash.Get(rbKey), nil
 	}
 }
 

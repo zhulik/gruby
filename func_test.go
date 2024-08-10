@@ -12,7 +12,7 @@ import (
 )
 
 func testCallback(grb *gruby.GRuby, self gruby.Value) (gruby.Value, gruby.Value) {
-	return gruby.ToRuby(grb, 42), nil
+	return gruby.MustToRuby(grb, 42), nil
 }
 
 func testCallbackResult(g G, value gruby.Value) {

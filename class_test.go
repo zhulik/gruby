@@ -30,7 +30,7 @@ func TestClassDefineConst(t *testing.T) {
 	defer grb.Close()
 
 	class := grb.DefineClass("Hello", grb.ObjectClass())
-	class.DefineConst("FOO", gruby.ToRuby(grb, "bar"))
+	class.DefineConst("FOO", gruby.MustToRuby(grb, "bar"))
 	value, err := grb.LoadString("Hello::FOO")
 
 	g.Expect(err).ToNot(HaveOccurred())

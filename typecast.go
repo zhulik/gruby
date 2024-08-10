@@ -71,26 +71,34 @@ func ToGo[T SupportedTypes](value Value) T {
 	return result.(T) //nolint:forcetypeassert
 }
 
-func ToRuby[T SupportedTypes](grb *GRuby, value T) Value {
+func ToRuby[T SupportedTypes](grb *GRuby, value T) (Value, error) {
 	val := any(value)
 
 	switch tVal := val.(type) {
 	case bool:
 		if tVal {
-			return grb.TrueValue()
+			return grb.TrueValue(), nil
 		}
-		return grb.FalseValue()
+		return grb.FalseValue(), nil
 	case string:
 		cstr := C.CString(tVal)
 		defer freeStr(cstr)
-		return grb.value(C.mrb_str_new_cstr(grb.state, cstr))
+		return grb.value(C.mrb_str_new_cstr(grb.state, cstr)), nil
 	case int:
-		return grb.value(C.mrb_fixnum_value(C.mrb_int(tVal)))
+		return grb.value(C.mrb_fixnum_value(C.mrb_int(tVal))), nil
 	case float32:
-		return grb.value(C.mrb_float_value(grb.state, C.mrb_float(C.long(tVal))))
+		return grb.value(C.mrb_float_value(grb.state, C.mrb_float(C.long(tVal)))), nil
 	case float64:
-		return grb.value(C.mrb_float_value(grb.state, C.mrb_float(C.long(tVal))))
+		return grb.value(C.mrb_float_value(grb.state, C.mrb_float(C.long(tVal)))), nil
 	}
 
-	panic(fmt.Sprintf("unknown type '%+v'", value))
+	return nil, fmt.Errorf("%w: '%+v'", ErrUnknownType, value)
+}
+
+func MustToRuby[T SupportedTypes](grb *GRuby, value T) Value {
+	result, err := ToRuby[T](grb, value)
+	if err != nil {
+		panic(err)
+	}
+	return result
 }
