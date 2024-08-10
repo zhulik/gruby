@@ -23,7 +23,7 @@ func ExampleGRuby_DefineClass() {
 	// Let's call it and inspect the result
 	result, err := grb.LoadString(`Example.add(12, 30)`)
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 
 	fmt.Printf("Result: %s\n", result.String())
@@ -52,7 +52,7 @@ func ExampleDecode() {
 
 	// Let's call it and inspect the result
 	if _, err := grb.LoadString(`Example.log({"foo" => "bar"})`); err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 
 	fmt.Printf("Result: %v\n", logData)
@@ -76,26 +76,26 @@ func ExampleCompileContext() {
 	defer parser.Close()
 
 	if _, err := parser.Parse("def foo; bar; end", ctx1); err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 	code1 := parser.GenerateCode()
 
 	if _, err := parser.Parse("def bar; 42; end", ctx2); err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 	code2 := parser.GenerateCode()
 
 	if _, err := grb.Run(code1, nil); err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 
 	if _, err := grb.Run(code2, nil); err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 
 	result, err := grb.LoadString("foo")
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 
 	fmt.Printf("Result: %s\n", result)

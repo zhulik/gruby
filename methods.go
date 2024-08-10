@@ -28,16 +28,6 @@ func (s *methodsStore) add(class *C.struct_RClass, name string, callback Func) {
 }
 
 func (s *methodsStore) get(class *C.struct_RClass, name C.mrb_sym) Func {
-	methodTable := s.grb.methods.classes[class]
-	if methodTable == nil {
-		panic("func call on unknown class")
-	}
-
-	// Lookup the method
-	method := methodTable[name]
-	if method == nil {
-		panic("func call on unknown method")
-	}
-
-	return method
+	// the caller _must_ call `add`` before calling `get`, crashes otherwise.
+	return s.grb.methods.classes[class][name]
 }

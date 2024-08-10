@@ -216,7 +216,7 @@ func newExceptionValue(grb *GRuby) *ExceptionError {
 			var err error
 			line, err = strconv.Atoi(fileAndLine[1])
 			if err != nil {
-				panic(err)
+				return nil
 			}
 		}
 	}

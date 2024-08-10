@@ -16,6 +16,7 @@ var (
 	ErrValueMustBePointer = errors.New("result must be a pointer")
 	ErrUnknownType        = errors.New("unknown type")
 	ErrNonStringKeys      = errors.New("keys must be strings")
+	ErrInvalidField       = errors.New("field is not valid")
 )
 
 // Decode converts the Ruby value to a Go value.
@@ -407,7 +408,7 @@ func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error
 	for fieldType, field := range fields {
 		if !field.IsValid() {
 			// This should never happen
-			panic("field is not valid")
+			return ErrInvalidField
 		}
 
 		// If we can't set the field, then it is unexported or something,
