@@ -208,7 +208,7 @@ func (d *decoder) decodeInterface(name string, v Value, result reflect.Value) er
 	return nil
 }
 
-func (d *decoder) decodeMap(name string, v Value, result reflect.Value) error { //nolint:funlen
+func (d *decoder) decodeMap(name string, v Value, result reflect.Value) error {
 	if v.Type() != TypeHash {
 		return fmt.Errorf("%w: name=%s type=%+v", ErrUnknownType, name, v.Type())
 	}
@@ -240,9 +240,8 @@ func (d *decoder) decodeMap(name string, v Value, result reflect.Value) error { 
 	defer grb.ArenaRestore(grb.ArenaSave())
 
 	hash := ToGo[Hash](v)
-	keys := hash.Keys()
 
-	for i, rbKey := range keys {
+	for i, rbKey := range hash.Keys() {
 		rbVal := hash.Get(rbKey)
 
 		// Make the field name
