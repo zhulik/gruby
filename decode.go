@@ -239,13 +239,11 @@ func (d *decoder) decodeMap(name string, v Value, result reflect.Value) error { 
 	grb := v.GRuby()
 	defer grb.ArenaRestore(grb.ArenaSave())
 
-	// Get the hash of the value
 	hash := ToGo[Hash](v)
-	keysRaw, err := hash.Keys()
+	keys, err := hash.Keys()
 	if err != nil {
 		return err
 	}
-	keys := ToGo[Values](keysRaw)
 
 	for i, rbKey := range keys {
 		rbVal, err := hash.Get(rbKey)

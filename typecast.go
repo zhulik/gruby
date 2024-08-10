@@ -35,12 +35,10 @@ func ToGoArray[T SupportedTypes](array Values) []T {
 func ToGoMap[K supportedComparables, V SupportedTypes](hash Hash) map[K]V {
 	result := map[K]V{}
 
-	keysRaw, err := hash.Keys()
+	keys, err := hash.Keys()
 	if err != nil {
 		panic(err)
 	}
-
-	keys := ToGo[Values](keysRaw)
 
 	for _, rbKey := range keys {
 		key := ToGo[K](rbKey)

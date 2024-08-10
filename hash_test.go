@@ -39,18 +39,19 @@ func TestHash(t *testing.T) {
 	g.Expect(value.String()).To(Equal("baz"))
 
 	// Keys
-	value, err = hash.Keys()
+	rbKeys, err := hash.Keys()
+	keys := gruby.ToGoArray[string](rbKeys)
 	g.Expect(err).ToNot(HaveOccurred())
-	g.Expect(value.Type()).To(Equal(gruby.TypeArray))
-	g.Expect(value.String()).To(Equal(`["foo", "baz"]`))
+	g.Expect(keys).To(Equal([]string{"foo", "baz"}))
 
 	// Delete
 	value = hash.Delete(gruby.ToRuby(grb, "foo"))
 	g.Expect(value.String()).To(Equal("baz"))
 
-	value, err = hash.Keys()
+	rbKeys, err = hash.Keys()
+	keys = gruby.ToGoArray[string](rbKeys)
 	g.Expect(err).ToNot(HaveOccurred())
-	g.Expect(value.String()).To(Equal(`["baz"]`))
+	g.Expect(keys).To(Equal([]string{"baz"}))
 
 	// Delete non-existing
 	value = hash.Delete(gruby.ToRuby(grb, "nope"))

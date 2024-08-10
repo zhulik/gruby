@@ -43,7 +43,9 @@ func (h *Hash) Set(key, val Value) error {
 // as an c since this is a Ruby array. You can iterate over it as
 // you see fit.
 // TODO: return Values instead
-func (h *Hash) Keys() (Value, error) {
+func (h *Hash) Keys() (Values, error) {
 	result := C.mrb_hash_keys(h.GRuby().state, h.CValue())
-	return h.GRuby().value(result), nil
+
+	keys := ToGo[Values](h.GRuby().value(result))
+	return keys, nil
 }
