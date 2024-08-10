@@ -109,7 +109,7 @@ func TestValueFixnum(t *testing.T) {
 
 	value, err := grb.LoadString("42")
 	g.Expect(err).ToNot(HaveOccurred())
-	g.Expect(gruby.ToGo[int](value)).To(Equal(42))
+	g.Expect(gruby.MustToGo[int](value)).To(Equal(42))
 }
 
 func TestValueString(t *testing.T) {
@@ -223,7 +223,7 @@ func TestIntGValue(t *testing.T) {
 	defer grb.Close()
 
 	value := gruby.MustToRuby(grb, 42)
-	g.Expect(gruby.ToGo[int](value)).To(Equal(42))
+	g.Expect(gruby.MustToGo[int](value)).To(Equal(42))
 }
 
 func TestStringGValue(t *testing.T) {
@@ -258,7 +258,7 @@ func TestValueSingletonClass(t *testing.T) {
 
 	fn := func(grb *gruby.GRuby, self gruby.Value) (gruby.Value, gruby.Value) {
 		args := grb.GetArgs()
-		return gruby.MustToRuby(grb, gruby.ToGo[int](args[0])+gruby.ToGo[int](args[1])), nil
+		return gruby.MustToRuby(grb, gruby.MustToGo[int](args[0])+gruby.MustToGo[int](args[1])), nil
 	}
 
 	grb.TopSelf().SingletonClass().DefineMethod("add", fn, gruby.ArgsReq(2))

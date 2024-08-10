@@ -22,27 +22,49 @@ type SupportedTypes interface {
 	SupportedComparables | Hash | Values
 }
 
-func ToGoArray[T SupportedTypes](array Values) []T {
+// TODO: Must version
+func ToGoArray[T SupportedTypes](array Values) ([]T, error) {
 	result := make([]T, len(array))
 
 	for i, val := range array {
-		result[i] = ToGo[T](val)
+		gVal, err := ToGo[T](val)
+		if err != nil {
+			return nil, err
+		}
+		result[i] = gVal
 	}
 
+	return result, nil
+}
+
+func MustToGoArray[T SupportedTypes](array Values) []T {
+	result, err := ToGoArray[T](array)
+	if err != nil {
+		panic(err)
+	}
 	return result
 }
 
-func ToGoMap[K SupportedComparables, V SupportedTypes](hash Hash) map[K]V {
+// TODO: Must version
+func ToGoMap[K SupportedComparables, V SupportedTypes](hash Hash) (map[K]V, error) {
 	result := map[K]V{}
 
 	for _, rbKey := range hash.Keys() {
-		result[ToGo[K](rbKey)] = ToGo[V](hash.Get(rbKey))
+		key, err := ToGo[K](rbKey)
+		if err != nil {
+			return nil, err
+		}
+		v, err := ToGo[V](hash.Get(rbKey))
+		if err != nil {
+			return nil, err
+		}
+		result[key] = v
 	}
 
-	return result
+	return result, nil
 }
 
-func ToGo[T SupportedTypes](value Value) T {
+func ToGo[T SupportedTypes](value Value) (T, error) {
 	var empty T
 
 	var result any
@@ -66,9 +88,21 @@ func ToGo[T SupportedTypes](value Value) T {
 			goAry[i] = value.GRuby().value(C.mrb_ary_entry(value.CValue(), C.mrb_int(i)))
 		}
 		result = goAry
+	default:
+		return empty, fmt.Errorf("%w: '%+v'", ErrUnknownType, empty)
 	}
 
-	return result.(T) //nolint:forcetypeassert
+	// We don't check the assertion because the value is created in this exact function,
+	// just make sure it's correct.
+	return result.(T), nil //nolint:forcetypeassert
+}
+
+func MustToGo[T SupportedTypes](value Value) T {
+	result, err := ToGo[T](value)
+	if err != nil {
+		panic(err)
+	}
+	return result
 }
 
 func ToRuby[T SupportedTypes](grb *GRuby, value T) (Value, error) {

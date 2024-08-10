@@ -165,7 +165,7 @@ func (e *ExceptionError) Error() string {
 
 // String returns the "to_s" result of this value.
 func (v *GValue) String() string {
-	return ToGo[string](v)
+	return MustToGo[string](v)
 }
 
 // Class returns the *Class of a value.
@@ -200,7 +200,7 @@ func newExceptionValue(grb *GRuby) *ExceptionError {
 	var backtrace []string
 	grbBacktraceValue := grb.value(C.mrb_exc_backtrace(state, value))
 	if grbBacktraceValue.Type() == TypeArray {
-		grbBacktrace := ToGo[Values](grbBacktraceValue)
+		grbBacktrace := MustToGo[Values](grbBacktraceValue)
 		for _, ln := range grbBacktrace {
 			backtrace = append(backtrace, ln.String())
 		}
@@ -216,7 +216,7 @@ func newExceptionValue(grb *GRuby) *ExceptionError {
 			var err error
 			line, err = strconv.Atoi(fileAndLine[1])
 			if err != nil {
-				return nil
+				panic(err)
 			}
 		}
 	}

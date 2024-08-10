@@ -131,7 +131,11 @@ func (d *decoder) decodeBool(name string, v Value, result reflect.Value) error {
 func (d *decoder) decodeFloat(name string, v Value, result reflect.Value) error {
 	switch typ := v.Type(); typ {
 	case TypeFloat:
-		result.Set(reflect.ValueOf(ToGo[float64](v)))
+		val, err := ToGo[float64](v)
+		if err != nil {
+			return err
+		}
+		result.Set(reflect.ValueOf(val))
 	default:
 		return fmt.Errorf("%w: name=%s type=%+v", ErrUnknownType, name, typ)
 	}
@@ -142,7 +146,11 @@ func (d *decoder) decodeFloat(name string, v Value, result reflect.Value) error 
 func (d *decoder) decodeInt(name string, v Value, result reflect.Value) error {
 	switch typ := v.Type(); typ {
 	case TypeFixnum:
-		result.Set(reflect.ValueOf(ToGo[int](v)))
+		val, err := ToGo[int](v)
+		if err != nil {
+			return err
+		}
+		result.Set(reflect.ValueOf(val))
 	case TypeString:
 		v, err := strconv.ParseInt(v.String(), 0, 0)
 		if err != nil {
@@ -240,7 +248,10 @@ func (d *decoder) decodeMap(name string, v Value, result reflect.Value) error {
 	grb := v.GRuby()
 	defer grb.ArenaRestore(grb.ArenaSave())
 
-	hash := ToGo[Hash](v)
+	hash, err := ToGo[Hash](v)
+	if err != nil {
+		return err
+	}
 
 	for i, rbKey := range hash.Keys() {
 		rbVal := hash.Get(rbKey)
@@ -301,7 +312,10 @@ func (d *decoder) decodeSlice(name string, v Value, result reflect.Value) error 
 	}
 
 	// Get the hash of the value
-	array := ToGo[Values](v)
+	array, err := ToGo[Values](v)
+	if err != nil {
+		return err
+	}
 
 	for i, rbVal := range array {
 		// Make the field name
@@ -324,8 +338,12 @@ func (d *decoder) decodeSlice(name string, v Value, result reflect.Value) error 
 func (d *decoder) decodeString(name string, v Value, result reflect.Value) error {
 	switch typ := v.Type(); typ {
 	case TypeFixnum:
+		val, err := ToGo[int](v)
+		if err != nil {
+			return err
+		}
 		result.Set(reflect.ValueOf(
-			strconv.FormatInt(int64(ToGo[int](v)), 10)).Convert(result.Type()))
+			strconv.FormatInt(int64(val), 10)).Convert(result.Type()))
 	case TypeString:
 		result.Set(reflect.ValueOf(v.String()).Convert(result.Type()))
 	default:
@@ -346,7 +364,11 @@ func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error
 	// Depending on the type, we need to generate a getter
 	switch typ := v.Type(); typ {
 	case TypeHash:
-		get = decodeStructHashGetter(grb, ToGo[Hash](v))
+		val, err := ToGo[Hash](v)
+		if err != nil {
+			return err
+		}
+		get = decodeStructHashGetter(grb, val)
 	case TypeObject:
 		get = decodeStructObjectMethods(grb, v)
 	default:

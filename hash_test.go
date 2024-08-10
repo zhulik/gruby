@@ -17,7 +17,7 @@ func TestHash(t *testing.T) {
 	value, err := grb.LoadString(`{"foo" => "bar", "baz" => false}`)
 	g.Expect(err).ToNot(HaveOccurred())
 
-	hash := gruby.ToGo[gruby.Hash](value)
+	hash := gruby.MustToGo[gruby.Hash](value)
 
 	// Get
 	value = hash.Get(gruby.MustToRuby(grb, "foo"))
@@ -35,7 +35,8 @@ func TestHash(t *testing.T) {
 
 	// Keys
 	rbKeys := hash.Keys()
-	keys := gruby.ToGoArray[string](rbKeys)
+	keys, err := gruby.ToGoArray[string](rbKeys)
+	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(keys).To(Equal([]string{"foo", "baz"}))
 
 	// Delete
@@ -43,7 +44,8 @@ func TestHash(t *testing.T) {
 	g.Expect(value.String()).To(Equal("baz"))
 
 	rbKeys = hash.Keys()
-	keys = gruby.ToGoArray[string](rbKeys)
+	keys, err = gruby.ToGoArray[string](rbKeys)
+	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(keys).To(Equal([]string{"baz"}))
 
 	// Delete non-existing

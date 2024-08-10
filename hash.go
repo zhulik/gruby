@@ -43,5 +43,5 @@ func (h *Hash) Set(key, val Value) {
 func (h *Hash) Keys() Values {
 	keys := C.mrb_hash_keys(h.GRuby().state, h.CValue())
 
-	return ToGo[Values](h.GRuby().value(keys))
+	return MustToGo[Values](h.GRuby().value(keys))
 }

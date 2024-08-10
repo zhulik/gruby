@@ -13,7 +13,7 @@ func ExampleGRuby_DefineClass() {
 	// Our custom function we'll expose to Ruby
 	addFunc := func(grb *gruby.GRuby, self gruby.Value) (gruby.Value, gruby.Value) {
 		args := grb.GetArgs()
-		return gruby.MustToRuby(grb, gruby.ToGo[int](args[0])+gruby.ToGo[int](args[1])), nil
+		return gruby.MustToRuby(grb, gruby.MustToGo[int](args[0])+gruby.MustToGo[int](args[1])), nil
 	}
 
 	// Lets define a custom class and a class method we can call.

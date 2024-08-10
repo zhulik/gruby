@@ -14,7 +14,7 @@ type Class struct {
 
 // String returns the "to_s" result of this value.
 func (c *Class) String() string {
-	return ToGo[string](c)
+	return MustToGo[string](c)
 }
 
 // DefineClassMethod defines a class-level method on the given class.
