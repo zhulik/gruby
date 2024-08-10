@@ -13,8 +13,7 @@ type Hash struct {
 // Delete deletes a key from the hash, returning its existing value,
 // or nil if there wasn't a value.
 func (h *Hash) Delete(key Value) Value {
-	keyVal := key.CValue()
-	result := C.mrb_hash_delete_key(h.GRuby().state, h.CValue(), keyVal)
+	result := C.mrb_hash_delete_key(h.GRuby().state, h.CValue(), key.CValue())
 
 	val := h.GRuby().value(result)
 	if val.Type() == TypeNil {
@@ -25,17 +24,19 @@ func (h *Hash) Delete(key Value) Value {
 }
 
 // Get reads a value from the hash.
-func (h *Hash) Get(key Value) (Value, error) {
-	keyVal := key.CValue()
-	result := C.mrb_hash_get(h.GRuby().state, h.CValue(), keyVal)
-	return h.GRuby().value(result), nil
+func (h *Hash) Get(key Value) Value {
+	result := C.mrb_hash_get(h.GRuby().state, h.CValue(), key.CValue())
+
+	val := h.GRuby().value(result)
+	if val.Type() == TypeNil {
+		return nil
+	}
+	return h.GRuby().value(result)
 }
 
 // Set sets a value on the hash
 func (h *Hash) Set(key, val Value) {
-	keyVal := key.CValue()
-	valVal := val.CValue()
-	C.mrb_hash_set(h.GRuby().state, h.CValue(), keyVal, valVal)
+	C.mrb_hash_set(h.GRuby().state, h.CValue(), key.CValue(), val.CValue())
 }
 
 // Keys returns the array of keys that the Hash has as Values.

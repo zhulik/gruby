@@ -20,20 +20,17 @@ func TestHash(t *testing.T) {
 	hash := gruby.ToGo[gruby.Hash](value)
 
 	// Get
-	value, err = hash.Get(gruby.ToRuby(grb, "foo"))
-	g.Expect(err).ToNot(HaveOccurred())
+	value = hash.Get(gruby.ToRuby(grb, "foo"))
 	g.Expect(value.String()).To(Equal("bar"))
 
 	// Get false type
-	value, err = hash.Get(gruby.ToRuby(grb, "baz"))
-	g.Expect(err).ToNot(HaveOccurred())
+	value = hash.Get(gruby.ToRuby(grb, "baz"))
 	g.Expect(value.Type()).To(Equal(gruby.TypeFalse))
 	g.Expect(value.String()).To(Equal("false"))
 
 	// Set
 	hash.Set(gruby.ToRuby(grb, "foo"), gruby.ToRuby(grb, "baz"))
-	value, err = hash.Get(gruby.ToRuby(grb, "foo"))
-	g.Expect(err).ToNot(HaveOccurred())
+	value = hash.Get(gruby.ToRuby(grb, "foo"))
 	g.Expect(value.String()).To(Equal("baz"))
 
 	// Keys

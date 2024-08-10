@@ -39,10 +39,7 @@ func ToGoMap[K supportedComparables, V SupportedTypes](hash Hash) map[K]V {
 
 	for _, rbKey := range keys {
 		key := ToGo[K](rbKey)
-		val, err := hash.Get(rbKey)
-		if err != nil {
-			panic(err)
-		}
+		val := hash.Get(rbKey)
 		result[key] = ToGo[V](val)
 	}
 

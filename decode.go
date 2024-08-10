@@ -243,10 +243,7 @@ func (d *decoder) decodeMap(name string, v Value, result reflect.Value) error { 
 	keys := hash.Keys()
 
 	for i, rbKey := range keys {
-		rbVal, err := hash.Get(rbKey)
-		if err != nil {
-			return err
-		}
+		rbVal := hash.Get(rbKey)
 
 		// Make the field name
 		fieldName := fmt.Sprintf("%s.<entry %d>", name, i)
@@ -476,7 +473,7 @@ func (d *decoder) decodeStruct(name string, v Value, result reflect.Value) error
 func decodeStructHashGetter(grb *GRuby, h Hash) decodeStructGetter {
 	return func(key string) (Value, error) {
 		rbKey := ToRuby(grb, key)
-		return h.Get(rbKey)
+		return h.Get(rbKey), nil
 	}
 }
 
