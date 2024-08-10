@@ -31,7 +31,7 @@ type GRuby struct {
 
 //export goGetArgAppend
 func goGetArgAppend(state *C.mrb_state, v C.mrb_value) {
-	grb := states.Get(state)
+	grb := states.get(state)
 
 	grb.getArgAccumulator = append(grb.getArgAccumulator, grb.value(v))
 }
@@ -88,7 +88,7 @@ func New(mutators ...Mutator) (*GRuby, error) {
 		}
 	}
 
-	states.Add(grb)
+	states.add(grb)
 
 	return grb, nil
 }
@@ -174,7 +174,7 @@ func (g *GRuby) Module(name string) *Class {
 // Close a Gruby, this must be called to properly free resources, and
 // should only be called once.
 func (g *GRuby) Close() {
-	states.Delete(g)
+	states.delete(g)
 	C.mrb_close(g.state)
 }
 

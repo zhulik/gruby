@@ -17,7 +17,7 @@ type Func func(grb *GRuby, self Value) (Value, Value)
 
 //export goGRBFuncCall
 func goGRBFuncCall(state *C.mrb_state, value C.mrb_value) C.mrb_value {
-	grb := states.Get(state)
+	grb := states.get(state)
 	// Get the call info, which we use to lookup the proc
 	callInfo := state.c.ci
 
