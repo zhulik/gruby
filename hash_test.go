@@ -31,9 +31,7 @@ func TestHash(t *testing.T) {
 	g.Expect(value.String()).To(Equal("false"))
 
 	// Set
-	err = hash.Set(gruby.ToRuby(grb, "foo"), gruby.ToRuby(grb, "baz"))
-	g.Expect(err).ToNot(HaveOccurred())
-
+	hash.Set(gruby.ToRuby(grb, "foo"), gruby.ToRuby(grb, "baz"))
 	value, err = hash.Get(gruby.ToRuby(grb, "foo"))
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(value.String()).To(Equal("baz"))

@@ -32,11 +32,10 @@ func (h *Hash) Get(key Value) (Value, error) {
 }
 
 // Set sets a value on the hash
-func (h *Hash) Set(key, val Value) error {
+func (h *Hash) Set(key, val Value) {
 	keyVal := key.CValue()
 	valVal := val.CValue()
 	C.mrb_hash_set(h.GRuby().state, h.CValue(), keyVal, valVal)
-	return nil
 }
 
 // Keys returns the array of keys that the Hash has as Values.
