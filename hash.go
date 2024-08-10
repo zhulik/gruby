@@ -39,13 +39,9 @@ func (h *Hash) Set(key, val Value) error {
 	return nil
 }
 
-// Keys returns the array of keys that the Hash has. This is returned
-// as an c since this is a Ruby array. You can iterate over it as
-// you see fit.
-// TODO: return Values instead
-func (h *Hash) Keys() (Values, error) {
-	result := C.mrb_hash_keys(h.GRuby().state, h.CValue())
+// Keys returns the array of keys that the Hash has as Values.
+func (h *Hash) Keys() Values {
+	keys := C.mrb_hash_keys(h.GRuby().state, h.CValue())
 
-	keys := ToGo[Values](h.GRuby().value(result))
-	return keys, nil
+	return ToGo[Values](h.GRuby().value(keys))
 }

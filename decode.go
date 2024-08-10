@@ -240,10 +240,7 @@ func (d *decoder) decodeMap(name string, v Value, result reflect.Value) error { 
 	defer grb.ArenaRestore(grb.ArenaSave())
 
 	hash := ToGo[Hash](v)
-	keys, err := hash.Keys()
-	if err != nil {
-		return err
-	}
+	keys := hash.Keys()
 
 	for i, rbKey := range keys {
 		rbVal, err := hash.Get(rbKey)
