@@ -56,6 +56,16 @@ func (c *Class) DefineMethod(name string, cb Func, spec ArgSpec) {
 		C.mrb_aspec(spec))
 }
 
+// Includes module into a class
+func (c *Class) Include(mod *Class) {
+	C.mrb_include_module(c.GRuby().state, c.class, mod.class)
+}
+
+// Extends class with a module
+func (c *Class) Extend(mod *Class) {
+	Must(c.Call("extend", mod))
+}
+
 // New instantiates the class with the given args.
 func (c *Class) New(args ...Value) (Value, error) {
 	var argv []C.mrb_value

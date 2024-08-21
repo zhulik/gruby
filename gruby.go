@@ -80,6 +80,8 @@ func New(mutators ...Mutator) (*GRuby, error) {
 	grb.falseV = grb.value(C.mrb_false_value())
 	grb.nilV = grb.value(C.mrb_nil_value())
 
+	mutators = append(mutators, RegisterDefaultExtensions)
+
 	for _, mutator := range mutators {
 		err := mutator(grb)
 		if err != nil {
