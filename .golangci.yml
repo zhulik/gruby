@@ -6,6 +6,7 @@ linters:
     # Deprecated
     - execinquery
     - gomnd
+    - exportloopref
 
     # Purposely disabled
     - wsl
