@@ -503,7 +503,7 @@ func decodeStructHashGetter(grb *GRuby, hash Hash) decodeStructGetter {
 }
 
 // decodeStructObjectMethods is a decodeStructGetter that reads values from
-// an object by calling methods.
+// an object by calling instanceMethods.
 func decodeStructObjectMethods(_ *GRuby, v Value) decodeStructGetter {
 	return func(key string) (Value, error) {
 		return v.Call(key)

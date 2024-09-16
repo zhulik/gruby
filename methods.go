@@ -29,5 +29,6 @@ func (s *methodsStore) add(class *C.struct_RClass, name string, callback Func) {
 
 func (s *methodsStore) get(class *C.struct_RClass, name C.mrb_sym) Func {
 	// the caller _must_ call `add`` before calling `get`, crashes otherwise.
-	return s.grb.methods.classes[class][name]
+	cls := s.classes[class]
+	return cls[name]
 }

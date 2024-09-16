@@ -112,7 +112,7 @@ func TestDecode(t *testing.T) {
 			structString{Foo: "bar"},
 		},
 
-		// Struct from object with methods
+		// Struct from object with instanceMethods
 		{
 			testDecodeObjectMethods,
 			&outStructString,
