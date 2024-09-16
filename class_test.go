@@ -20,6 +20,11 @@ func TestClassDefineClassMethod(t *testing.T) {
 	g.Expect(err).ToNot(HaveOccurred())
 
 	testCallbackResult(g, value)
+
+	value, err = grb.LoadString("class Bar < Hello; end; Bar.foo")
+	g.Expect(err).ToNot(HaveOccurred())
+
+	testCallbackResult(g, value)
 }
 
 func TestClassDefineConst(t *testing.T) {
@@ -47,6 +52,11 @@ func TestClassDefineMethod(t *testing.T) {
 	class := grb.DefineClass("Hello", grb.ObjectClass())
 	class.DefineMethod("foo", testCallback, gruby.ArgsNone())
 	value, err := grb.LoadString("Hello.new.foo")
+	g.Expect(err).ToNot(HaveOccurred())
+
+	testCallbackResult(g, value)
+
+	value, err = grb.LoadString("class Bar < Hello; end; Bar.new.foo")
 	g.Expect(err).ToNot(HaveOccurred())
 
 	testCallbackResult(g, value)
