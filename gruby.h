@@ -35,15 +35,16 @@
 //-------------------------------------------------------------------
 // Helpers to deal with calling back into Go.
 //-------------------------------------------------------------------
-// This is declard in func.go and is a way for us to call back into
-// Go to execute a method.
-extern mrb_value goGRBFuncCall(mrb_state *, mrb_value);
-
-// This method is used as a way to get a valid mrb_func_t that actually
-// just calls back into Go.
-static inline mrb_func_t _go_mrb_func_t()
+extern mrb_value goGRBInstanceMethodCall(mrb_state *, mrb_value);
+static inline mrb_func_t _go_grb_instance_method_call_t()
 {
-  return &goGRBFuncCall;
+  return &goGRBInstanceMethodCall;
+}
+
+extern mrb_value goGRBClassMethodCall(mrb_state *, mrb_value);
+static inline mrb_func_t _go_grb_class_method_call_t()
+{
+  return &goGRBClassMethodCall;
 }
 
 //-------------------------------------------------------------------

@@ -7,6 +7,13 @@ import (
 	"unsafe"
 )
 
+type MethodType = int
+
+const (
+	MethodTypeInstance = iota
+	MethodTypeClass
+)
+
 // Func is the signature of a function in Go that you use to expose to Ruby
 // code.
 //
@@ -15,8 +22,17 @@ import (
 // The second return value is an exception, if any. This will be raised.
 type Func func(grb *GRuby, self Value) (Value, Value)
 
-//export goGRBFuncCall
-func goGRBFuncCall(state *C.mrb_state, value C.mrb_value) C.mrb_value {
+//export goGRBInstanceMethodCall
+func goGRBInstanceMethodCall(state *C.mrb_state, value C.mrb_value) C.mrb_value {
+	return callMethod(state, value, MethodTypeInstance)
+}
+
+//export goGRBClassMethodCall
+func goGRBClassMethodCall(state *C.mrb_state, value C.mrb_value) C.mrb_value {
+	return callMethod(state, value, MethodTypeClass)
+}
+
+func callMethod(state *C.mrb_state, value C.mrb_value, methodType MethodType) C.mrb_value {
 	grb := states.get(state)
 	// Get the call info, which we use to lookup the proc
 	callInfo := state.c.ci
@@ -24,7 +40,12 @@ func goGRBFuncCall(state *C.mrb_state, value C.mrb_value) C.mrb_value {
 	// Lookup the class itself
 	class := *(**C.struct_RClass)(unsafe.Pointer(&callInfo.u[0]))
 
-	method := grb.methods.get(class, callInfo.mid)
+	var method Func
+	if methodType == MethodTypeInstance {
+		method = grb.instanceMethods.get(class, callInfo.mid)
+	} else {
+		method = grb.classMethods.get(class, callInfo.mid)
+	}
 
 	result, exc := method(grb, grb.value(value))
 

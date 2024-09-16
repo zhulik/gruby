@@ -19,7 +19,7 @@ func (c *Class) String() string {
 
 // DefineClassMethod defines a class-level method on the given class.
 func (c *Class) DefineClassMethod(name string, cb Func, spec ArgSpec) {
-	c.GRuby().insertMethod(c.class.c, name, cb)
+	c.GRuby().insertClassMethod(c.class.c, name, cb)
 
 	cstr := C.CString(name)
 	defer freeStr(cstr)
@@ -28,7 +28,7 @@ func (c *Class) DefineClassMethod(name string, cb Func, spec ArgSpec) {
 		c.GRuby().state,
 		c.class,
 		cstr,
-		C._go_mrb_func_t(),
+		C._go_grb_class_method_call_t(),
 		C.mrb_aspec(spec))
 }
 
@@ -43,7 +43,7 @@ func (c *Class) DefineConst(name string, value Value) {
 // DefineMethod defines an instance method on the class.
 func (c *Class) DefineMethod(name string, cb Func, spec ArgSpec) {
 	grb := c.GRuby()
-	grb.insertMethod(c.class, name, cb)
+	grb.insertInstanceMethod(c.class, name, cb)
 
 	cstr := C.CString(name)
 	defer freeStr(cstr)
@@ -52,7 +52,7 @@ func (c *Class) DefineMethod(name string, cb Func, spec ArgSpec) {
 		grb.state,
 		c.class,
 		cstr,
-		C._go_mrb_func_t(),
+		C._go_grb_instance_method_call_t(),
 		C.mrb_aspec(spec))
 }
 

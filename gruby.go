@@ -22,7 +22,8 @@ type GRuby struct {
 	loadedFiles       map[string]bool
 	getArgAccumulator Values
 
-	methods methodsStore
+	instanceMethods methodsStore
+	classMethods    methodsStore
 
 	trueV  Value
 	falseV Value
@@ -66,7 +67,11 @@ func New(mutators ...Mutator) (*GRuby, error) {
 	grb := &GRuby{
 		state:       C.mrb_open(),
 		loadedFiles: map[string]bool{},
-		methods: methodsStore{
+		instanceMethods: methodsStore{
+			grb:     nil,
+			classes: classMethodMap{},
+		},
+		classMethods: methodsStore{
 			grb:     nil,
 			classes: classMethodMap{},
 		},
@@ -75,7 +80,8 @@ func New(mutators ...Mutator) (*GRuby, error) {
 		falseV:            nil,
 		nilV:              nil,
 	}
-	grb.methods.grb = grb
+	grb.instanceMethods.grb = grb
+	grb.classMethods.grb = grb
 	grb.trueV = grb.value(C.mrb_true_value())
 	grb.falseV = grb.value(C.mrb_false_value())
 	grb.nilV = grb.value(C.mrb_nil_value())
@@ -440,7 +446,7 @@ func (g *GRuby) TrueValue() Value {
 	return g.trueV
 }
 
-// When called from a methods defined in Go, returns current ruby backtrace.
+// When called from a instanceMethods defined in Go, returns current ruby backtrace.
 func (g *GRuby) Backtrace() []string {
 	backtrace := g.value(C.mrb_get_backtrace(g.state))
 	values := MustToGo[Values](backtrace)
@@ -486,8 +492,12 @@ func (g *GRuby) value(v C.mrb_value) Value {
 	}
 }
 
-func (g *GRuby) insertMethod(class *C.struct_RClass, name string, callback Func) {
-	g.methods.add(class, name, callback)
+func (g *GRuby) insertInstanceMethod(class *C.struct_RClass, name string, callback Func) {
+	g.instanceMethods.add(class, name, callback)
+}
+
+func (g *GRuby) insertClassMethod(class *C.struct_RClass, name string, callback Func) {
+	g.classMethods.add(class, name, callback)
 }
 
 func checkException(grb *GRuby) error {
